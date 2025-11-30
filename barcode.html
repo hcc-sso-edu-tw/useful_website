@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Barcode Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f7fa;
+      text-align: center;
+      padding: 50px;
+    }
+
+    h2 {
+      color: #333;
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      font-size: 18px;
+      padding: 10px 15px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: #007BFF;
+    }
+
+    button {
+      font-size: 16px;
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    svg {
+      margin-top: 30px;
+      border: 1px solid #ddd;
+      background-color: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #barcodeText {
+      margin-top: 15px;
+      font-size: 20px;
+      color: #444;
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Barcode Generator</h2>
+  <input type="text" id="inputText" placeholder="Enter text" onchange="generateBarcode()" />
+  <br/>
+  <svg id="barcodeSVG" height="100"></svg>
+  <div id="barcodeText"></div>
+
+  <script>
+    const code39Chars = {
+      '0': '101001101101', '1': '110100101011', '2': '101100101011',
+      '3': '110110010101', '4': '101001101011', '5': '110100110101',
+      '6': '101100110101', '7': '101001011011', '8': '110100101101',
+      '9': '101100101101', 'A': '110101001011', 'B': '101101001011',
+      'C': '110110100101', 'D': '101011001011', 'E': '110101100101',
+      'F': '101101100101', 'G': '101010011011', 'H': '110101001101',
+      'I': '101101001101', 'J': '101011001101', 'K': '110101010011',
+      'L': '101101010011', 'M': '110110101001', 'N': '101011010011',
+      'O': '110101101001', 'P': '101101101001', 'Q': '101010110011',
+      'R': '110101011001', 'S': '101101011001', 'T': '101011011001',
+      'U': '110010101011', 'V': '100110101011', 'W': '110011010101',
+      'X': '100101101011', 'Y': '110010110101', 'Z': '100110110101',
+      '-': '100101011011', '.': '110010101101', ' ': '100110101101',
+      '$': '100100100101', '/': '100100101001', '+': '100101001001',
+      '%': '101001001001', '*': '100101101101' // Start/stop
+    };
+
+    function generateBarcode() {
+      const input = document.getElementById("inputText").value.toUpperCase();
+      const svg = document.getElementById("barcodeSVG");
+      const textDisplay = document.getElementById("barcodeText");
+
+      svg.innerHTML = '';
+      textDisplay.textContent = '';
+
+      // Validate input
+      if (!/^[0-9A-Z\-\.\ \$\/\+\%]*$/.test(input)) {
+        alert("Invalid input. Only Code 39 supported characters are allowed.");
+        return;
+      }
+
+      const fullText = '*' + input + '*';
+      let barcodeBits = '';
+
+      for (const char of fullText) {
+        barcodeBits += code39Chars[char] + '0'; // narrow space between characters
+      }
+
+      const barWidth = 2;
+      const padding = 20;
+      const totalWidth = barcodeBits.length * barWidth + padding;
+      svg.setAttribute("width", totalWidth);
+
+      let x = 10;
+      for (const bit of barcodeBits) {
+        if (bit === '1') {
+          const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          rect.setAttribute("x", x);
+          rect.setAttribute("y", 10);
+          rect.setAttribute("width", barWidth);
+          rect.setAttribute("height", 80);
+          rect.setAttribute("fill", "black");
+          svg.appendChild(rect);
+        }
+        x += barWidth;
+      }
+
+      textDisplay.textContent = input;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Wheel Drawing App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        
+        header {
+            background-color: #f8f9fa;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .app-container {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .toolbar {
+            display: flex;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .tool-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            padding: 0 8px;
+            border-right: 1px solid #e0e0e0;
+        }
+        
+        .tool-group:last-child {
+            border-right: none;
+        }
+        
+        .tool-btn {
+            background: white;
+            border: 1px solid #d0d0d0;
+            border-radius: 5px;
+            padding: 6px 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .tool-btn:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .tool-btn.active {
+            background-color: #4a86e8;
+            color: white;
+            border-color: #3a76d8;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .color-palette {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            max-width: 200px;
+        }
+        
+        .color-btn {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+        
+        .color-btn:hover {
+            transform: scale(1.2);
+        }
+        
+        .color-btn.active {
+            border: 2px solid #333;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .canvas-container {
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+            overflow: auto;
+            position: relative;
+        }
+        
+        #drawingCanvas {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            cursor: crosshair;
+        }
+        
+        .size-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        input[type="range"] {
+            width: 80px;
+            height: 5px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+        
+        .action-btn {
+            background: white;
+            border: 1px solid #d0d0d0;
+            border-radius: 5px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .action-btn:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .action-btn.undo {
+            background-color: #4a86e8;
+            color: white;
+            border: none;
+        }
+        
+        .action-btn.clear {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+        }
+        
+        .action-btn.save {
+            background-color: #28a745;
+            color: white;
+            border: none;
+        }
+        
+        .shape-options {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .shape-row {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .hint {
+            color: #666;
+            font-size: 0.75rem;
+            margin-top: 4px;
+        }
+        
+        .color-wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .color-wheel {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #ff0000 0deg,
+                #ffff00 60deg,
+                #00ff00 120deg,
+                #00ffff 180deg,
+                #0000ff 240deg,
+                #ff00ff 300deg,
+                #ff0000 360deg
+            );
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .color-wheel::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .selected-color {
+            width: 35px;
+            height: 35px;
+            border-radius: 6px;
+            border: 2px solid #333;
+        }
+        
+        .color-preview {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .color-value {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .mouse-coordinates {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Color Wheel Drawing App</h1>
+            <div class="action-buttons">
+                <button class="action-btn undo" id="undoBtn">Undo</button>
+                <button class="action-btn" id="redoBtn">Redo</button>
+                <button class="action-btn clear" id="clearBtn">Clear</button>
+                <button class="action-btn save" id="saveBtn">Save</button>
+            </div>
+        </header>
+        
+        <div class="app-container">
+            <div class="toolbar">
+                <div class="tool-group">
+                    <div class="shape-options">
+                        <div class="shape-row">
+                            <button class="tool-btn active" id="pencilBtn">Pencil</button>
+                            <button class="tool-btn" id="eraserBtn">Eraser</button>
+                        </div>
+                        <div class="shape-row">
+                            <button class="tool-btn" id="lineBtn">Line</button>
+                            <button class="tool-btn" id="rectBtn">Rectangle</button>
+                            <button class="tool-btn" id="circleBtn">Circle</button>
+                        </div>
+                        <div class="shape-row">
+                            <button class="tool-btn" id="triangleBtn">Triangle</button>
+                            <button class="tool-btn" id="starBtn">Star</button>
+                        </div>
+                        <div class="hint">Hold Ctrl for perfect shapes</div>
+                    </div>
+                </div>
+                
+                <div class="tool-group">
+                    <div class="color-wheel-container">
+                        <div class="color-wheel" id="colorWheel"></div>
+                        <div class="color-preview">
+                            <div class="selected-color" id="selectedColor" style="background-color: #000000;"></div>
+                            <div class="color-value" id="colorValue">#000000</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tool-group">
+                    <div class="color-palette">
+                        <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
+                        <div class="color-btn" style="background-color: #FF0000;" data-color="#FF0000"></div>
+                        <div class="color-btn" style="background-color: #FF4500;" data-color="#FF4500"></div>
+                        <div class="color-btn" style="background-color: #FFA500;" data-color="#FFA500"></div>
+                        <div class="color-btn" style="background-color: #FFFF00;" data-color="#FFFF00"></div>
+                        <div class="color-btn" style="background-color: #9ACD32;" data-color="#9ACD32"></div>
+                        <div class="color-btn" style="background-color: #008000;" data-color="#008000"></div>
+                        <div class="color-btn" style="background-color: #00CED1;" data-color="#00CED1"></div>
+                        <div class="color-btn" style="background-color: #0000FF;" data-color="#0000FF"></div>
+                        <div class="color-btn" style="background-color: #4B0082;" data-color="#4B0082"></div>
+                        <div class="color-btn" style="background-color: #9400D3;" data-color="#9400D3"></div>
+                        <div class="color-btn" style="background-color: #FF00FF;" data-color="#FF00FF"></div>
+                        <div class="color-btn" style="background-color: #FF69B4;" data-color="#FF69B4"></div>
+                        <div class="color-btn" style="background-color: #A0522D;" data-color="#A0522D"></div>
+                        <div class="color-btn" style="background-color: #808080;" data-color="#808080"></div>
+                        <div class="color-btn" style="background-color: #FFFFFF; border: 1px solid #ccc;" data-color="#FFFFFF"></div>
+                    </div>
+                </div>
+                
+                <div class="tool-group size-control">
+                    <span>Size:</span>
+                    <input type="range" id="brushSize" min="1" max="150" value="3">
+                    <span id="brushSizeValue">3px</span>
+                </div>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="drawingCanvas" width="700" height="450"></canvas>
+                <div class="mouse-coordinates" id="mouseCoordinates">X: 0, Y: 0</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('drawingCanvas');
+            const ctx = canvas.getContext('2d');
+            const mouseCoordinates = document.getElementById('mouseCoordinates');
+            
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            let currentTool = 'pencil';
+            let currentColor = '#000000';
+            let brushSize = 3;
+            let startX, startY;
+            let snapshot;
+            let drawingHistory = [];
+            let redoStack = [];
+            let isCtrlPressed = false;
+            const MAX_HISTORY = 20;
+            
+            // 初始化画布
+            function initCanvas() {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                saveToHistory(true);
+            }
+            
+            function saveToHistory(skipClearRedo) {
+                if (drawingHistory.length >= MAX_HISTORY) {
+                    drawingHistory.shift();
+                }
+                drawingHistory.push(ctx.getImageData(0, 0, canvas.width, canvas.height));
+                if (!skipClearRedo) {
+                    redoStack = [];
+                }
+            }
+            
+            function undo() {
+                if (drawingHistory.length > 1) {
+                    const currentState = drawingHistory.pop();
+                    redoStack.push(currentState);
+                    const previousState = drawingHistory[drawingHistory.length - 1];
+                    ctx.putImageData(previousState, 0, 0);
+                }
+            }
+            
+            function redo() {
+                if (redoStack.length > 0) {
+                    const state = redoStack.pop();
+                    drawingHistory.push(state);
+                    ctx.putImageData(state, 0, 0);
+                }
+            }
+            
+            function createSnapshot() {
+                snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            }
+            
+            // 工具按钮事件
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const toolMap = {
+                        'pencilBtn': 'pencil',
+                        'eraserBtn': 'eraser',
+                        'lineBtn': 'line',
+                        'rectBtn': 'rectangle',
+                        'circleBtn': 'circle',
+                        'triangleBtn': 'triangle',
+                        'starBtn': 'star'
+                    };
+                    
+                    currentTool = toolMap[this.id];
+                    canvas.style.cursor = 'crosshair';
+                });
+            });
+            
+            // 颜色按钮事件
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    const color = this.getAttribute('data-color');
+                    currentColor = color;
+                    updateSelectedColor(color);
+                });
+            });
+            
+            // 颜色显示更新
+            const selectedColor = document.getElementById('selectedColor');
+            const colorValue = document.getElementById('colorValue');
+            
+            function updateSelectedColor(color) {
+                selectedColor.style.backgroundColor = color;
+                colorValue.textContent = color;
+            }
+            
+            // 修正的颜色轮功能
+            const colorWheel = document.getElementById('colorWheel');
+            colorWheel.addEventListener('click', function(e) {
+                const rect = colorWheel.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                // 获取相对于颜色轮中心的坐标
+                const x = e.clientX - rect.left - centerX;
+                const y = e.clientY - rect.top - centerY;
+                
+                // 计算距离和角度
+                const distance = Math.sqrt(x * x + y * y);
+                const radius = centerX;
+                
+                // 只在颜色环内选择颜色（不在中心白色区域）
+                if (distance > 20 && distance <= radius) {
+                    // 修正角度计算
+                    let angle = Math.atan2(y, x);
+                    angle = angle * 180 / Math.PI;
+                    
+                    // 将角度转换为 0-360 范围，并从顶部开始
+                    let normalizedAngle = (angle + 90 + 360) % 360;
+                    if (normalizedAngle < 0) normalizedAngle += 360;
+                    
+                    // 将角度转换为色相
+                    const hue = normalizedAngle;
+                    
+                    // 将距离转换为饱和度
+                    const saturation = Math.min(100, (distance / radius) * 100);
+                    
+                    // 将HSV转换为RGB
+                    const rgb = hsvToRgb(hue, saturation, 100);
+                    const hexColor = rgbToHex(rgb[0], rgb[1], rgb[2]);
+                    
+                    currentColor = hexColor;
+                    updateSelectedColor(hexColor);
+                    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                }
+            });
+            
+            function hsvToRgb(h, s, v) {
+                h /= 360;
+                s /= 100;
+                v /= 100;
+                
+                let r, g, b;
+                
+                const i = Math.floor(h * 6);
+                const f = h * 6 - i;
+                const p = v * (1 - s);
+                const q = v * (1 - f * s);
+                const t = v * (1 - (1 - f) * s);
+                
+                switch (i % 6) {
+                    case 0: r = v; g = t; b = p; break;
+                    case 1: r = q; g = v; b = p; break;
+                    case 2: r = p; g = v; b = t; break;
+                    case 3: r = p; g = q; b = v; break;
+                    case 4: r = t; g = p; b = v; break;
+                    case 5: r = v; g = p; b = q; break;
+                }
+                
+                return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+            }
+            
+            function rgbToHex(r, g, b) {
+                return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+            }
+            
+            // 画笔大小
+            const brushSizeSlider = document.getElementById('brushSize');
+            const brushSizeValue = document.getElementById('brushSizeValue');
+            brushSizeSlider.addEventListener('input', function() {
+                brushSize = this.value;
+                brushSizeValue.textContent = `${brushSize}px`;
+            });
+            
+            // Ctrl键跟踪
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Control') isCtrlPressed = true;
+            });
+            document.addEventListener('keyup', function(e) {
+                if (e.key === 'Control') isCtrlPressed = false;
+            });
+            
+            // 鼠标坐标
+            function updateMouseCoordinates(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = Math.round(e.clientX - rect.left);
+                const y = Math.round(e.clientY - rect.top);
+                
+                if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
+                    mouseCoordinates.textContent = `X: ${x}, Y: ${y}`;
+                    mouseCoordinates.style.display = 'block';
+                } else {
+                    mouseCoordinates.style.display = 'none';
+                }
+            }
+            
+            // 绘图函数
+            function startDrawing(e) {
+                isDrawing = true;
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+                [startX, startY] = [e.offsetX, e.offsetY];
+                createSnapshot();
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                
+                const currentX = e.offsetX;
+                const currentY = e.offsetY;
+                
+                if (currentTool === 'pencil') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = currentColor;
+                    ctx.lineWidth = brushSize;
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(currentX, currentY);
+                    ctx.stroke();
+                    [lastX, lastY] = [currentX, currentY];
+                } 
+                else if (currentTool === 'eraser') {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.lineWidth = brushSize * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(currentX, currentY);
+                    ctx.stroke();
+                    [lastX, lastY] = [currentX, currentY];
+                }
+                else {
+                    ctx.putImageData(snapshot, 0, 0);
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = currentColor;
+                    ctx.lineWidth = brushSize;
+                    
+                    if (currentTool === 'rectangle') {
+                        const width = currentX - startX;
+                        const height = currentY - startY;
+                        if (isCtrlPressed) {
+                            const size = Math.max(Math.abs(width), Math.abs(height));
+                            ctx.strokeRect(startX, startY, 
+                                width > 0 ? size : -size, 
+                                height > 0 ? size : -size);
+                        } else {
+                            ctx.strokeRect(startX, startY, width, height);
+                        }
+                    }
+                    else if (currentTool === 'circle') {
+                        const radiusX = Math.abs(currentX - startX);
+                        const radiusY = Math.abs(currentY - startY);
+                        if (isCtrlPressed) {
+                            const radius = Math.sqrt(radiusX * radiusX + radiusY * radiusY);
+                            ctx.beginPath();
+                            ctx.arc(startX, startY, radius, 0, Math.PI * 2);
+                            ctx.stroke();
+                        } else {
+                            ctx.beginPath();
+                            ctx.ellipse(startX, startY, radiusX, radiusY, 0, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+                    }
+                    else if (currentTool === 'line') {
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        if (isCtrlPressed) {
+                            const dx = currentX - startX;
+                            const dy = currentY - startY;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            const angle = Math.atan2(dy, dx);
+                            const snappedAngle = Math.round(angle / (Math.PI/4)) * (Math.PI/4);
+                            const snappedX = startX + distance * Math.cos(snappedAngle);
+                            const snappedY = startY + distance * Math.sin(snappedAngle);
+                            ctx.lineTo(snappedX, snappedY);
+                        } else {
+                            ctx.lineTo(currentX, currentY);
+                        }
+                        ctx.stroke();
+                    }
+                    else if (currentTool === 'triangle') {
+                        drawTriangle(startX, startY, currentX, currentY);
+                    }
+                    else if (currentTool === 'star') {
+                        drawStar(startX, startY, currentX, currentY);
+                    }
+                }
+            }
+            
+            // 繪製三角形
+            function drawTriangle(x1, y1, x2, y2) {
+                ctx.beginPath();
+                
+                if (isCtrlPressed) {
+                    // 等邊三角形
+                    const sideLength = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                    const height = sideLength * Math.sqrt(3) / 2;
+                    
+                    ctx.moveTo(x1, y1 - height/2);
+                    ctx.lineTo(x1 - sideLength/2, y1 + height/2);
+                    ctx.lineTo(x1 + sideLength/2, y1 + height/2);
+                } else {
+                    // 普通三角形（從起點到終點的矩形對角線）
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.lineTo(x1 - (x2 - x1), y2);
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+            }
+            
+            // 繪製星星
+            function drawStar(x1, y1, x2, y2) {
+                const outerRadius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                const innerRadius = outerRadius / 2;
+                const spikes = 5;
+                const centerX = x1;
+                const centerY = y1;
+                
+                let rot = Math.PI / 2 * 3;
+                let x = centerX;
+                let y = centerY;
+                const step = Math.PI / spikes;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY - outerRadius);
+                
+                for (let i = 0; i < spikes; i++) {
+                    x = centerX + Math.cos(rot) * outerRadius;
+                    y = centerY + Math.sin(rot) * outerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                    
+                    x = centerX + Math.cos(rot) * innerRadius;
+                    y = centerY + Math.sin(rot) * innerRadius;
+                    ctx.lineTo(x, y);
+                    rot += step;
+                }
+                
+                ctx.closePath();
+                ctx.stroke();
+            }
+            
+            function stopDrawing() {
+                if (!isDrawing) return;
+                isDrawing = false;
+                saveToHistory();
+            }
+
+            // 事件监听
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            canvas.addEventListener('mousemove', updateMouseCoordinates);
+            canvas.addEventListener('mouseenter', updateMouseCoordinates);
+            canvas.addEventListener('mouseleave', function() {
+                mouseCoordinates.style.display = 'none';
+            });
+            
+            document.getElementById('undoBtn').addEventListener('click', undo);
+            document.getElementById('redoBtn').addEventListener('click', redo);
+            
+            document.getElementById('clearBtn').addEventListener('click', function() {
+                if (confirm('Clear canvas?')) {
+                    initCanvas();
+                }
+            });
+            
+            document.getElementById('saveBtn').addEventListener('click', function() {
+                const link = document.createElement('a');
+                link.download = 'drawing.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+
+            initCanvas();
+        });
+    </script>
+</body>
+</html>

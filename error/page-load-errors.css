@@ -1,0 +1,89 @@
+/*
+    This file has a UTF-8 BOM in it so it can be included from a UTF-16 page
+    without specifying an explicit character set. When editing it, please be
+    sure to preserve the BOM (first three bytes of the file, EF BB BF).
+ */
+
+:root {
+    --background-color: rgb(246, 246, 246);
+    --text-color: rgb(133, 133, 133);
+    --link-color: rgb(21, 126, 251);
+    --svg-fill-color: rgb(125, 127, 127);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background-color: rgb(30, 30, 30);
+    }
+}
+
+body {
+    background: var(--background-color);
+    cursor: default;
+    display: -webkit-box;
+    text-align: center;
+    -webkit-box-align: center;
+    -webkit-box-pack: center;
+    -webkit-user-select: none;
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+input {
+    font-size: 13px;
+}
+
+.content-container {
+    min-width: 320px;
+    max-width: 580px;
+    margin: 0 auto;
+    position: relative;
+    width: 50%;
+}
+
+.error-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 34px;
+    margin: 0 auto;
+}
+
+.error-message, .suggestion-prompt {
+    font-size: 13px;
+    line-height: 18px;
+    padding: 0px 24px;
+}
+
+.suggestion-form {
+    display: inline-block;
+    margin: 5px;
+}
+
+.suggestion-form input {
+    margin: 0;
+    min-width: 146px;
+}
+
+.text-container {
+    color: var(--text-color);
+    position: relative;
+    width: 100%;
+    word-wrap: break-word;
+}
+
+.image-container {
+    position: relative;
+    width: 100%;
+}
+
+.hidden {
+    display: none;
+}
+
+svg {
+    margin: 13px 0;
+    fill: var(--svg-fill-color);
+}

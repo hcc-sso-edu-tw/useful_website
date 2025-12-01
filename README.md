@@ -9,5 +9,5 @@
 * [Snake Game](https://hcc-sso-edu-tw.github.io/useful_website/Snake-Game/)
 * [Tetris](https://hcc-sso-edu-tw.github.io/useful_website/Tetris/)
 * [2048](https://hcc-sso-edu-tw.github.io/useful_website/2048/)
-* [Tower Blocks](https://hcc-sso-edu-tw.github.io/useful_website/TowerBlocks/)
+* [Tower Blocks](https://hcc-sso-edu-tw.github.io/useful_website/Tower-Blocks/)
 * [Breakout](https://hcc-sso-edu-tw.github.io/useful_website/Breakout/)

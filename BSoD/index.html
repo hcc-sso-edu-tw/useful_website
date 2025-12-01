@@ -35,22 +35,19 @@
 
   <script src="js/bsod.js"></script>
 
-  <script type="text/javascript">
-    let progressValue = 100; // 起始數值，你要從幾% 開始倒數就改這裡
-  
-    function update_progress() {
-      // 更新畫面
-      document.getElementById('progress').innerHTML = progressValue;
-  
-      // 如果還沒倒到 0，就繼續倒數
-      if (progressValue > 0) {
-        progressValue--;              // 每次減 1%
-        setTimeout(update_progress, 1000); // 每 1 秒更新一次
+  <script type="text/javascript">function update_progress() {
+
+    $.ajax(
+      {
+        url: "https://api.amanoteam.com/getpercentage/",
       }
-    }
-  
-    update_progress();
-  </script>
+    ).done(function(data) {
+      document.getElementById('progress').innerHTML = data;
+    });
+    setTimeout(update_progress, 10000);
+}
+
+update_progress();</script>
 
 
 </html>

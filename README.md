@@ -8,3 +8,4 @@
 * [T-rex Game](https://hcc-sso-edu-tw.github.io/useful_website/t-rex-runner/)
 * [Snake Game](https://hcc-sso-edu-tw.github.io/useful_website/Snake-Game/)
 * [Tetris](https://hcc-sso-edu-tw.github.io/useful_website/Tetris/)
+* [2048](https://hcc-sso-edu-tw.github.io/useful_website/2048/)

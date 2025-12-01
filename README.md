@@ -4,3 +4,4 @@
 * [Error Page](https://hcc-sso-edu-tw.github.io/useful_website/error/ErrorPage.html)
 * [T-rex Game](https://hcc-sso-edu-tw.github.io/useful_website/t-rex-runner/)
 * [BSoD](https://hcc-sso-edu-tw.github.io/useful_website/BSoD/)
+* [Snake Game](https://hcc-sso-edu-tw.github.io/useful_website/Snake-Game/)

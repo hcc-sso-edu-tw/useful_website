@@ -12,4 +12,3 @@
 * [Tower Blocks](https://hcc-sso-edu-tw.github.io/useful_website/Tower-Blocks/)
 * [Breakout](https://hcc-sso-edu-tw.github.io/useful_website/Breakout/)
 * [Super Mario 64](https://hcc-sso-edu-tw.github.io/useful_website/supermario64.html)
-* [Super Mario RPG](https://hcc-sso-edu-tw.github.io/useful_website/supermariorpg.html)

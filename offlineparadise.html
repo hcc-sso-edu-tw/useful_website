@@ -39,7 +39,54 @@
                 height: 100%;
                 object-fit: contain;
             }
-        </style>
+        
+/* MOBILE CONTROLS FIXED */
+#touch-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  height: 240px;
+  pointer-events: none;
+  z-index: 9999;
+}
+#touch-controls .btn {
+  pointer-events: auto;
+  width: 64px;
+  height: 64px;
+  background: rgba(255,255,255,0.18);
+  border: 3px solid rgba(255,255,255,0.4);
+  border-radius: 50%;
+  touch-action: none;
+  transform: none !important;
+}
+#touch-controls .dpad {
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  width: 150px;
+  height: 150px;
+  display: grid;
+  grid-template-columns: 50px 50px 50px;
+  grid-template-rows: 50px 50px 50px;
+  pointer-events: auto;
+}
+.dpad .up    { grid-column: 2; grid-row: 1; }
+.dpad .left  { grid-column: 1; grid-row: 2; }
+.dpad .right { grid-column: 3; grid-row: 2; }
+.dpad .down  { grid-column: 2; grid-row: 3; }
+
+#touch-controls .buttons {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  pointer-events: auto;
+}
+
+</style>
         <canvas width="1920" height="1080" style="-webkit-user-select: none; user-select: none; overscroll: none; overflow: hidden; border: none; margin: none; padding: none;"></canvas>
         <div class="overlay">Generating assets...</div>
         <script>
@@ -2378,6 +2425,72 @@
                 cb.play();
                 await h.wb(new Zb(0));
             });
-        </script>
-    </body>
+        
+// TOUCH FIXED
+document.querySelectorAll('#touch-controls .btn').forEach(btn=>{
+  const code=parseInt(btn.dataset.key);
+  btn.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    const m=ha[code];
+    if(m){ u[m]=t[m]; t[m]=true; }
+  });
+  btn.addEventListener('touchend',e=>{
+    e.preventDefault();
+    const m=ha[code];
+    if(m){ u[m]=t[m]; t[m]=false; }
+  });
+});
+
+</script>
+    
+<div id="touch-controls">
+  <div class="dpad">
+    <button class="btn up" data-key="38"></button>
+    <button class="btn left" data-key="37"></button>
+    <button class="btn right" data-key="39"></button>
+    <button class="btn down" data-key="40"></button>
+  </div>
+  <div class="buttons">
+    <button class="btn a" data-key="32">A</button>
+    <button class="btn b" data-key="90">B</button>
+  </div>
+</div>
+
+
+<script>
+    (function() {
+        var touchMoved = false;
+        document.addEventListener('touchstart', function(e) {
+            touchMoved = false;
+        }, {passive: true}); // Use passive listener for better scroll performance
+
+        document.addEventListener('touchmove', function(e) {
+            touchMoved = true;
+        }, {passive: true});
+
+        document.addEventListener('touchend', function(e) {
+            if (!touchMoved) {
+                var target = e.target;
+                // Dispatch a click event immediately
+                var clickEvent = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true
+                });
+                target.dispatchEvent(clickEvent);
+            }
+            // Prevent default touch event behavior if it was a tap to avoid double-firing
+            // or browser default actions like zooming, but this might interfere with other elements.
+            // Consider removing e.preventDefault() if it causes unintended side effects.
+            // e.preventDefault();
+        }, {passive: false}); // passive: false because we might call preventDefault (though currently commented out)
+
+        // Optional: Ensure interactive elements have cursor: pointer style for better UX
+        document.querySelectorAll('button, a, input[type="button"], [onclick], [ontouchstart]').forEach(function(el) {
+            el.style.cursor = 'pointer';
+        });
+
+    })();
+</script>
+</body>
 </html>

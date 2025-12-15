@@ -16,3 +16,6 @@
 * [Drive Mad](https://hcc-sso-edu-tw.github.io/useful_website/drivemad/drivemad.html)
 * [Raining Boxes](https://hcc-sso-edu-tw.github.io/useful_website/itsrainingboxes.html)
 * [Bloxorz](https://hcc-sso-edu-tw.github.io/useful_website/bloxorz.html)
+* [Minecraft 1](https://hcc-sso-edu-tw.github.io/useful_website/181.html)
+* [Minecraft 2](https://hcc-sso-edu-tw.github.io/useful_website/182.html)
+* [Minecraft 3](https://hcc-sso-edu-tw.github.io/useful_website/183.html)

@@ -3,6 +3,7 @@
 * [Barecode Generator](https://hcc-sso-edu-tw.github.io/useful_website/barecode.html)
 * [Error Page](https://hcc-sso-edu-tw.github.io/useful_website/error/ErrorPage.html)
 * [BSoD](https://hcc-sso-edu-tw.github.io/useful_website/BSoD/)
+* [Sounds Board](https://hcc-sso-edu-tw.github.io/useful_website/179.html/)
   
 # Games
 * [T-rex Game](https://hcc-sso-edu-tw.github.io/useful_website/t-rex-runner/)

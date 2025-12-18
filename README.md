@@ -20,3 +20,4 @@
 * [Minecraft 1](https://hcc-sso-edu-tw.github.io/useful_website/181.html)
 * [Minecraft 2](https://hcc-sso-edu-tw.github.io/useful_website/182.html)
 * [Minecraft 3](https://hcc-sso-edu-tw.github.io/useful_website/183.html)
+* [Zombies](https://hcc-sso-edu-tw.github.io/useful_website/232.html)

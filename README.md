@@ -16,6 +16,8 @@
 * [Offline Paradise](https://hcc-sso-edu-tw.github.io/useful_website/offlineparadise.html)
 * [Drive Mad 1](https://hcc-sso-edu-tw.github.io/useful_website/drivemad/drivemad.html)
 * [Drive Mad 2](https://hcc-sso-edu-tw.github.io/useful_website/35.html)
+* [Drive Mad 3](https://hcc-sso-edu-tw.github.io/useful_website/36.html)
+* [Drive Mad 4](https://hcc-sso-edu-tw.github.io/useful_website/37.html)
 * [Raining Boxes](https://hcc-sso-edu-tw.github.io/useful_website/itsrainingboxes.html)
 * [Bloxorz](https://hcc-sso-edu-tw.github.io/useful_website/bloxorz.html)
 * [Minecraft 1](https://hcc-sso-edu-tw.github.io/useful_website/181.html)

@@ -4,7 +4,6 @@
 * [Error Page](https://hcc-sso-edu-tw.github.io/useful_website/error/ErrorPage.html)
 * [BSoD](https://hcc-sso-edu-tw.github.io/useful_website/BSoD)
 * [Sounds Board](https://hcc-sso-edu-tw.github.io/useful_website/179.html)
-* [Html & Python editor](https://hcc-sso-edu-tw.github.io/useful_website/429.html)
   
 # Games
 * [T-rex Game](https://hcc-sso-edu-tw.github.io/useful_website/t-rex-runner/)
@@ -17,8 +16,7 @@
 * [Offline Paradise](https://hcc-sso-edu-tw.github.io/useful_website/offlineparadise.html)
 * [Drive Mad 1](https://hcc-sso-edu-tw.github.io/useful_website/drivemad/drivemad.html)
 * [Drive Mad 2](https://hcc-sso-edu-tw.github.io/useful_website/35.html)
-* [Drive Mad 3](https://hcc-sso-edu-tw.github.io/useful_website/36.html)
-* [Drive Mad 4](https://hcc-sso-edu-tw.github.io/useful_website/37.html)
+* [Drive Mad 3](https://hcc-sso-edu-tw.github.io/useful_website/37.html)
 * [Raining Boxes](https://hcc-sso-edu-tw.github.io/useful_website/itsrainingboxes.html)
 * [Bloxorz](https://hcc-sso-edu-tw.github.io/useful_website/bloxorz.html)
 * [Minecraft 1](https://hcc-sso-edu-tw.github.io/useful_website/181.html)
@@ -29,3 +27,4 @@
 * [They are COMING!!!](https://hcc-sso-edu-tw.github.io/useful_website/348.html)
 * [Pokemon (red)](https://hcc-sso-edu-tw.github.io/useful_website/505.html)
 * [Balls](https://hcc-sso-edu-tw.github.io/useful_website/431.html)
+* [Cut the Rope](https://hcc-sso-edu-tw.github.io/useful_website/85.html)

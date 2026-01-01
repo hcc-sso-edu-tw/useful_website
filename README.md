@@ -28,3 +28,4 @@
 * [Pokemon (red)](https://hcc-sso-edu-tw.github.io/useful_website/505.html)
 * [Balls](https://hcc-sso-edu-tw.github.io/useful_website/431.html)
 * [Cut the Rope](https://hcc-sso-edu-tw.github.io/useful_website/85.html)
+* [Idle breakout](https://hcc-sso-edu-tw.github.io/useful_website/362.html)

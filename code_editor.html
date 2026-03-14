@@ -1,307 +1,163 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Python IDE (Stable)</title>
+<title>Python IDE Stable Input</title>
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-
-body{
-margin:0;
-background:#1e1e1e;
-color:white;
-font-family:Arial;
-}
-
-#container{
-display:flex;
-height:100vh;
-}
-
-#sidebar{
-width:200px;
-background:#252526;
-padding:10px;
-}
-
-.file{
-padding:6px;
-border-radius:4px;
-cursor:pointer;
-}
-
-.file:hover{background:#333}
-.file.active{background:#444}
-
-button{
-background:#007acc;
-border:none;
-color:white;
-padding:6px;
-margin-top:6px;
-border-radius:4px;
-cursor:pointer;
-}
-
-#editor-area{
-flex:1;
-display:flex;
-flex-direction:column;
-}
-
-#topbar{
-background:#333;
-padding:8px;
-}
-
-.CodeMirror{
-flex:1;
-}
-
-#terminal{
-height:200px;
-background:#111;
-overflow:auto;
-padding:10px;
-font-family:monospace;
-border-top:1px solid #444;
-white-space:pre-wrap;
-}
-
-#input{
-width:100%;
-background:#000;
-color:white;
-border:none;
-padding:6px;
-font-family:monospace;
-outline:none;
-}
-
+body{margin:0;background:#1e1e1e;color:white;font-family:Arial}
+#container{display:flex;height:100vh}
+#sidebar{width:200px;background:#252526;padding:10px}
+.file{padding:6px;cursor:pointer;border-radius:4px}
+.file:hover{background:#333}.file.active{background:#444}
+button{background:#007acc;border:none;color:white;padding:6px;margin-top:6px;border-radius:4px;cursor:pointer}
+#editor-area{flex:1;display:flex;flex-direction:column}
+#topbar{background:#333;padding:8px;display:flex;gap:10px;align-items:center}
+.CodeMirror{flex:1}
+#terminal{height:200px;background:#111;overflow:auto;padding:10px;font-family:monospace;border-top:1px solid #444;white-space:pre-wrap}
+#input{width:100%;background:#000;color:white;border:none;padding:6px;font-family:monospace;outline:none}
 </style>
-
 </head>
-
 <body>
-
 <div id="container">
-
 <div id="sidebar">
-
 <h3>Files</h3>
-
 <div id="files"></div>
-
-<button onclick="newFile()">New File</button> <button onclick="deleteFile()">Delete</button>
-
+<button onclick="newFile()">New File</button>
+<button onclick="deleteFile()">Delete</button>
+<button onclick="downloadZip()">Download Zip</button>
 </div>
 
 <div id="editor-area">
-
 <div id="topbar">
-
-<button onclick="runCode()">Run ▶</button> <button onclick="clearTerminal()">Clear</button>
-
+<button onclick="runCode()">Run ▶</button>
+<button onclick="clearTerminal()">Clear</button>
 </div>
 
 <textarea id="editor"></textarea>
-
 <div id="terminal"></div>
-
 <input id="input" placeholder="type input then press Enter">
-
 </div>
-
 </div>
 
 <script>
-
-let editor = CodeMirror.fromTextArea(
-document.getElementById("editor"),
-{
-mode:"python",
-theme:"dracula",
-lineNumbers:true
-}
-)
-
-let pyodide
-
-let inputQueue=[]
+let editor = CodeMirror.fromTextArea(document.getElementById("editor"),{mode:"python",theme:"dracula",lineNumbers:true});
+let pyodide;
+let files={};
+let currentFile=null;
 
 function writeTerminal(text){
-
-let t=document.getElementById("terminal")
-
-t.textContent+=text
-
-t.scrollTop=t.scrollHeight
-
+  let t=document.getElementById("terminal");
+  t.textContent+=text;
+  t.scrollTop=t.scrollHeight;
 }
+
+function clearTerminal(){document.getElementById("terminal").textContent="";}
 
 async function init(){
-
-pyodide = await loadPyodide()
-
-pyodide.setStdout({
-batched:(text)=>{
-writeTerminal(text + "\n")
-}
-})
-
-pyodide.setStdin({
-
-stdin:()=>{
-if(inputQueue.length===0){
-throw new Error("Waiting for input")
-}
-return inputQueue.shift()
+  pyodide = await loadPyodide();
+  writeTerminal("Python Ready\n");
 }
 
-})
+init();
 
-}
+document.getElementById("input").addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    let val = e.target.value+"\n";
+    inputQueue.push(val);
+    writeTerminal("> "+val);
+    e.target.value="";
+  }
+});
 
-init()
-
-document.getElementById("input")
-.addEventListener("keydown",(e)=>{
-
-if(e.key==="Enter"){
-
-let val=e.target.value
-
-writeTerminal("> "+val+"\n")
-
-inputQueue.push(val)
-
-e.target.value=""
-
-}
-
-})
-
-function clearTerminal(){
-
-document.getElementById("terminal").textContent=""
-
-}
+let inputQueue=[];
 
 async function runCode(){
+  clearTerminal();
+  files[currentFile]=editor.getValue();
 
-clearTerminal()
+  // 寫入 Pyodide filesystem
+  for(let f in files){
+    pyodide.FS.writeFile(f,files[f]);
+  }
 
-files[currentFile]=editor.getValue()
-
-for(let f in files){
-
-pyodide.FS.writeFile(f,files[f])
-
+  try{
+    await pyodide.runPythonAsync(editor.getValue(),{
+      stdin:()=>{
+        if(inputQueue.length===0) throw new Error("Input needed");
+        return inputQueue.shift();
+      }
+    });
+  }catch(err){
+    if(!err.message.includes("Input needed")) writeTerminal(err+"\n");
+  }
 }
 
-try{
-
-await pyodide.runPythonAsync(editor.getValue())
-
-}catch(err){
-
-if(!err.message.includes("Waiting for input")){
-writeTerminal(err)
-}
-
-}
-
-}
-
-let files={}
-let currentFile=null
-
+// --- File management ---
 function refreshFiles(){
-
-let c=document.getElementById("files")
-
-c.innerHTML=""
-
-for(let name in files){
-
-let div=document.createElement("div")
-
-div.textContent=name
-
-div.className="file"+(name===currentFile?" active":"")
-
-div.onclick=()=>switchFile(name)
-
-c.appendChild(div)
-
-}
-
+  let c=document.getElementById("files");
+  c.innerHTML="";
+  for(let name in files){
+    let div=document.createElement("div");
+    div.textContent=name;
+    div.className="file"+(name===currentFile?" active":"");
+    div.onclick=()=>switchFile(name);
+    c.appendChild(div);
+  }
 }
 
 function switchFile(name){
-
-files[currentFile]=editor.getValue()
-
-currentFile=name
-
-editor.setValue(files[name])
-
-refreshFiles()
-
+  files[currentFile]=editor.getValue();
+  currentFile=name;
+  editor.setValue(files[name]);
+  refreshFiles();
 }
 
 function newFile(){
-
-let name=prompt("File name","main.py")
-
-if(!name)return
-
-files[name]=""
-
-currentFile=name
-
-editor.setValue("")
-
-refreshFiles()
-
+  let name=prompt("File name","main.py");
+  if(!name) return;
+  files[name]="";
+  currentFile=name;
+  editor.setValue("");
+  refreshFiles();
 }
 
 function deleteFile(){
-
-delete files[currentFile]
-
-let k=Object.keys(files)
-
-currentFile=k[0]
-
-editor.setValue(files[currentFile]||"")
-
-refreshFiles()
-
+  delete files[currentFile];
+  let keys=Object.keys(files);
+  currentFile=keys[0]||null;
+  editor.setValue(currentFile?files[currentFile]:"");
+  refreshFiles();
 }
 
-files["main.py"]="name=input('Name: ')\nprint('Hello',name)\nage=input('Age: ')\nprint(age)"
+function downloadZip(){
+  files[currentFile]=editor.getValue();
+  let zip=new JSZip();
+  for(let f in files) zip.file(f,files[f]);
+  zip.generateAsync({type:"blob"}).then(content=>{
+    let a=document.createElement("a");
+    a.href=URL.createObjectURL(content);
+    a.download="python_project.zip";
+    a.click();
+  });
+}
 
-currentFile="main.py"
-
-editor.setValue(files[currentFile])
-
-refreshFiles()
+// --- Initialize default file ---
+files["main.py"]="name=input('Name: ')\nprint('Hello',name)\nage=input('Age: ')\nprint('Age:',age)";
+files["utils.py"]="def hello():\n    print('Hello from utils')";
+currentFile="main.py";
+editor.setValue(files[currentFile]);
+refreshFiles();
 
 </script>
-
 </body>
 </html>

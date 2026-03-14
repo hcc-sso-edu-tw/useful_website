@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Python IDE Full Autocomplete</title>
+
+<!-- CodeMirror -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/python-hint.min.js"></script>
+
+<!-- Pyodide -->
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+
+<!-- JSZip -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+body { margin:0; font-family:Arial; background:#1e1e1e; color:white; }
+#container { display:flex; height:100vh; }
+#filetree { width:200px; background:#2d2d2d; padding:10px; display:flex; flex-direction:column; }
+#filetree h3 { margin-top:0; margin-bottom:10px; font-size:16px; }
+.file-item { cursor:pointer; padding:5px; border-radius:3px; margin-bottom:3px; }
+.file-item.active { background:#444; }
+#filetree button { margin-top:5px; padding:5px; font-size:14px; background:#007acc; border:none; color:white; border-radius:4px; cursor:pointer; }
+#filetree button:hover { background:#0098ff; }
+#editor-container { flex:1; display:flex; flex-direction:column; }
+#topbar { background:#333; padding:8px; display:flex; align-items:center; gap:10px; }
+#topbar button { padding:6px 12px; font-size:14px; border-radius:4px; border:none; background:#007acc; color:white; cursor:pointer; }
+#topbar button:hover { background:#0098ff; }
+#status { margin-left:auto; font-size:13px; opacity:0.8; }
+.CodeMirror{ flex:1; border-top:1px solid #444; }
+#output { height:150px; overflow:auto; background:#111; padding:10px; font-family:monospace; border-top:1px solid #444; white-space:pre-wrap; }
+</style>
+
+</head>
+<body>
+<div id="container">
+
+<div id="filetree">
+<h3>Files</h3>
+<div id="files"></div>
+<button onclick="addFile()">+ New File</button>
+<button onclick="deleteFile()">- Delete File</button>
+<button onclick="downloadProject()">Download Zip</button>
+</div>
+
+<div id="editor-container">
+<div id="topbar">
+<button onclick="runCode()">Run ▶</button>
+<button onclick="saveCode()">Save</button>
+<button onclick="loadCode()">Load</button>
+<button onclick="clearOutput()">Clear</button>
+<div id="status">Loading Python...</div>
+</div>
+<textarea id="editor"></textarea>
+<div id="output"></div>
+</div>
+
+<script>
+// --- 全字詞清單 (保留字 + 內建函數 + 常用標準模組)
+const pythonKeywords = [
+"False","None","True","and","as","assert","async","await","break","class","continue","def","del","elif","else","except",
+"finally","for","from","global","if","import","in","is","lambda","nonlocal","not","or","pass","raise","return","try","while","with","yield",
+"abs","all","any","ascii","bin","bool","bytearray","bytes","callable","chr","classmethod","compile","complex","delattr","dict","dir","divmod",
+"enumerate","eval","exec","filter","float","format","frozenset","getattr","globals","hasattr","hash","help","hex","id","input","int",
+"isinstance","issubclass","iter","len","list","locals","map","max","memoryview","min","next","object","oct","open","ord","pow","print",
+"property","range","repr","reversed","round","set","setattr","slice","sorted","staticmethod","str","sum","super","tuple","type","vars","zip",
+"__import__","math","os","sys","json","random","time","datetime","re","collections","itertools","functools","operator","pathlib","shutil"
+];
+
+// --- Editor ---
+let editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
+    mode:"python",
+    theme:"dracula",
+    lineNumbers:true,
+    indentUnit:4,
+    tabSize:4,
+    indentWithTabs:false,
+    autofocus:true,
+    extraKeys: {"Tab": function(cm){ cm.showHint({completeSingle:true}); }}
+});
+
+// 自定義補全
+CodeMirror.registerHelper("hint", "python", function(cm){
+    const cur = cm.getCursor();
+    const token = cm.getTokenAt(cur);
+    const start = token.start;
+    const end = cur.ch;
+    const word = token.string.slice(0,end-start);
+
+    const code = cm.getValue();
+    const localNames = Array.from(new Set([...code.match(/\b\w+\b/g) || []]));
+
+    const list = pythonKeywords.concat(localNames).filter(k=>k.startsWith(word));
+    if(list.length===0) return;
+    return {list:list, from:CodeMirror.Pos(cur.line,start), to:CodeMirror.Pos(cur.line,end)};
+});
+
+// 每次輸入字母自動彈出
+editor.on("inputRead", function(cm, change){
+    if(change.text[0].match(/[A-Za-z_]/)) cm.showHint({completeSingle:false});
+});
+
+// --- Pyodide ---
+let pyodide = null;
+async function initPython(){
+    document.getElementById("status").textContent="Loading Python runtime...";
+    pyodide = await loadPyodide();
+    pyodide.setStdout({ batched: (text)=>{ document.getElementById("output").textContent += text + "\n"; }});
+    document.getElementById("status").textContent="Python Ready";
+}
+initPython();
+
+// --- File Management ---
+let files = {};
+let currentFile = null;
+
+function refreshFileList(){
+    let container = document.getElementById("files");
+    container.innerHTML="";
+    for(let name in files){
+        let div = document.createElement("div");
+        div.textContent=name;
+        div.className="file-item" + (name===currentFile?" active":"");
+        div.onclick = ()=>{ switchFile(name); };
+        container.appendChild(div);
+    }
+}
+
+function addFile(){
+    let fname = prompt("New file name:", "main.py");
+    if(!fname) return;
+    if(files[fname]) { alert("File exists"); return; }
+    files[fname]="";
+    currentFile=fname;
+    editor.setValue("");
+    refreshFileList();
+}
+
+function deleteFile(){
+    if(!currentFile) return;
+    if(!confirm(`Delete ${currentFile}?`)) return;
+    delete files[currentFile];
+    let keys=Object.keys(files);
+    currentFile=keys.length?keys[0]:null;
+    editor.setValue(currentFile?files[currentFile]:"");
+    refreshFileList();
+}
+
+function switchFile(name){
+    if(currentFile) files[currentFile]=editor.getValue();
+    currentFile=name;
+    editor.setValue(files[name]);
+    refreshFileList();
+}
+
+// --- Code Operations ---
+async function runCode(){
+    if(!pyodide){ alert("Python still loading..."); return; }
+    let output=document.getElementById("output");
+    output.textContent="";
+    if(currentFile) files[currentFile]=editor.getValue();
+    try{ await pyodide.runPythonAsync(editor.getValue()); }
+    catch(err){ output.textContent+=err; }
+}
+
+function saveCode(){
+    if(currentFile) files[currentFile]=editor.getValue();
+    localStorage.setItem("project_files", JSON.stringify(files));
+    document.getElementById("status").textContent="Saved";
+    setTimeout(()=>{ document.getElementById("status").textContent="Python Ready"; },1500);
+}
+
+function loadCode(){
+    let data=localStorage.getItem("project_files");
+    if(data){
+        files=JSON.parse(data);
+        let keys=Object.keys(files);
+        currentFile=keys.length?keys[0]:null;
+        editor.setValue(currentFile?files[currentFile]:"");
+        refreshFileList();
+        document.getElementById("status").textContent="Loaded";
+        setTimeout(()=>{ document.getElementById("status").textContent="Python Ready"; },1500);
+    }
+}
+
+function clearOutput(){ document.getElementById("output").textContent=""; }
+
+// --- Download Project ---
+function downloadProject(){
+    if(currentFile) files[currentFile]=editor.getValue();
+    let zip=new JSZip();
+    for(let fname in files) zip.file(fname, files[fname]);
+    zip.generateAsync({type:"blob"}).then(function(content){
+        let a=document.createElement("a");
+        a.href=URL.createObjectURL(content);
+        a.download="python_project.zip";
+        a.click();
+    });
+}
+
+// --- Initialize default file ---
+files["main.py"]="print('Hello Python IDE')\nfor i in range(5):\n    print(i)";
+currentFile="main.py";
+editor.setValue(files[currentFile]);
+refreshFileList();
+
+</script>
+</body>
+</html>

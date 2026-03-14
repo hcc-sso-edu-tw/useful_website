@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Python IDE Full Autocomplete</title>
+<title>Advanced Web Python IDE</title>
 
-<!-- CodeMirror -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
@@ -12,205 +11,382 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/python-hint.min.js"></script>
 
-<!-- Pyodide -->
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
-
-<!-- JSZip -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-body { margin:0; font-family:Arial; background:#1e1e1e; color:white; }
-#container { display:flex; height:100vh; }
-#filetree { width:200px; background:#2d2d2d; padding:10px; display:flex; flex-direction:column; }
-#filetree h3 { margin-top:0; margin-bottom:10px; font-size:16px; }
-.file-item { cursor:pointer; padding:5px; border-radius:3px; margin-bottom:3px; }
-.file-item.active { background:#444; }
-#filetree button { margin-top:5px; padding:5px; font-size:14px; background:#007acc; border:none; color:white; border-radius:4px; cursor:pointer; }
-#filetree button:hover { background:#0098ff; }
-#editor-container { flex:1; display:flex; flex-direction:column; }
-#topbar { background:#333; padding:8px; display:flex; align-items:center; gap:10px; }
-#topbar button { padding:6px 12px; font-size:14px; border-radius:4px; border:none; background:#007acc; color:white; cursor:pointer; }
-#topbar button:hover { background:#0098ff; }
-#status { margin-left:auto; font-size:13px; opacity:0.8; }
-.CodeMirror{ flex:1; border-top:1px solid #444; }
-#output { height:150px; overflow:auto; background:#111; padding:10px; font-family:monospace; border-top:1px solid #444; white-space:pre-wrap; }
-</style>
+body{
+margin:0;
+font-family:Arial;
+background:#1e1e1e;
+color:white;
+}
 
+#container{
+display:flex;
+height:100vh;
+}
+
+#sidebar{
+width:220px;
+background:#252526;
+padding:10px;
+display:flex;
+flex-direction:column;
+}
+
+.file{
+padding:6px;
+border-radius:4px;
+cursor:pointer;
+}
+
+.file:hover{
+background:#333;
+}
+
+.file.active{
+background:#444;
+}
+
+button{
+background:#007acc;
+border:none;
+color:white;
+padding:6px;
+margin-top:5px;
+border-radius:4px;
+cursor:pointer;
+}
+
+button:hover{
+background:#0098ff;
+}
+
+#editor-area{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+#topbar{
+background:#333;
+padding:8px;
+display:flex;
+gap:10px;
+}
+
+#terminal{
+height:180px;
+background:#111;
+overflow:auto;
+font-family:monospace;
+padding:10px;
+border-top:1px solid #444;
+}
+
+#terminal-input{
+width:100%;
+background:#000;
+border:none;
+color:white;
+font-family:monospace;
+padding:6px;
+outline:none;
+}
+
+.CodeMirror{
+flex:1;
+}
+</style>
 </head>
+
 <body>
+
 <div id="container">
 
-<div id="filetree">
+<div id="sidebar">
+
 <h3>Files</h3>
+
 <div id="files"></div>
-<button onclick="addFile()">+ New File</button>
-<button onclick="deleteFile()">- Delete File</button>
-<button onclick="downloadProject()">Download Zip</button>
+
+<button onclick="newFile()">New File</button>
+<button onclick="deleteFile()">Delete</button>
+<button onclick="downloadZip()">Download Zip</button>
+
 </div>
 
-<div id="editor-container">
+<div id="editor-area">
+
 <div id="topbar">
+
 <button onclick="runCode()">Run ▶</button>
-<button onclick="saveCode()">Save</button>
-<button onclick="loadCode()">Load</button>
-<button onclick="clearOutput()">Clear</button>
+<button onclick="saveProject()">Save</button>
+<button onclick="loadProject()">Load</button>
+<button onclick="clearTerminal()">Clear</button>
+
 <div id="status">Loading Python...</div>
+
 </div>
+
 <textarea id="editor"></textarea>
-<div id="output"></div>
+
+<div id="terminal"></div>
+<input id="terminal-input" placeholder="Python input...">
+
+</div>
+
 </div>
 
 <script>
-// --- 全字詞清單 (保留字 + 內建函數 + 常用標準模組)
-const pythonKeywords = [
-"False","None","True","and","as","assert","async","await","break","class","continue","def","del","elif","else","except",
-"finally","for","from","global","if","import","in","is","lambda","nonlocal","not","or","pass","raise","return","try","while","with","yield",
-"abs","all","any","ascii","bin","bool","bytearray","bytes","callable","chr","classmethod","compile","complex","delattr","dict","dir","divmod",
-"enumerate","eval","exec","filter","float","format","frozenset","getattr","globals","hasattr","hash","help","hex","id","input","int",
-"isinstance","issubclass","iter","len","list","locals","map","max","memoryview","min","next","object","oct","open","ord","pow","print",
-"property","range","repr","reversed","round","set","setattr","slice","sorted","staticmethod","str","sum","super","tuple","type","vars","zip",
-"__import__","math","os","sys","json","random","time","datetime","re","collections","itertools","functools","operator","pathlib","shutil"
+
+let editor = CodeMirror.fromTextArea(document.getElementById("editor"),{
+mode:"python",
+theme:"dracula",
+lineNumbers:true,
+indentUnit:4
+});
+
+const keywords=[
+"False","None","True","and","as","assert","break","class","continue","def",
+"del","elif","else","except","finally","for","from","global","if","import",
+"in","is","lambda","not","or","pass","raise","return","try","while","with","yield",
+"print","input","len","range","list","dict","set","tuple","int","str","float"
 ];
 
-// --- Editor ---
-let editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
-    mode:"python",
-    theme:"dracula",
-    lineNumbers:true,
-    indentUnit:4,
-    tabSize:4,
-    indentWithTabs:false,
-    autofocus:true,
-    extraKeys: {"Tab": function(cm){ cm.showHint({completeSingle:true}); }}
+CodeMirror.registerHelper("hint","python",(cm)=>{
+
+let cur=cm.getCursor();
+let token=cm.getTokenAt(cur);
+
+let start=token.start;
+let end=cur.ch;
+
+let word=token.string.slice(0,end-start);
+
+let code=cm.getValue();
+
+let vars=[...new Set(code.match(/\b[a-zA-Z_]\w*\b/g)||[])];
+
+let list=[...keywords,...vars].filter(x=>x.startsWith(word));
+
+return{
+list:list,
+from:CodeMirror.Pos(cur.line,start),
+to:CodeMirror.Pos(cur.line,end)
+};
+
 });
 
-// 自定義補全
-CodeMirror.registerHelper("hint", "python", function(cm){
-    const cur = cm.getCursor();
-    const token = cm.getTokenAt(cur);
-    const start = token.start;
-    const end = cur.ch;
-    const word = token.string.slice(0,end-start);
+editor.on("inputRead",(cm,change)=>{
 
-    const code = cm.getValue();
-    const localNames = Array.from(new Set([...code.match(/\b\w+\b/g) || []]));
-
-    const list = pythonKeywords.concat(localNames).filter(k=>k.startsWith(word));
-    if(list.length===0) return;
-    return {list:list, from:CodeMirror.Pos(cur.line,start), to:CodeMirror.Pos(cur.line,end)};
-});
-
-// 每次輸入字母自動彈出
-editor.on("inputRead", function(cm, change){
-    if(change.text[0].match(/[A-Za-z_]/)) cm.showHint({completeSingle:false});
-});
-
-// --- Pyodide ---
-let pyodide = null;
-async function initPython(){
-    document.getElementById("status").textContent="Loading Python runtime...";
-    pyodide = await loadPyodide();
-    pyodide.setStdout({ batched: (text)=>{ document.getElementById("output").textContent += text + "\n"; }});
-    document.getElementById("status").textContent="Python Ready";
+if(/[a-zA-Z_]/.test(change.text[0])){
+cm.showHint({completeSingle:false});
 }
+
+});
+
+let pyodide;
+
+let inputQueue=[];
+
+async function initPython(){
+
+pyodide=await loadPyodide();
+
+pyodide.setStdout({
+batched:(text)=>{
+writeTerminal(text);
+}
+});
+
+pyodide.setStdin({
+stdin:()=>{
+return inputQueue.shift()||"";
+}
+});
+
+document.getElementById("status").innerText="Python Ready";
+
+}
+
 initPython();
 
-// --- File Management ---
-let files = {};
-let currentFile = null;
+function writeTerminal(text){
 
-function refreshFileList(){
-    let container = document.getElementById("files");
-    container.innerHTML="";
-    for(let name in files){
-        let div = document.createElement("div");
-        div.textContent=name;
-        div.className="file-item" + (name===currentFile?" active":"");
-        div.onclick = ()=>{ switchFile(name); };
-        container.appendChild(div);
-    }
+let term=document.getElementById("terminal");
+
+term.textContent+=text+"\n";
+
+term.scrollTop=term.scrollHeight;
+
 }
 
-function addFile(){
-    let fname = prompt("New file name:", "main.py");
-    if(!fname) return;
-    if(files[fname]) { alert("File exists"); return; }
-    files[fname]="";
-    currentFile=fname;
-    editor.setValue("");
-    refreshFileList();
+function clearTerminal(){
+
+document.getElementById("terminal").textContent="";
+
 }
 
-function deleteFile(){
-    if(!currentFile) return;
-    if(!confirm(`Delete ${currentFile}?`)) return;
-    delete files[currentFile];
-    let keys=Object.keys(files);
-    currentFile=keys.length?keys[0]:null;
-    editor.setValue(currentFile?files[currentFile]:"");
-    refreshFileList();
+document.getElementById("terminal-input").addEventListener("keydown",(e)=>{
+
+if(e.key==="Enter"){
+
+inputQueue.push(e.target.value);
+
+writeTerminal("> "+e.target.value);
+
+e.target.value="";
+
+}
+
+});
+
+async function runCode(){
+
+clearTerminal();
+
+try{
+
+await pyodide.runPythonAsync(editor.getValue());
+
+}catch(e){
+
+writeTerminal(e);
+
+}
+
+}
+
+let files={};
+
+let currentFile=null;
+
+function refreshFiles(){
+
+let f=document.getElementById("files");
+
+f.innerHTML="";
+
+for(let name in files){
+
+let div=document.createElement("div");
+
+div.textContent=name;
+
+div.className="file"+(name===currentFile?" active":"");
+
+div.onclick=()=>switchFile(name);
+
+f.appendChild(div);
+
+}
+
 }
 
 function switchFile(name){
-    if(currentFile) files[currentFile]=editor.getValue();
-    currentFile=name;
-    editor.setValue(files[name]);
-    refreshFileList();
+
+files[currentFile]=editor.getValue();
+
+currentFile=name;
+
+editor.setValue(files[name]);
+
+refreshFiles();
+
 }
 
-// --- Code Operations ---
-async function runCode(){
-    if(!pyodide){ alert("Python still loading..."); return; }
-    let output=document.getElementById("output");
-    output.textContent="";
-    if(currentFile) files[currentFile]=editor.getValue();
-    try{ await pyodide.runPythonAsync(editor.getValue()); }
-    catch(err){ output.textContent+=err; }
+function newFile(){
+
+let name=prompt("File name","main.py");
+
+if(!name)return;
+
+files[name]="";
+
+currentFile=name;
+
+editor.setValue("");
+
+refreshFiles();
+
 }
 
-function saveCode(){
-    if(currentFile) files[currentFile]=editor.getValue();
-    localStorage.setItem("project_files", JSON.stringify(files));
-    document.getElementById("status").textContent="Saved";
-    setTimeout(()=>{ document.getElementById("status").textContent="Python Ready"; },1500);
+function deleteFile(){
+
+delete files[currentFile];
+
+let keys=Object.keys(files);
+
+currentFile=keys[0];
+
+editor.setValue(files[currentFile]||"");
+
+refreshFiles();
+
 }
 
-function loadCode(){
-    let data=localStorage.getItem("project_files");
-    if(data){
-        files=JSON.parse(data);
-        let keys=Object.keys(files);
-        currentFile=keys.length?keys[0]:null;
-        editor.setValue(currentFile?files[currentFile]:"");
-        refreshFileList();
-        document.getElementById("status").textContent="Loaded";
-        setTimeout(()=>{ document.getElementById("status").textContent="Python Ready"; },1500);
-    }
+function saveProject(){
+
+files[currentFile]=editor.getValue();
+
+localStorage.setItem("py_project",JSON.stringify(files));
+
 }
 
-function clearOutput(){ document.getElementById("output").textContent=""; }
+function loadProject(){
 
-// --- Download Project ---
-function downloadProject(){
-    if(currentFile) files[currentFile]=editor.getValue();
-    let zip=new JSZip();
-    for(let fname in files) zip.file(fname, files[fname]);
-    zip.generateAsync({type:"blob"}).then(function(content){
-        let a=document.createElement("a");
-        a.href=URL.createObjectURL(content);
-        a.download="python_project.zip";
-        a.click();
-    });
-}
+let data=localStorage.getItem("py_project");
 
-// --- Initialize default file ---
-files["main.py"]="print('Hello Python IDE')\nfor i in range(5):\n    print(i)";
-currentFile="main.py";
+if(!data)return;
+
+files=JSON.parse(data);
+
+currentFile=Object.keys(files)[0];
+
 editor.setValue(files[currentFile]);
-refreshFileList();
+
+refreshFiles();
+
+}
+
+function downloadZip(){
+
+files[currentFile]=editor.getValue();
+
+let zip=new JSZip();
+
+for(let f in files){
+
+zip.file(f,files[f]);
+
+}
+
+zip.generateAsync({type:"blob"}).then((content)=>{
+
+let a=document.createElement("a");
+
+a.href=URL.createObjectURL(content);
+
+a.download="python_project.zip";
+
+a.click();
+
+});
+
+}
+
+files["main.py"]="name=input('Your name: ')\nprint('Hello',name)";
+
+currentFile="main.py";
+
+editor.setValue(files[currentFile]);
+
+refreshFiles();
 
 </script>
+
 </body>
 </html>

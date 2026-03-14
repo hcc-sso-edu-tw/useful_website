@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Python Web IDE</title>
+<title>Web Python IDE</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
@@ -20,69 +20,64 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-body{margin:0;background:#1e1e1e;color:white;font-family:Arial;}
-#container{display:flex;height:100vh;}
+body{margin:0;background:#1e1e1e;color:white;font-family:Arial}
+#container{display:flex;height:100vh}
 
 #sidebar{
 width:200px;
 background:#252526;
 padding:10px;
 display:flex;
-flex-direction:column;
+flex-direction:column
 }
 
-.file{
-padding:6px;
-cursor:pointer;
-border-radius:4px;
-}
-
-.file:hover{background:#333;}
-.file.active{background:#444;}
+.file{padding:6px;border-radius:4px;cursor:pointer}
+.file:hover{background:#333}
+.file.active{background:#444}
 
 button{
 background:#007acc;
 border:none;
 color:white;
 padding:6px;
-margin-top:5px;
+margin-top:6px;
 border-radius:4px;
-cursor:pointer;
+cursor:pointer
 }
 
 #editor-area{
 flex:1;
 display:flex;
-flex-direction:column;
+flex-direction:column
 }
 
 #topbar{
 background:#333;
 padding:8px;
 display:flex;
-gap:10px;
+gap:10px
 }
 
+.CodeMirror{flex:1}
+
 #terminal{
-height:180px;
+height:170px;
 background:#111;
 overflow:auto;
-font-family:monospace;
 padding:10px;
-border-top:1px solid #444;
+font-family:monospace;
+border-top:1px solid #444
 }
 
 #terminal-input{
 width:100%;
-background:black;
+background:#000;
 color:white;
 border:none;
 padding:6px;
 font-family:monospace;
-outline:none;
+outline:none
 }
-
-.CodeMirror{flex:1;}
 </style>
 
 </head>
@@ -92,7 +87,9 @@ outline:none;
 <div id="container">
 
 <div id="sidebar">
+
 <h3>Files</h3>
+
 <div id="files"></div>
 
 <button onclick="newFile()">New File</button> <button onclick="deleteFile()">Delete</button> <button onclick="downloadZip()">Download Zip</button>
@@ -102,16 +99,15 @@ outline:none;
 <div id="editor-area">
 
 <div id="topbar">
-<button onclick="runCode()">Run ▶</button>
-<button onclick="saveProject()">Save</button>
-<button onclick="loadProject()">Load</button>
-<button onclick="clearTerminal()">Clear</button>
-<div id="status">Loading Python...</div>
+
+<button onclick="runCode()">Run ▶</button> <button onclick="saveProject()">Save</button> <button onclick="loadProject()">Load</button> <button onclick="clearTerminal()">Clear</button>
+
 </div>
 
 <textarea id="editor"></textarea>
 
 <div id="terminal"></div>
+
 <input id="terminal-input" placeholder="input here then press Enter">
 
 </div>
@@ -125,85 +121,82 @@ document.getElementById("editor"),
 {
 mode:"python",
 theme:"dracula",
-lineNumbers:true,
-indentUnit:4
+lineNumbers:true
 }
-);
+)
 
 const keywords=[
 "False","None","True","and","as","assert","break","class","continue",
 "def","elif","else","except","finally","for","from","global","if",
 "import","in","is","lambda","not","or","pass","raise","return",
 "try","while","with","yield","print","input","len","range"
-];
+]
 
 CodeMirror.registerHelper("hint","python",(cm)=>{
 
-let cur=cm.getCursor();
-let token=cm.getTokenAt(cur);
+let cur=cm.getCursor()
+let token=cm.getTokenAt(cur)
 
-let start=token.start;
-let end=cur.ch;
+let start=token.start
+let end=cur.ch
 
-let word=token.string.slice(0,end-start);
+let word=token.string.slice(0,end-start)
 
-let code=cm.getValue();
+let code=cm.getValue()
 
-let vars=[...new Set(code.match(/\b[a-zA-Z_]\w*\b/g)||[])];
+let vars=[...new Set(code.match(/\b[a-zA-Z_]\w*\b/g)||[])]
 
-let list=[...keywords,...vars].filter(x=>x.startsWith(word));
+let list=[...keywords,...vars].filter(x=>x.startsWith(word))
 
 return{
 list:list,
 from:CodeMirror.Pos(cur.line,start),
 to:CodeMirror.Pos(cur.line,end)
-};
+}
 
-});
+})
 
 editor.on("inputRead",(cm,change)=>{
 
 if(/[a-zA-Z_]/.test(change.text[0])){
-cm.showHint({completeSingle:false});
+cm.showHint({completeSingle:false})
 }
 
-});
+})
 
-let pyodide;
+let pyodide
 
-let waitingInputResolve=null;
+let waitingInputResolve=null
 
 async function initPython(){
 
-pyodide=await loadPyodide();
+pyodide=await loadPyodide()
 
 pyodide.setStdout({
 batched:(text)=>{
-writeTerminal(text);
+writeTerminal(text)
 }
-});
+})
 
 pyodide.setStdin({
 stdin:()=>{
 return new Promise(resolve=>{
-waitingInputResolve=resolve;
-});
+waitingInputResolve=resolve
+})
 }
-});
-
-document.getElementById("status").innerText="Python Ready";
+})
 
 }
 
-initPython();
+initPython()
 
 function writeTerminal(text){
 
-let t=document.getElementById("terminal");
+let t=document.getElementById("terminal")
 
-t.textContent+=text+"\n";
+t.textContent+=text+"\n"
 
-t.scrollTop=t.scrollHeight;
+t.scrollTop=t.scrollHeight
 
 }
 
@@ -212,67 +205,75 @@ document.getElementById("terminal-input")
 
 if(e.key==="Enter"){
 
-let value=e.target.value;
+let value=e.target.value
 
-writeTerminal("> "+value);
+writeTerminal("> "+value)
 
-e.target.value="";
+e.target.value=""
 
 if(waitingInputResolve){
 
-waitingInputResolve(value);
+waitingInputResolve(value)
 
-waitingInputResolve=null;
-
-}
+waitingInputResolve=null
 
 }
 
-});
+}
+
+})
 
 function clearTerminal(){
 
-document.getElementById("terminal").textContent="";
+document.getElementById("terminal").textContent=""
 
 }
 
 async function runCode(){
 
-clearTerminal();
+clearTerminal()
+
+files[currentFile]=editor.getValue()
+
+for(let f in files){
+
+pyodide.FS.writeFile(f,files[f])
+
+}
 
 try{
 
-await pyodide.runPythonAsync(editor.getValue());
+await pyodide.runPythonAsync(editor.getValue())
 
-}catch(e){
+}catch(err){
 
-writeTerminal(e);
-
-}
+writeTerminal(err)
 
 }
 
-let files={};
+}
 
-let currentFile=null;
+let files={}
+
+let currentFile=null
 
 function refreshFiles(){
 
-let f=document.getElementById("files");
+let container=document.getElementById("files")
 
-f.innerHTML="";
+container.innerHTML=""
 
 for(let name in files){
 
-let div=document.createElement("div");
+let div=document.createElement("div")
 
-div.textContent=name;
+div.textContent=name
 
-div.className="file"+(name===currentFile?" active":"");
+div.className="file"+(name===currentFile?" active":"")
 
-div.onclick=()=>switchFile(name);
+div.onclick=()=>switchFile(name)
 
-f.appendChild(div);
+container.appendChild(div)
 
 }
 
@@ -280,103 +281,105 @@ f.appendChild(div);
 
 function switchFile(name){
 
-files[currentFile]=editor.getValue();
+files[currentFile]=editor.getValue()
 
-currentFile=name;
+currentFile=name
 
-editor.setValue(files[name]);
+editor.setValue(files[name])
 
-refreshFiles();
+refreshFiles()
 
 }
 
 function newFile(){
 
-let name=prompt("File name","main.py");
+let name=prompt("File name","main.py")
 
-if(!name)return;
+if(!name)return
 
-files[name]="";
+files[name]=""
 
-currentFile=name;
+currentFile=name
 
-editor.setValue("");
+editor.setValue("")
 
-refreshFiles();
+refreshFiles()
 
 }
 
 function deleteFile(){
 
-delete files[currentFile];
+delete files[currentFile]
 
-let k=Object.keys(files);
+let keys=Object.keys(files)
 
-currentFile=k[0];
+currentFile=keys[0]
 
-editor.setValue(files[currentFile]||"");
+editor.setValue(files[currentFile]||"")
 
-refreshFiles();
+refreshFiles()
 
 }
 
 function saveProject(){
 
-files[currentFile]=editor.getValue();
+files[currentFile]=editor.getValue()
 
-localStorage.setItem("py_project",JSON.stringify(files));
+localStorage.setItem("python_project",JSON.stringify(files))
 
 }
 
 function loadProject(){
 
-let d=localStorage.getItem("py_project");
+let data=localStorage.getItem("python_project")
 
-if(!d)return;
+if(!data)return
 
-files=JSON.parse(d);
+files=JSON.parse(data)
 
-currentFile=Object.keys(files)[0];
+currentFile=Object.keys(files)[0]
 
-editor.setValue(files[currentFile]);
+editor.setValue(files[currentFile])
 
-refreshFiles();
+refreshFiles()
 
 }
 
 function downloadZip(){
 
-files[currentFile]=editor.getValue();
+files[currentFile]=editor.getValue()
 
-let zip=new JSZip();
+let zip=new JSZip()
 
 for(let f in files){
 
-zip.file(f,files[f]);
+zip.file(f,files[f])
 
 }
 
 zip.generateAsync({type:"blob"}).then(content=>{
 
-let a=document.createElement("a");
+let a=document.createElement("a")
 
-a.href=URL.createObjectURL(content);
+a.href=URL.createObjectURL(content)
 
-a.download="python_project.zip";
+a.download="python_project.zip"
 
-a.click();
+a.click()
 
-});
+})
 
 }
 
-files["main.py"]="name=input('Name: ')\nprint('Hello',name)\nage=input('Age: ')\nprint(age)";
+files["main.py"]="import utils\n\nname=input('Name: ')\nprint('Hello',name)\nutils.hello()"
 
-currentFile="main.py";
+files["utils.py"]="def hello():\n    print('Hello from utils')"
 
-editor.setValue(files[currentFile]);
+currentFile="main.py"
 
-refreshFiles();
+editor.setValue(files[currentFile])
+
+refreshFiles()
 
 </script>
 

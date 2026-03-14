@@ -3,10 +3,13 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Python IDE</title>
+<title>Python IDE (Stable)</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 
@@ -36,8 +39,8 @@ padding:10px;
 
 .file{
 padding:6px;
-cursor:pointer;
 border-radius:4px;
+cursor:pointer;
 }
 
 .file:hover{background:#333}
@@ -109,8 +112,9 @@ outline:none;
 <div id="editor-area">
 
 <div id="topbar">
-<button onclick="runCode()">Run ▶</button>
-<button onclick="clearTerminal()">Clear</button>
+
+<button onclick="runCode()">Run ▶</button> <button onclick="clearTerminal()">Clear</button>
+
 </div>
 
 <textarea id="editor"></textarea>
@@ -137,7 +141,6 @@ lineNumbers:true
 let pyodide
 
 let inputQueue=[]
-let inputWaiting=null
 
 function writeTerminal(text){
 
@@ -155,22 +158,19 @@ pyodide = await loadPyodide()
 
 pyodide.setStdout({
 batched:(text)=>{
-writeTerminal(text+"\n")
+writeTerminal(text + "\n")
 }
 })
 
 pyodide.setStdin({
-stdin: async ()=>{
 
-if(inputQueue.length>0){
+stdin:()=>{
+if(inputQueue.length===0){
+throw new Error("Waiting for input")
+}
 return inputQueue.shift()
 }
 
-return new Promise(resolve=>{
-inputWaiting=resolve
-})
-
-}
 })
 
 }
@@ -186,19 +186,9 @@ let val=e.target.value
 
 writeTerminal("> "+val+"\n")
 
-e.target.value=""
-
-if(inputWaiting){
-
-inputWaiting(val)
-
-inputWaiting=null
-
-}else{
-
 inputQueue.push(val)
 
-}
+e.target.value=""
 
 }
 
@@ -228,7 +218,9 @@ await pyodide.runPythonAsync(editor.getValue())
 
 }catch(err){
 
+if(!err.message.includes("Waiting for input")){
 writeTerminal(err)
+}
 
 }
 

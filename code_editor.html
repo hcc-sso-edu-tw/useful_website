@@ -9,7 +9,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
@@ -29,24 +28,24 @@ button{background:#007acc;border:none;color:white;padding:6px;margin-top:6px;bor
 </head>
 <body>
 <div id="container">
-<div id="sidebar">
-<h3>Files</h3>
-<div id="files"></div>
-<button onclick="newFile()">New File</button>
-<button onclick="deleteFile()">Delete</button>
-<button onclick="downloadZip()">Download Zip</button>
-</div>
+  <div id="sidebar">
+    <h3>Files</h3>
+    <div id="files"></div>
+    <button onclick="newFile()">New File</button>
+    <button onclick="deleteFile()">Delete</button>
+    <button onclick="downloadZip()">Download Zip</button>
+  </div>
 
-<div id="editor-area">
-<div id="topbar">
-<button onclick="runCode()">Run ▶</button>
-<button onclick="clearTerminal()">Clear</button>
-</div>
+  <div id="editor-area">
+    <div id="topbar">
+      <button onclick="runCode()">Run ▶</button>
+      <button onclick="clearTerminal()">Clear</button>
+    </div>
 
-<textarea id="editor"></textarea>
-<div id="terminal"></div>
-<input id="input" placeholder="type input then press Enter">
-</div>
+    <textarea id="editor"></textarea>
+    <div id="terminal"></div>
+    <input id="input" placeholder="type input then press Enter">
+  </div>
 </div>
 
 <script>
@@ -54,6 +53,7 @@ let editor = CodeMirror.fromTextArea(document.getElementById("editor"),{mode:"py
 let pyodide;
 let files={};
 let currentFile=null;
+let inputQueue=[];
 
 function writeTerminal(text){
   let t=document.getElementById("terminal");
@@ -65,44 +65,46 @@ function clearTerminal(){document.getElementById("terminal").textContent="";}
 
 async function init(){
   pyodide = await loadPyodide();
+  // 設定 stdout
+  pyodide.setStdout({batched:text=>writeTerminal(text+"\n")});
+  // 設定 stdin，同步讀取 inputQueue
+  pyodide.setStdin({
+    stdin: ()=>{
+      if(inputQueue.length===0) throw new Error("Input needed");
+      return inputQueue.shift();
+    }
+  });
   writeTerminal("Python Ready\n");
 }
 
 init();
 
+// input box
 document.getElementById("input").addEventListener("keydown",(e)=>{
   if(e.key==="Enter"){
     let val = e.target.value+"\n";
     inputQueue.push(val);
-    writeTerminal("> "+val);
+    writeTerminal("> "+e.target.value+"\n");
     e.target.value="";
   }
 });
 
-let inputQueue=[];
-
+// Run code
 async function runCode(){
   clearTerminal();
   files[currentFile]=editor.getValue();
-
-  // 寫入 Pyodide filesystem
+  // 寫入檔案系統
   for(let f in files){
     pyodide.FS.writeFile(f,files[f]);
   }
-
   try{
-    await pyodide.runPythonAsync(editor.getValue(),{
-      stdin:()=>{
-        if(inputQueue.length===0) throw new Error("Input needed");
-        return inputQueue.shift();
-      }
-    });
+    await pyodide.runPythonAsync(editor.getValue());
   }catch(err){
     if(!err.message.includes("Input needed")) writeTerminal(err+"\n");
   }
 }
 
-// --- File management ---
+// File management
 function refreshFiles(){
   let c=document.getElementById("files");
   c.innerHTML="";
@@ -151,7 +153,7 @@ function downloadZip(){
   });
 }
 
-// --- Initialize default file ---
+// 初始化範例檔案
 files["main.py"]="name=input('Name: ')\nprint('Hello',name)\nage=input('Age: ')\nprint('Age:',age)";
 files["utils.py"]="def hello():\n    print('Hello from utils')";
 currentFile="main.py";

@@ -1,37 +1,45 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Web Python IDE</title>
+<title>Python IDE</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
 <style>
-body{margin:0;background:#1e1e1e;color:white;font-family:Arial}
-#container{display:flex;height:100vh}
+
+body{
+margin:0;
+background:#1e1e1e;
+color:white;
+font-family:Arial;
+}
+
+#container{
+display:flex;
+height:100vh;
+}
 
 #sidebar{
 width:200px;
 background:#252526;
 padding:10px;
-display:flex;
-flex-direction:column
 }
 
-.file{padding:6px;border-radius:4px;cursor:pointer}
+.file{
+padding:6px;
+cursor:pointer;
+border-radius:4px;
+}
+
 .file:hover{background:#333}
 .file.active{background:#444}
 
@@ -42,42 +50,44 @@ color:white;
 padding:6px;
 margin-top:6px;
 border-radius:4px;
-cursor:pointer
+cursor:pointer;
 }
 
 #editor-area{
 flex:1;
 display:flex;
-flex-direction:column
+flex-direction:column;
 }
 
 #topbar{
 background:#333;
 padding:8px;
-display:flex;
-gap:10px
 }
 
-.CodeMirror{flex:1}
+.CodeMirror{
+flex:1;
+}
 
 #terminal{
-height:170px;
+height:200px;
 background:#111;
 overflow:auto;
 padding:10px;
 font-family:monospace;
-border-top:1px solid #444
+border-top:1px solid #444;
+white-space:pre-wrap;
 }
 
-#terminal-input{
+#input{
 width:100%;
 background:#000;
 color:white;
 border:none;
 padding:6px;
 font-family:monospace;
-outline:none
+outline:none;
 }
+
 </style>
 
 </head>
@@ -92,23 +102,22 @@ outline:none
 
 <div id="files"></div>
 
-<button onclick="newFile()">New File</button> <button onclick="deleteFile()">Delete</button> <button onclick="downloadZip()">Download Zip</button>
+<button onclick="newFile()">New File</button> <button onclick="deleteFile()">Delete</button>
 
 </div>
 
 <div id="editor-area">
 
 <div id="topbar">
-
-<button onclick="runCode()">Run ▶</button> <button onclick="saveProject()">Save</button> <button onclick="loadProject()">Load</button> <button onclick="clearTerminal()">Clear</button>
-
+<button onclick="runCode()">Run ▶</button>
+<button onclick="clearTerminal()">Clear</button>
 </div>
 
 <textarea id="editor"></textarea>
 
 <div id="terminal"></div>
 
-<input id="terminal-input" placeholder="input here then press Enter">
+<input id="input" placeholder="type input then press Enter">
 
 </div>
 
@@ -125,97 +134,69 @@ lineNumbers:true
 }
 )
 
-const keywords=[
-"False","None","True","and","as","assert","break","class","continue",
-"def","elif","else","except","finally","for","from","global","if",
-"import","in","is","lambda","not","or","pass","raise","return",
-"try","while","with","yield","print","input","len","range"
-]
-
-CodeMirror.registerHelper("hint","python",(cm)=>{
-
-let cur=cm.getCursor()
-let token=cm.getTokenAt(cur)
-
-let start=token.start
-let end=cur.ch
-
-let word=token.string.slice(0,end-start)
-
-let code=cm.getValue()
-
-let vars=[...new Set(code.match(/\b[a-zA-Z_]\w*\b/g)||[])]
-
-let list=[...keywords,...vars].filter(x=>x.startsWith(word))
-
-return{
-list:list,
-from:CodeMirror.Pos(cur.line,start),
-to:CodeMirror.Pos(cur.line,end)
-}
-
-})
-
-editor.on("inputRead",(cm,change)=>{
-
-if(/[a-zA-Z_]/.test(change.text[0])){
-cm.showHint({completeSingle:false})
-}
-
-})
-
 let pyodide
 
-let waitingInputResolve=null
-
-async function initPython(){
-
-pyodide=await loadPyodide()
-
-pyodide.setStdout({
-batched:(text)=>{
-writeTerminal(text)
-}
-})
-
-pyodide.setStdin({
-stdin:()=>{
-return new Promise(resolve=>{
-waitingInputResolve=resolve
-})
-}
-})
-
-}
-
-initPython()
+let inputQueue=[]
+let inputWaiting=null
 
 function writeTerminal(text){
 
 let t=document.getElementById("terminal")
 
-t.textContent+=text+"\n"
+t.textContent+=text
 
 t.scrollTop=t.scrollHeight
 
 }
 
-document.getElementById("terminal-input")
+async function init(){
+
+pyodide = await loadPyodide()
+
+pyodide.setStdout({
+batched:(text)=>{
+writeTerminal(text+"\n")
+}
+})
+
+pyodide.setStdin({
+stdin: async ()=>{
+
+if(inputQueue.length>0){
+return inputQueue.shift()
+}
+
+return new Promise(resolve=>{
+inputWaiting=resolve
+})
+
+}
+})
+
+}
+
+init()
+
+document.getElementById("input")
 .addEventListener("keydown",(e)=>{
 
 if(e.key==="Enter"){
 
-let value=e.target.value
+let val=e.target.value
 
-writeTerminal("> "+value)
+writeTerminal("> "+val+"\n")
 
 e.target.value=""
 
-if(waitingInputResolve){
+if(inputWaiting){
 
-waitingInputResolve(value)
+inputWaiting(val)
 
-waitingInputResolve=null
+inputWaiting=null
+
+}else{
+
+inputQueue.push(val)
 
 }
 
@@ -254,14 +235,13 @@ writeTerminal(err)
 }
 
 let files={}
-
 let currentFile=null
 
 function refreshFiles(){
 
-let container=document.getElementById("files")
+let c=document.getElementById("files")
 
-container.innerHTML=""
+c.innerHTML=""
 
 for(let name in files){
 
@@ -273,7 +253,7 @@ div.className="file"+(name===currentFile?" active":"")
 
 div.onclick=()=>switchFile(name)
 
-container.appendChild(div)
+c.appendChild(div)
 
 }
 
@@ -311,9 +291,9 @@ function deleteFile(){
 
 delete files[currentFile]
 
-let keys=Object.keys(files)
+let k=Object.keys(files)
 
-currentFile=keys[0]
+currentFile=k[0]
 
 editor.setValue(files[currentFile]||"")
 
@@ -321,59 +301,7 @@ refreshFiles()
 
 }
 
-function saveProject(){
-
-files[currentFile]=editor.getValue()
-
-localStorage.setItem("python_project",JSON.stringify(files))
-
-}
-
-function loadProject(){
-
-let data=localStorage.getItem("python_project")
-
-if(!data)return
-
-files=JSON.parse(data)
-
-currentFile=Object.keys(files)[0]
-
-editor.setValue(files[currentFile])
-
-refreshFiles()
-
-}
-
-function downloadZip(){
-
-files[currentFile]=editor.getValue()
-
-let zip=new JSZip()
-
-for(let f in files){
-
-zip.file(f,files[f])
-
-}
-
-zip.generateAsync({type:"blob"}).then(content=>{
-
-let a=document.createElement("a")
-
-a.href=URL.createObjectURL(content)
-
-a.download="python_project.zip"
-
-a.click()
-
-})
-
-}
-
-files["main.py"]="import utils\n\nname=input('Name: ')\nprint('Hello',name)\nutils.hello()"
-
-files["utils.py"]="def hello():\n    print('Hello from utils')"
+files["main.py"]="name=input('Name: ')\nprint('Hello',name)\nage=input('Age: ')\nprint(age)"
 
 currentFile="main.py"
 

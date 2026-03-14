@@ -1,35 +1,30 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Advanced Web Python IDE</title>
+<title>Python Web IDE</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#1e1e1e;
-color:white;
-}
-
-#container{
-display:flex;
-height:100vh;
-}
+body{margin:0;background:#1e1e1e;color:white;font-family:Arial;}
+#container{display:flex;height:100vh;}
 
 #sidebar{
-width:220px;
+width:200px;
 background:#252526;
 padding:10px;
 display:flex;
@@ -38,17 +33,12 @@ flex-direction:column;
 
 .file{
 padding:6px;
-border-radius:4px;
 cursor:pointer;
+border-radius:4px;
 }
 
-.file:hover{
-background:#333;
-}
-
-.file.active{
-background:#444;
-}
+.file:hover{background:#333;}
+.file.active{background:#444;}
 
 button{
 background:#007acc;
@@ -58,10 +48,6 @@ padding:6px;
 margin-top:5px;
 border-radius:4px;
 cursor:pointer;
-}
-
-button:hover{
-background:#0098ff;
 }
 
 #editor-area{
@@ -88,18 +74,17 @@ border-top:1px solid #444;
 
 #terminal-input{
 width:100%;
-background:#000;
-border:none;
+background:black;
 color:white;
-font-family:monospace;
+border:none;
 padding:6px;
+font-family:monospace;
 outline:none;
 }
 
-.CodeMirror{
-flex:1;
-}
+.CodeMirror{flex:1;}
 </style>
+
 </head>
 
 <body>
@@ -107,34 +92,27 @@ flex:1;
 <div id="container">
 
 <div id="sidebar">
-
 <h3>Files</h3>
-
 <div id="files"></div>
 
-<button onclick="newFile()">New File</button>
-<button onclick="deleteFile()">Delete</button>
-<button onclick="downloadZip()">Download Zip</button>
+<button onclick="newFile()">New File</button> <button onclick="deleteFile()">Delete</button> <button onclick="downloadZip()">Download Zip</button>
 
 </div>
 
 <div id="editor-area">
 
 <div id="topbar">
-
 <button onclick="runCode()">Run ▶</button>
 <button onclick="saveProject()">Save</button>
 <button onclick="loadProject()">Load</button>
 <button onclick="clearTerminal()">Clear</button>
-
 <div id="status">Loading Python...</div>
-
 </div>
 
 <textarea id="editor"></textarea>
 
 <div id="terminal"></div>
-<input id="terminal-input" placeholder="Python input...">
+<input id="terminal-input" placeholder="input here then press Enter">
 
 </div>
 
@@ -142,18 +120,21 @@ flex:1;
 
 <script>
 
-let editor = CodeMirror.fromTextArea(document.getElementById("editor"),{
+let editor = CodeMirror.fromTextArea(
+document.getElementById("editor"),
+{
 mode:"python",
 theme:"dracula",
 lineNumbers:true,
 indentUnit:4
-});
+}
+);
 
 const keywords=[
-"False","None","True","and","as","assert","break","class","continue","def",
-"del","elif","else","except","finally","for","from","global","if","import",
-"in","is","lambda","not","or","pass","raise","return","try","while","with","yield",
-"print","input","len","range","list","dict","set","tuple","int","str","float"
+"False","None","True","and","as","assert","break","class","continue",
+"def","elif","else","except","finally","for","from","global","if",
+"import","in","is","lambda","not","or","pass","raise","return",
+"try","while","with","yield","print","input","len","range"
 ];
 
 CodeMirror.registerHelper("hint","python",(cm)=>{
@@ -190,7 +171,7 @@ cm.showHint({completeSingle:false});
 
 let pyodide;
 
-let inputQueue=[];
+let waitingInputResolve=null;
 
 async function initPython(){
 
@@ -204,7 +185,9 @@ writeTerminal(text);
 
 pyodide.setStdin({
 stdin:()=>{
-return inputQueue.shift()||"";
+return new Promise(resolve=>{
+waitingInputResolve=resolve;
+});
 }
 });
 
@@ -216,33 +199,42 @@ initPython();
 
 function writeTerminal(text){
 
-let term=document.getElementById("terminal");
+let t=document.getElementById("terminal");
 
-term.textContent+=text+"\n";
+t.textContent+=text+"\n";
 
-term.scrollTop=term.scrollHeight;
+t.scrollTop=t.scrollHeight;
 
 }
+
+document.getElementById("terminal-input")
+.addEventListener("keydown",(e)=>{
+
+if(e.key==="Enter"){
+
+let value=e.target.value;
+
+writeTerminal("> "+value);
+
+e.target.value="";
+
+if(waitingInputResolve){
+
+waitingInputResolve(value);
+
+waitingInputResolve=null;
+
+}
+
+}
+
+});
 
 function clearTerminal(){
 
 document.getElementById("terminal").textContent="";
 
 }
-
-document.getElementById("terminal-input").addEventListener("keydown",(e)=>{
-
-if(e.key==="Enter"){
-
-inputQueue.push(e.target.value);
-
-writeTerminal("> "+e.target.value);
-
-e.target.value="";
-
-}
-
-});
 
 async function runCode(){
 
@@ -318,9 +310,9 @@ function deleteFile(){
 
 delete files[currentFile];
 
-let keys=Object.keys(files);
+let k=Object.keys(files);
 
-currentFile=keys[0];
+currentFile=k[0];
 
 editor.setValue(files[currentFile]||"");
 
@@ -338,11 +330,11 @@ localStorage.setItem("py_project",JSON.stringify(files));
 
 function loadProject(){
 
-let data=localStorage.getItem("py_project");
+let d=localStorage.getItem("py_project");
 
-if(!data)return;
+if(!d)return;
 
-files=JSON.parse(data);
+files=JSON.parse(d);
 
 currentFile=Object.keys(files)[0];
 
@@ -364,7 +356,7 @@ zip.file(f,files[f]);
 
 }
 
-zip.generateAsync({type:"blob"}).then((content)=>{
+zip.generateAsync({type:"blob"}).then(content=>{
 
 let a=document.createElement("a");
 
@@ -378,7 +370,7 @@ a.click();
 
 }
 
-files["main.py"]="name=input('Your name: ')\nprint('Hello',name)";
+files["main.py"]="name=input('Name: ')\nprint('Hello',name)\nage=input('Age: ')\nprint(age)";
 
 currentFile="main.py";
 

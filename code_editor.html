@@ -1,165 +1,542 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Python IDE Stable Input</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO PYTHON IDE // TERMINAL</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-ocean.min.css">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
-<script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap');
 
-<style>
-body{margin:0;background:#1e1e1e;color:white;font-family:Arial}
-#container{display:flex;height:100vh}
-#sidebar{width:200px;background:#252526;padding:10px}
-.file{padding:6px;cursor:pointer;border-radius:4px}
-.file:hover{background:#333}.file.active{background:#444}
-button{background:#007acc;border:none;color:white;padding:6px;margin-top:6px;border-radius:4px;cursor:pointer}
-#editor-area{flex:1;display:flex;flex-direction:column}
-#topbar{background:#333;padding:8px;display:flex;gap:10px;align-items:center}
-.CodeMirror{flex:1}
-#terminal{height:200px;background:#111;overflow:auto;padding:10px;font-family:monospace;border-top:1px solid #444;white-space:pre-wrap}
-#input{width:100%;background:#000;color:white;border:none;padding:6px;font-family:monospace;outline:none}
-</style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #0a0c10;
+            color: #e6edf3;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 科技感背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 255, 0.03) 0%, transparent 30%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 255, 0.03) 0%, transparent 30%),
+                linear-gradient(45deg, #0a0c10 0%, #1a1e2a 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Sidebar - 更大更科技 */
+        #sidebar {
+            width: 280px;
+            background: rgba(10, 12, 16, 0.85);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 16px;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #sidebar h3 {
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: rgba(0, 255, 255, 0.7);
+            margin-bottom: 20px;
+            padding-left: 8px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        #files {
+            flex: 1;
+        }
+
+        .file {
+            padding: 16px 20px;
+            margin: 4px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .file i {
+            color: #00ffff;
+            font-size: 18px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .file:hover {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: #00ffff;
+            transform: translateX(5px);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+        }
+
+        .status-container {
+            margin-top: 30px;
+            padding: 20px 16px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            color: rgba(0, 255, 255, 0.7);
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .status-badge {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+        }
+
+        .status-ready {
+            background: #00ff00;
+            box-shadow: 0 0 20px #00ff00;
+            animation: pulse 2s infinite;
+        }
+
+        .status-ready::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            background: rgba(0, 255, 0, 0.3);
+            animation: ping 2s infinite;
+        }
+
+        .status-loading {
+            background: #ffaa00;
+            box-shadow: 0 0 20px #ffaa00;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes ping {
+            0% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        #status-text {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 300;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Editor Area */
+        #editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        #topbar {
+            background: rgba(10, 12, 16, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 16px 30px;
+            display: flex;
+            gap: 16px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .topbar-btn {
+            background: transparent;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+            padding: 12px 28px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            backdrop-filter: blur(5px);
+        }
+
+        .topbar-btn i {
+            font-size: 16px;
+        }
+
+        .topbar-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: #00ffff;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .topbar-btn.primary {
+            background: rgba(0, 255, 255, 0.15);
+            border-color: #00ffff;
+            color: #fff;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        .topbar-btn.primary:hover {
+            background: rgba(0, 255, 255, 0.25);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.5);
+        }
+
+        .topbar-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #editor-wrapper {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .CodeMirror {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 100%;
+            font-size: 18px;
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.5);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .CodeMirror-gutters {
+            background: rgba(10, 12, 16, 0.8);
+            border-right: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        .CodeMirror-linenumber {
+            color: rgba(0, 255, 255, 0.3);
+            font-size: 16px;
+        }
+
+        .CodeMirror-cursor {
+            border-left: 2px solid #00ffff;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        /* Terminal - 加大且科技 */
+        #terminal-container {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border-top: 2px solid rgba(0, 255, 255, 0.3);
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        #terminal-header {
+            background: rgba(10, 12, 16, 0.9);
+            padding: 12px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+
+        #terminal-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #00ffff;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px #00ffff;
+        }
+
+        #terminal-title i {
+            font-size: 16px;
+        }
+
+        #terminal-clear {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        #terminal-clear:hover {
+            border-color: #00ffff;
+            color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        #terminal {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 25px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 16px;
+            line-height: 1.7;
+            color: #fff;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+        }
+
+        /* 滾動條 - 科技感 */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 255, 0.3);
+            border-radius: 5px;
+            border: 1px solid rgba(0, 255, 255, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 20px #00ffff;
+        }
+
+        /* 科技感文字選取 */
+        ::selection {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+        }
+    </style>
 </head>
 <body>
-<div id="container">
-  <div id="sidebar">
-    <h3>Files</h3>
-    <div id="files"></div>
-    <button onclick="newFile()">New File</button>
-    <button onclick="deleteFile()">Delete</button>
-    <button onclick="downloadZip()">Download Zip</button>
-  </div>
 
-  <div id="editor-area">
-    <div id="topbar">
-      <button onclick="runCode()">Run ▶</button>
-      <button onclick="clearTerminal()">Clear</button>
+<div id="container">
+    <!-- Sidebar -->
+    <div id="sidebar">
+        <h3><i class="fa-regular fa-cube"></i> EXPLORER</h3>
+        <div id="files">
+            <div class="file">
+                <i class="fa-regular fa-file-code"></i>
+                <span>main.py</span>
+            </div>
+        </div>
+
+        <div class="status-container">
+            <div class="status-header">
+                <span id="status-indicator" class="status-badge status-loading"></span>
+                <span>SYSTEM STATUS</span>
+            </div>
+            <div id="status-text">Initializing quantum core...</div>
+        </div>
     </div>
 
-    <textarea id="editor"></textarea>
-    <div id="terminal"></div>
-    <input id="input" placeholder="type input then press Enter">
-  </div>
+    <!-- Main Editor Area -->
+    <div id="editor-area">
+        <div id="topbar">
+            <button class="topbar-btn primary" onclick="runCode()" id="run-btn">
+                <i class="fa-solid fa-play"></i> EXECUTE
+            </button>
+            <button class="topbar-btn" onclick="clearTerminal()">
+                <i class="fa-regular fa-terminal"></i> PURGE
+            </button>
+        </div>
+
+        <div id="editor-wrapper">
+            <textarea id="editor">word = input()
+print(word)</textarea>
+        </div>
+
+        <!-- Terminal -->
+        <div id="terminal-container">
+            <div id="terminal-header">
+                <div id="terminal-title">
+                    <i class="fa-regular fa-terminal"></i>
+                    <span>TERMINAL OUTPUT</span>
+                </div>
+                <button id="terminal-clear" onclick="clearTerminal()">
+                    <i class="fa-regular fa-eraser"></i> CLEAR
+                </button>
+            </div>
+            <div id="terminal"></div>
+        </div>
+    </div>
 </div>
 
+<!-- Load scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/python/python.min.js"></script>
+
 <script>
-let editor = CodeMirror.fromTextArea(document.getElementById("editor"),{mode:"python",theme:"dracula",lineNumbers:true});
-let pyodide;
-let files={};
-let currentFile=null;
-let inputQueue=[];
-
-function writeTerminal(text){
-  let t=document.getElementById("terminal");
-  t.textContent+=text;
-  t.scrollTop=t.scrollHeight;
-}
-
-function clearTerminal(){document.getElementById("terminal").textContent="";}
-
-async function init(){
-  pyodide = await loadPyodide();
-  // 設定 stdout
-  pyodide.setStdout({batched:text=>writeTerminal(text+"\n")});
-  // 設定 stdin，同步讀取 inputQueue
-  pyodide.setStdin({
-    stdin: ()=>{
-      if(inputQueue.length===0) throw new Error("Input needed");
-      return inputQueue.shift();
+(function init() {
+    if (typeof CodeMirror === 'undefined') {
+        setTimeout(init, 100);
+        return;
     }
-  });
-  writeTerminal("Python Ready\n");
-}
 
-init();
+    // Initialize editor
+    const editor = CodeMirror.fromTextArea(
+        document.getElementById("editor"),
+        {
+            mode: "python",
+            theme: "material-ocean",
+            lineNumbers: true,
+            indentUnit: 4,
+            tabSize: 4,
+            fontSize: "18px"
+        }
+    );
 
-// input box
-document.getElementById("input").addEventListener("keydown",(e)=>{
-  if(e.key==="Enter"){
-    let val = e.target.value+"\n";
-    inputQueue.push(val);
-    writeTerminal("> "+e.target.value+"\n");
-    e.target.value="";
-  }
-});
+    let pyodide = null;
+    let isReady = false;
 
-// Run code
-async function runCode(){
-  clearTerminal();
-  files[currentFile]=editor.getValue();
-  // 寫入檔案系統
-  for(let f in files){
-    pyodide.FS.writeFile(f,files[f]);
-  }
-  try{
-    await pyodide.runPythonAsync(editor.getValue());
-  }catch(err){
-    if(!err.message.includes("Input needed")) writeTerminal(err+"\n");
-  }
-}
+    const terminal = document.getElementById("terminal");
+    const runBtn = document.getElementById("run-btn");
+    const statusIndicator = document.getElementById("status-indicator");
+    const statusText = document.getElementById("status-text");
 
-// File management
-function refreshFiles(){
-  let c=document.getElementById("files");
-  c.innerHTML="";
-  for(let name in files){
-    let div=document.createElement("div");
-    div.textContent=name;
-    div.className="file"+(name===currentFile?" active":"");
-    div.onclick=()=>switchFile(name);
-    c.appendChild(div);
-  }
-}
+    function writeTerminal(text) {
+        terminal.textContent += text;
+        terminal.scrollTop = terminal.scrollHeight;
+    }
 
-function switchFile(name){
-  files[currentFile]=editor.getValue();
-  currentFile=name;
-  editor.setValue(files[name]);
-  refreshFiles();
-}
+    function clearTerminal() {
+        terminal.textContent = "";
+    }
 
-function newFile(){
-  let name=prompt("File name","main.py");
-  if(!name) return;
-  files[name]="";
-  currentFile=name;
-  editor.setValue("");
-  refreshFiles();
-}
+    function setStatus(ready, message) {
+        isReady = ready;
+        statusIndicator.className = `status-badge ${ready ? 'status-ready' : 'status-loading'}`;
+        statusText.textContent = message || (ready ? 'Quantum core active' : 'Initializing quantum core...');
+        runBtn.disabled = !ready;
+    }
 
-function deleteFile(){
-  delete files[currentFile];
-  let keys=Object.keys(files);
-  currentFile=keys[0]||null;
-  editor.setValue(currentFile?files[currentFile]:"");
-  refreshFiles();
-}
+    // Initialize Pyodide
+    async function initPyodide() {
+        try {
+            pyodide = await loadPyodide({
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/",
+                stdout: (text) => writeTerminal(text + "\n"),
+                stderr: (text) => writeTerminal("ERROR: " + text + "\n")
+            });
 
-function downloadZip(){
-  files[currentFile]=editor.getValue();
-  let zip=new JSZip();
-  for(let f in files) zip.file(f,files[f]);
-  zip.generateAsync({type:"blob"}).then(content=>{
-    let a=document.createElement("a");
-    a.href=URL.createObjectURL(content);
-    a.download="python_project.zip";
-    a.click();
-  });
-}
+            pyodide.registerJsModule("terminal", {
+                write_prompt: (text) => writeTerminal(text)
+            });
 
-// 初始化範例檔案
-files["main.py"]="name=input('Name: ')\nprint('Hello',name)\nage=input('Age: ')\nprint('Age:',age)";
-files["utils.py"]="def hello():\n    print('Hello from utils')";
-currentFile="main.py";
-editor.setValue(files[currentFile]);
-refreshFiles();
+            pyodide.runPython(`
+import terminal
+import js
 
+def input(prompt=""):
+    if prompt:
+        terminal.write_prompt(prompt)
+    return js.prompt("") or ""
+            `);
+
+            setStatus(true, 'Quantum core active');
+            writeTerminal("> SYSTEM READY\n");
+        } catch (error) {
+            writeTerminal("SYSTEM ERROR: " + error + "\n");
+            setStatus(false, 'System failure');
+        }
+    }
+
+    // Load Pyodide
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js";
+    script.onload = initPyodide;
+    document.head.appendChild(script);
+
+    // Run code
+    window.runCode = function() {
+        if (!isReady) {
+            writeTerminal("> SYSTEM BOOTING...\n");
+            return;
+        }
+
+        clearTerminal();
+        try {
+            pyodide.runPython(editor.getValue());
+        } catch (error) {
+            writeTerminal("EXECUTION ERROR: " + error + "\n");
+        }
+    };
+
+    window.clearTerminal = clearTerminal;
+})();
 </script>
+
 </body>
 </html>

@@ -84,7 +84,7 @@
             transition: all 0.3s ease;
         }
 
-        .join-panel input, .join-panel select {
+        .join-panel input {
             background: #fef7e0;
             border: none;
             padding: 12px 20px;
@@ -98,12 +98,7 @@
             font-family: monospace;
         }
 
-        .join-panel select {
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .join-panel input:focus, .join-panel select:focus {
+        .join-panel input:focus {
             transform: scale(1.02);
             box-shadow: 0 0 0 3px #ffb347;
         }
@@ -406,7 +401,7 @@
 
         @media (max-width: 600px) {
             .card { width: 58px; height: 80px; font-size: 1.2rem; }
-            .join-panel input, .join-panel select { width: 130px; font-size: 0.8rem; }
+            .join-panel input { width: 130px; font-size: 0.8rem; }
             .turn-indicator { font-size: 1rem; }
         }
 
@@ -489,6 +484,51 @@
                 opacity: 0;
             }
         }
+
+        /* Modal for player count selection */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            font-family: inherit;
+        }
+        .modal-content {
+            background: linear-gradient(145deg, #2c5e2c, #1a3a1a);
+            border-radius: 48px;
+            padding: 30px;
+            text-align: center;
+            border: 2px solid #ffd966;
+            max-width: 350px;
+            width: 90%;
+            animation: fadeInUp 0.3s ease;
+        }
+        .modal-content h3 {
+            color: #ffd966;
+            margin-bottom: 20px;
+        }
+        .modal-content select {
+            background: #fef7e0;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 20px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .modal-content button {
+            padding: 10px 30px;
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
@@ -496,11 +536,6 @@
     <div class="join-panel">
         <input type="text" id="roomInput" placeholder="🏠 Room Code" value="DEMO123">
         <input type="text" id="nameInput" placeholder="👤 Your Name" value="Player">
-        <select id="playerCountSelect">
-            <option value="2">👥 2 Players</option>
-            <option value="3" selected>👥 3 Players</option>
-            <option value="4">👥 4 Players</option>
-        </select>
         <button id="joinBtn">✨ Join / Create ✨</button>
         <button id="resetRoomBtn" class="danger-btn">🗑️ Delete Room Records</button>
     </div>
@@ -526,7 +561,21 @@
         <button id="playBtn">🔥 Play</button>
         <button id="passBtn" class="pass-btn">🚫 Pass</button>
     </div>
-    <footer>Big Two PRO+ • Selectable players • Delete room • No swipe effects on selection</footer>
+    <footer>Big Two PRO+ • Selectable players on room creation • Delete room • No swipe effects</footer>
+</div>
+
+<!-- Modal for choosing player count when creating a new room -->
+<div id="playerCountModal" class="modal">
+    <div class="modal-content">
+        <h3>🏆 Create New Room</h3>
+        <p style="color:#ffecb3; margin-bottom:15px;">How many players for this game?</p>
+        <select id="modalPlayerCount">
+            <option value="2">2 Players</option>
+            <option value="3" selected>3 Players</option>
+            <option value="4">4 Players</option>
+        </select>
+        <button id="confirmCreateBtn">✅ Create Room</button>
+    </div>
 </div>
 
 <script>
@@ -547,7 +596,9 @@
     let gameActive = false;
     let currentTurnPlayer = "";
     let allPlayers = [];
-    let expectedPlayersCount = 3;   // default
+    let expectedPlayersCount = 3;
+    let pendingRoom = "";
+    let pendingName = "";
 
     const RANK_ORDER = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
     const SUIT_POWER = {"♣":0, "♦":1, "♥":2, "♠":3};
@@ -701,7 +752,7 @@
         });
     }
 
-    // Card selection without particle effects (no swipe/sparkle)
+    // Card selection without particle effects
     function toggleSelectCard(card, element) {
         if (!gameActive) { showMessage("Game not started or not your turn", true); return; }
         if (currentTurnPlayer !== myName) { showMessage("⏳ Wait for your turn", true); shakeElement(element); return; }
@@ -709,7 +760,7 @@
             selectedCards = selectedCards.filter(c => c !== card);
         } else {
             selectedCards.push(card);
-            // No particle effect here – requirement: no swipe effect on selection
+            // No particle effect - requirement met
         }
         renderHand();
     }
@@ -896,6 +947,62 @@
         await db.ref(`game/${currentRoom}/turn`).set(nextPlayer);
     }
 
+    async function finalizeJoin(roomToJoin, name, playerCount) {
+        currentRoom = roomToJoin;
+        myName = name;
+        expectedPlayersCount = playerCount;
+        const roomRef = db.ref(`game/${currentRoom}`);
+        await roomRef.child("expectedPlayers").set(playerCount);
+        await roomRef.child(`players/${myName}`).set(true);
+        attachGameListeners();
+        document.getElementById("turnText").innerHTML = `🃏 Joined room "${currentRoom}". Waiting for ${playerCount} players...`;
+        showMessage(`Room "${currentRoom}" created for ${playerCount} players!`, false);
+    }
+
+    async function joinExistingRoom(roomToJoin, name) {
+        currentRoom = roomToJoin;
+        myName = name;
+        const roomRef = db.ref(`game/${currentRoom}`);
+        const expectedSnap = await roomRef.child("expectedPlayers").once("value");
+        if (expectedSnap.exists()) {
+            expectedPlayersCount = expectedSnap.val();
+        } else {
+            showMessage("Room exists but has no player count setting. Please recreate room.", true);
+            return false;
+        }
+        await roomRef.child(`players/${myName}`).set(true);
+        attachGameListeners();
+        document.getElementById("turnText").innerHTML = `🃏 Joined room "${currentRoom}". Waiting for ${expectedPlayersCount} players...`;
+        showMessage(`Joined room "${currentRoom}"`, false);
+        return true;
+    }
+
+    async function onJoinClick() {
+        const roomVal = document.getElementById("roomInput").value.trim();
+        const nameVal = document.getElementById("nameInput").value.trim();
+        if (!roomVal || !nameVal) { alert("Enter room and name"); return; }
+        
+        const roomSnapshot = await db.ref(`game/${roomVal}`).once("value");
+        
+        if (roomSnapshot.exists()) {
+            // Room exists - join directly without asking player count
+            await joinExistingRoom(roomVal, nameVal);
+        } else {
+            // Room does NOT exist - ask user how many players they want
+            pendingRoom = roomVal;
+            pendingName = nameVal;
+            const modal = document.getElementById("playerCountModal");
+            modal.style.display = "flex";
+        }
+    }
+
+    function confirmCreateRoom() {
+        const selectedCount = parseInt(document.getElementById("modalPlayerCount").value, 10);
+        const modal = document.getElementById("playerCountModal");
+        modal.style.display = "none";
+        finalizeJoin(pendingRoom, pendingName, selectedCount);
+    }
+
     function attachGameListeners() {
         if (!currentRoom) return;
         const gameRef = db.ref(`game/${currentRoom}`);
@@ -954,35 +1061,15 @@
         });
     }
 
-    async function joinRoom() {
-        const roomVal = document.getElementById("roomInput").value.trim();
-        const nameVal = document.getElementById("nameInput").value.trim();
-        const selectedCount = parseInt(document.getElementById("playerCountSelect").value, 10);
-        if (!roomVal || !nameVal) { alert("Enter room and name"); return; }
-        currentRoom = roomVal;
-        myName = nameVal;
-        const roomRef = db.ref(`game/${currentRoom}`);
-        const roomSnap = await roomRef.once("value");
-        if (!roomSnap.exists()) {
-            await roomRef.child("expectedPlayers").set(selectedCount);
-            await roomRef.child(`players/${myName}`).set(true);
-        } else {
-            const expected = roomSnap.val().expectedPlayers;
-            if (!expected) {
-                await roomRef.child("expectedPlayers").set(selectedCount);
-            } else {
-                expectedPlayersCount = expected;
-            }
-            await roomRef.child(`players/${myName}`).set(true);
-        }
-        attachGameListeners();
-        document.getElementById("turnText").innerHTML = "🃏 Joined, waiting for enough players...";
-    }
-
-    document.getElementById("joinBtn").onclick = () => joinRoom();
+    document.getElementById("joinBtn").onclick = () => onJoinClick();
     document.getElementById("playBtn").onclick = () => playCards();
     document.getElementById("passBtn").onclick = () => passTurn();
     document.getElementById("resetRoomBtn").onclick = () => deleteRoomRecords();
+    document.getElementById("confirmCreateBtn").onclick = () => confirmCreateRoom();
+    window.onclick = (event) => {
+        const modal = document.getElementById("playerCountModal");
+        if (event.target === modal) modal.style.display = "none";
+    };
 </script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Big Two PRO</title>
+<title>Big Two PRO+ Fixed</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -13,23 +13,6 @@ body {
   background:#1e1e2f;
   color:white;
   text-align:center;
-}
-
-input, button {
-  padding:8px;
-  margin:5px;
-  border-radius:6px;
-  border:none;
-}
-
-button {
-  background:#4CAF50;
-  color:white;
-  cursor:pointer;
-}
-
-#hand {
-  margin-top:20px;
 }
 
 .card {
@@ -47,8 +30,13 @@ button {
 }
 
 .card.selected {
-  transform:translateY(-10px);
+  transform:translateY(-15px);
   background:gold;
+}
+
+.card.played {
+  transform:scale(0.8);
+  opacity:0.5;
 }
 
 #table {
@@ -61,7 +49,7 @@ button {
 
 <body>
 
-<h2>🃏 Big Two PRO</h2>
+<h2>🃏 Big Two PRO+ Fixed</h2>
 
 <input id="room" placeholder="Room">
 <input id="name" placeholder="Name">
@@ -94,31 +82,26 @@ const db = firebase.database();
 
 let room="", name="";
 let myHand=[], selected=[];
+let gameStarted=false;
 
-const rankOrder = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
-const suitOrder = {"♦":0,"♣":1,"♥":2,"♠":3};
+const rankOrder=["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+const suitOrder={"♦":0,"♣":1,"♥":2,"♠":3};
 
 function getRank(c){ return c.slice(0,-1); }
 function getSuit(c){ return c.slice(-1); }
 function val(c){ return rankOrder.indexOf(getRank(c)); }
 
-// ===== 牌型 =====
 function getType(cards){
   cards.sort((a,b)=>val(a)-val(b));
-
   if(cards.length===1) return "single";
   if(cards.length===2 && getRank(cards[0])===getRank(cards[1])) return "pair";
   if(cards.length===3 && cards.every(c=>getRank(c)===getRank(cards[0]))) return "triple";
-
   if(cards.length===5){
-    let v = cards.map(val).sort((a,b)=>a-b);
-    let straight = v.every((x,i)=>i===0||x===v[i-1]+1);
-
+    let v=cards.map(val).sort((a,b)=>a-b);
+    let straight=v.every((x,i)=>i===0||x===v[i-1]+1);
     let count={};
     cards.forEach(c=>{ let r=getRank(c); count[r]=(count[r]||0)+1; });
-
     let vals=Object.values(count);
-
     if(vals.includes(4)) return "bomb";
     if(vals.includes(3)&&vals.includes(2)) return "fullhouse";
     if(straight) return "straight";
@@ -126,198 +109,155 @@ function getType(cards){
   return null;
 }
 
-// ===== 牌型強度 =====
 function typeRank(t){
-  return {
-    single:1, pair:2, triple:3,
-    straight:4, fullhouse:5, bomb:6
-  }[t] || 0;
+  return {single:1,pair:2,triple:3,straight:4,fullhouse:5,bomb:6}[t]||0;
 }
 
-// ===== 比大小 =====
 function beats(cards,last){
   if(!last) return true;
-
   let t1=getType(cards);
   let t2=last.type;
-
   if(!t1) return false;
-
-  if(t1!==t2){
-    return typeRank(t1) > typeRank(t2);
-  }
-
-  let max = cards.sort((a,b)=>{
+  if(t1!==t2) return typeRank(t1)>typeRank(t2);
+  let max=cards.sort((a,b)=>{
     if(val(a)!==val(b)) return val(a)-val(b);
     return suitOrder[getSuit(a)]-suitOrder[getSuit(b)];
   }).slice(-1)[0];
-
   if(val(max)!==last.value) return val(max)>last.value;
   return suitOrder[getSuit(max)]>last.suit;
 }
 
-// ===== 發牌 =====
 function deck(){
   let d=[];
-  ["♠","♥","♦","♣"].forEach(s=>{
-    rankOrder.forEach(r=>d.push(r+s));
-  });
+  ["♠","♥","♦","♣"].forEach(s=>{ rankOrder.forEach(r=>d.push(r+s)); });
   return d.sort(()=>Math.random()-0.5);
 }
 
-// ===== join =====
 function join(){
   room=document.getElementById("room").value;
   name=document.getElementById("name").value;
-
+  if(!room || !name) return alert("Enter room and name");
   db.ref("game/"+room+"/players/"+name).set(true);
-
   listen();
   setTimeout(start,1000);
 }
 
-// ===== 開局 =====
 function start(){
   db.ref("game/"+room+"/players").once("value",s=>{
     let ps=Object.keys(s.val());
-
     db.ref("game/"+room+"/hands").once("value",h=>{
       if(h.exists()) return;
-
       let d=deck();
+      let firstPlayer="";
       ps.forEach((p,i)=>{
-        db.ref("game/"+room+"/hands/"+p)
-          .set(d.slice(i*13,(i+1)*13));
+        let hand=d.slice(i*13,(i+1)*13);
+        db.ref("game/"+room+"/hands/"+p).set(hand);
+        if(hand.includes("3♦")) firstPlayer=p;
       });
-
       db.ref("game/"+room).update({
-        turn:ps[0],
+        turn:firstPlayer,
         lastPlay:null,
-        passCount:0
+        passCount:0,
+        firstTurn:true
       });
     });
   });
 }
 
-// ===== 監聽 =====
 function listen(){
   db.ref("game/"+room+"/hands/"+name).on("value",s=>{
     myHand=s.val()||[];
     render();
   });
-
   db.ref("game/"+room+"/turn").on("value",s=>{
     document.getElementById("turn").innerText="Turn: "+s.val();
   });
-
   db.ref("game/"+room+"/lastPlay").on("value",s=>{
     let d=s.val();
-    document.getElementById("last").innerText=
-      d? d.player+" → "+d.cards.join(", ") : "";
+    document.getElementById("last").innerText=d? d.player+" → "+d.cards.join(", ") : "";
   });
 }
 
-// ===== UI =====
 function render(){
   let div=document.getElementById("hand");
   div.innerHTML="";
-
   myHand.sort((a,b)=>val(a)-val(b));
-
   myHand.forEach(c=>{
     let el=document.createElement("div");
     el.className="card";
     el.innerText=c;
-
-    el.onclick=()=>{
-      if(selected.includes(c)){
-        selected=selected.filter(x=>x!==c);
-        el.classList.remove("selected");
-      }else{
+    el.onclick=()=>toggleCard(el,c);
+    el.addEventListener("touchmove",()=>{
+      if(!selected.includes(c)){
         selected.push(c);
         el.classList.add("selected");
       }
-    };
-
+    });
     div.appendChild(el);
   });
 }
 
-// ===== 出牌 =====
-function play(){
-  db.ref("game/"+room+"/turn").once("value",s=>{
-    if(s.val()!==name) return alert("Not your turn");
-
-    let t=getType(selected);
-    if(!t) return alert("Invalid");
-
-    db.ref("game/"+room+"/lastPlay").once(l=>{
-      let last=l.val();
-
-      if(!beats(selected,last)) return alert("Too weak");
-
-      let max=selected.sort((a,b)=>{
-        if(val(a)!==val(b)) return val(a)-val(b);
-        return suitOrder[getSuit(a)]-suitOrder[getSuit(b)];
-      }).slice(-1)[0];
-
-      myHand=myHand.filter(c=>!selected.includes(c));
-      db.ref("game/"+room+"/hands/"+name).set(myHand);
-
-      db.ref("game/"+room).update({
-        lastPlay:{
-          player:name,
-          cards:selected,
-          type:t,
-          value:val(max),
-          suit:suitOrder[getSuit(max)]
-        },
-        passCount:0
-      });
-
-      if(myHand.length===0){
-        alert("🎉 WIN!");
-        db.ref("game/"+room).remove();
-        return;
-      }
-
-      selected=[];
-      next();
-    });
-  });
+function toggleCard(el,c){
+  if(selected.includes(c)){
+    selected=selected.filter(x=>x!==c);
+    el.classList.remove("selected");
+  }else{
+    selected.push(c);
+    el.classList.add("selected");
+  }
 }
 
-// ===== pass + 清場 =====
-function pass(){
-  db.ref("game/"+room).once("value",s=>{
-    let data=s.val();
-    let players=Object.keys(data.players);
-
-    let pc=(data.passCount||0)+1;
-
-    if(pc>=players.length-1){
-      // 清場
-      db.ref("game/"+room).update({
-        lastPlay:null,
-        passCount:0
-      });
-    }else{
-      db.ref("game/"+room+"/passCount").set(pc);
+function play(){
+  db.ref("game/"+room).once("value",snap=>{
+    let data=snap.val();
+    if(data.turn!==name) return alert("Not your turn");
+    let t=getType(selected);
+    if(!t) return alert("Invalid cards");
+    if(data.firstTurn && !selected.includes("3♦")) return alert("First move must include 3♦");
+    if(!beats(selected,data.lastPlay)) return alert("Too weak");
+    let max=selected.sort((a,b)=>{
+      if(val(a)!==val(b)) return val(a)-val(b);
+      return suitOrder[getSuit(a)]-suitOrder[getSuit(b)];
+    }).slice(-1)[0];
+    myHand=myHand.filter(c=>!selected.includes(c));
+    db.ref("game/"+room+"/hands/"+name).set(myHand).then(()=>{
+      selected=[];
+      render();
+    });
+    db.ref("game/"+room).update({
+      lastPlay:{player:name,cards:selected,type:t,value:val(max),suit:suitOrder[getSuit(max)]},
+      passCount:0,
+      firstTurn:false
+    });
+    if(myHand.length===0){
+      alert("🎉 WIN!");
+      db.ref("game/"+room).remove();
+      return;
     }
-
     next();
   });
 }
 
-// ===== 下一回合 =====
+function pass(){
+  db.ref("game/"+room).once("value",s=>{
+    let d=s.val();
+    let players=Object.keys(d.players);
+    let pc=(d.passCount||0)+1;
+    if(pc>=players.length-1){
+      db.ref("game/"+room).update({lastPlay:null,passCount:0});
+    }else{
+      db.ref("game/"+room+"/passCount").set(pc);
+    }
+    next();
+  });
+}
+
 function next(){
   db.ref("game/"+room+"/players").once("value",s=>{
     let ps=Object.keys(s.val());
-
-    db.ref("game/"+room+"/turn").once(t=>{
-      let i=ps.indexOf(t.val());
-      db.ref("game/"+room+"/turn")
-        .set(ps[(i+1)%ps.length]);
+    db.ref("game/"+room+"/turn").once("value",snap=>{
+      let i=ps.indexOf(snap.val());
+      db.ref("game/"+room+"/turn").set(ps[(i+1)%ps.length]);
     });
   });
 }

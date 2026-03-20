@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Big Two</title>
+    <title>✨ Big Two PRO+ | Animated Edition ✨</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -23,6 +23,27 @@
             justify-content: center;
             align-items: center;
             padding: 16px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            font-size: 20px;
+            animation: floatParticle 1s ease-out forwards;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-80px) scale(1.5);
+            }
         }
 
         .game-container {
@@ -32,8 +53,20 @@
             backdrop-filter: blur(3px);
             border-radius: 64px 64px 48px 48px;
             padding: 20px 20px 30px;
-            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,215,0,0.1);
             border: 1px solid rgba(255,215,0,0.3);
+            animation: fadeInUp 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .join-panel {
@@ -48,7 +81,9 @@
             gap: 12px;
             align-items: center;
             border: 1px solid #ffd966;
+            transition: all 0.3s ease;
         }
+
         .join-panel input {
             background: #fef7e0;
             border: none;
@@ -59,13 +94,15 @@
             text-align: center;
             outline: none;
             width: 160px;
-            transition: 0.2s;
+            transition: all 0.2s ease;
             font-family: monospace;
         }
+
         .join-panel input:focus {
             transform: scale(1.02);
             box-shadow: 0 0 0 3px #ffb347;
         }
+
         button {
             background: radial-gradient(circle at 30% 10%, #ffd966, #e6a017);
             border: none;
@@ -75,26 +112,54 @@
             font-size: 1rem;
             color: #2d1b0c;
             cursor: pointer;
-            transition: 0.15s linear;
+            transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             font-family: inherit;
+            position: relative;
+            overflow: hidden;
         }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+
         button:active {
             transform: scale(0.96);
-            box-shadow: 0 1px 3px black;
         }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,200,0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        button:active::after {
+            width: 200px;
+            height: 200px;
+        }
+
         .action-buttons {
             display: flex;
             justify-content: center;
             gap: 20px;
             margin: 20px 0 10px;
         }
+
         .action-buttons button {
             background: #ffc857;
             padding: 12px 32px;
             font-size: 1.2rem;
             font-weight: bold;
         }
+
         .pass-btn {
             background: #6c757d;
             color: white;
@@ -113,6 +178,7 @@
             gap: 12px;
             backdrop-filter: blur(4px);
         }
+
         .turn-indicator {
             background: #f3b33d;
             color: #1e2a1c;
@@ -121,7 +187,15 @@
             font-weight: bold;
             font-size: 1.3rem;
             box-shadow: inset 0 -1px 0 #ffe2a4, 0 4px 10px black;
+            transition: all 0.3s ease;
+            animation: pulseGlow 1.5s infinite;
         }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(243, 179, 61, 0.4), 0 4px 10px black; }
+            50% { box-shadow: 0 0 0 8px rgba(243, 179, 61, 0.2), 0 4px 10px black; }
+        }
+
         .players-list {
             display: flex;
             gap: 20px;
@@ -131,16 +205,37 @@
             padding: 6px 18px;
             border-radius: 40px;
         }
+
         .player-badge {
             background: #3e2c1c;
             padding: 4px 14px;
             border-radius: 50px;
             color: #ffeaac;
+            transition: all 0.2s ease;
+            animation: fadeInScale 0.4s ease;
         }
+
         .player-badge.current-turn {
             background: #ffb347;
             color: #2d1f0c;
             box-shadow: 0 0 0 2px gold;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         .table-area {
@@ -151,12 +246,15 @@
             border: 2px solid #e9c468;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 8px 18px black;
             text-align: center;
+            transition: all 0.3s ease;
         }
+
         .last-play-title {
             font-size: 0.9rem;
             letter-spacing: 2px;
             color: #ffecb3;
         }
+
         .last-cards {
             min-height: 85px;
             display: flex;
@@ -165,6 +263,7 @@
             gap: 8px;
             margin-top: 8px;
         }
+
         .mini-card {
             background: white;
             width: 55px;
@@ -177,7 +276,23 @@
             font-size: 1.2rem;
             box-shadow: 2px 4px 8px black;
             color: black;
-            transition: 0.1s;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            animation: cardDrop 0.4s ease-out;
+        }
+
+        @keyframes cardDrop {
+            from {
+                opacity: 0;
+                transform: translateY(-40px) rotate(-10deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) rotate(0);
+            }
+        }
+
+        .mini-card:hover {
+            transform: scale(1.05) translateY(-5px);
         }
 
         .hand-area {
@@ -186,12 +301,15 @@
             border-radius: 50px;
             padding: 18px 8px;
             min-height: 140px;
+            transition: all 0.3s;
         }
+
         .hand-title {
             font-size: 0.9rem;
             margin-bottom: 12px;
             color: #ffdd99;
         }
+
         .hand-cards {
             display: flex;
             flex-wrap: wrap;
@@ -199,6 +317,7 @@
             gap: 10px;
             transition: 0.2s;
         }
+
         .card {
             width: 70px;
             height: 96px;
@@ -211,53 +330,153 @@
             font-size: 1.5rem;
             box-shadow: 3px 5px 8px rgba(0, 0, 0, 0.4);
             cursor: pointer;
-            transition: 0.1s linear;
+            transition: all 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
             color: #1f1f1f;
             position: relative;
+            animation: cardDeal 0.3s ease-out;
+            animation-fill-mode: backwards;
         }
+
+        @keyframes cardDeal {
+            from {
+                opacity: 0;
+                transform: translateX(-30px) rotate(-5deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) rotate(0);
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 4px 8px 15px rgba(0, 0, 0, 0.5);
+        }
+
         .card.selected {
-            transform: translateY(-18px);
+            transform: translateY(-22px) scale(1.05);
             background: #ffea80;
-            box-shadow: 0 8px 18px gold;
+            box-shadow: 0 12px 25px gold;
             border: 2px solid #ffaa22;
+            transition: all 0.15s cubic-bezier(0.34, 1.2, 0.64, 1);
         }
+
+        .card.playing-animation {
+            animation: playCard 0.4s forwards;
+        }
+
+        @keyframes playCard {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(-50px) rotate(10deg) scale(1.2);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(100px) rotate(20deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+
         .card[data-suit="♥"], .card[data-suit="♦"] { color: #c33; }
         .card[data-suit="♠"], .card[data-suit="♣"] { color: #111; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake-card {
+            animation: shake 0.3s ease-in-out;
+        }
+
         @media (max-width: 600px) {
             .card { width: 58px; height: 80px; font-size: 1.2rem; }
             .join-panel input { width: 130px; font-size: 0.8rem; }
             .turn-indicator { font-size: 1rem; }
         }
+
         .toast-msg {
             position: fixed;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            background: #222;
+            background: linear-gradient(135deg, #222, #1a1a2e);
             color: #ffd966;
-            padding: 12px 24px;
+            padding: 12px 28px;
             border-radius: 50px;
             font-weight: bold;
-            z-index: 999;
-            animation: fadeOut 2s forwards;
+            z-index: 1000;
+            animation: slideUpFade 2s forwards;
             pointer-events: none;
             white-space: nowrap;
             font-size: 0.9rem;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            border-left: 4px solid #ffd966;
         }
-        @keyframes fadeOut {
-            0% { opacity: 1; transform: translateX(-50%) translateY(0);}
-            70% { opacity: 1; }
-            100% { opacity: 0; transform: translateX(-50%) translateY(20px); visibility: hidden; }
+
+        @keyframes slideUpFade {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(30px);
+            }
+            15% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            85% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+                visibility: hidden;
+            }
         }
-        .disabled-click {
-            pointer-events: none;
-            opacity: 0.6;
+
+        .suit-order-info {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #ffd966;
+            margin-top: 8px;
+            background: rgba(0,0,0,0.5);
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
         }
+
         footer {
             font-size: 0.7rem;
             text-align: center;
             color: #b5a36b;
             margin-top: 18px;
+        }
+
+        .victory-firework {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1001;
+            animation: explode 1s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(30);
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -278,6 +497,7 @@
         <div class="last-play-title">📜 Last Play</div>
         <div class="last-cards" id="lastPlayArea">—— None ——</div>
         <div id="lastPlayerName" style="font-size:0.75rem; margin-top:6px; color:#ffd58c;"></div>
+        <div class="suit-order-info">♣ < ♦ < ♥ < ♠ (Suit order)</div>
     </div>
 
     <div class="hand-area">
@@ -289,13 +509,12 @@
         <button id="playBtn">🔥 Play</button>
         <button id="passBtn" class="pass-btn">🚫 Pass</button>
     </div>
-    <footer>Big Two PRO+ • Singles • Pairs • Triples • Straight • Full House • Bomb 💣 (Bomb beats everything)</footer>
+    <footer>Big Two PRO+ • Animated • Singles • Pairs • Triples • Straight • Full House • Bomb 💣</footer>
 </div>
 
 <script>
-    // Firebase configuration (same as original, works with existing database)
     const firebaseConfig = {
-        apiKey: "AIzaSyCqKKmfHbyMrLwxthpY7oYAoNqbekWBOuYk",
+        apiKey: "AIzaSyCqKKmfHbyMrLwxthpY9oYAoNqbekWBOuYk",
         authDomain: "chat-site-12345.firebaseapp.com",
         databaseURL: "https://chat-site-12345-default-rtdb.firebaseio.com",
         projectId: "chat-site-12345",
@@ -304,24 +523,71 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Global game state
     let currentRoom = "";
     let myName = "";
     let myHand = [];
     let selectedCards = [];
     let gameActive = false;
     let currentTurnPlayer = "";
-    let lastPlayData = null;
     let allPlayers = [];
 
-    // Card ordering
     const RANK_ORDER = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
-    const SUIT_POWER = {"♠":3, "♥":2, "♣":1, "♦":0};
+    const SUIT_POWER = {"♣":0, "♦":1, "♥":2, "♠":3};
 
     function getRank(card) { return card.slice(0, -1); }
     function getSuit(card) { return card.slice(-1); }
     function rankIndex(card) { return RANK_ORDER.indexOf(getRank(card)); }
     function suitValue(card) { return SUIT_POWER[getSuit(card)]; }
+
+    function createParticle(x, y, emoji = "✨") {
+        const particle = document.createElement("div");
+        particle.className = "particle";
+        particle.textContent = emoji;
+        particle.style.left = x + "px";
+        particle.style.top = y + "px";
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 1000);
+    }
+
+    function createFirework() {
+        for (let i = 0; i < 12; i++) {
+            setTimeout(() => {
+                const firework = document.createElement("div");
+                firework.className = "victory-firework";
+                firework.style.left = Math.random() * window.innerWidth + "px";
+                firework.style.top = Math.random() * window.innerHeight + "px";
+                firework.style.background = `hsl(${Math.random() * 360}, 100%, 60%)`;
+                document.body.appendChild(firework);
+                setTimeout(() => firework.remove(), 1000);
+            }, i * 80);
+        }
+    }
+
+    function showAnimatedMessage(msg, isError = true) {
+        let div = document.createElement("div");
+        div.className = "toast-msg";
+        div.innerText = msg;
+        div.style.background = isError ? "linear-gradient(135deg, #631d1d, #3a0f0f)" : "linear-gradient(135deg, #2c5e2c, #1e3a1e)";
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 1800);
+    }
+
+    function shakeElement(el) {
+        if (!el) return;
+        el.classList.add("shake-card");
+        setTimeout(() => el.classList.remove("shake-card"), 300);
+    }
+
+    function animateCardPlay(cardElement, callback) {
+        if (!cardElement) {
+            if (callback) callback();
+            return;
+        }
+        cardElement.classList.add("playing-animation");
+        setTimeout(() => {
+            if (callback) callback();
+        }, 400);
+    }
 
     function analyzeCards(cards) {
         if (!cards || cards.length === 0) return null;
@@ -341,10 +607,12 @@
             return { type: "single", compareVal: rankIndex(card), compareSuit: suitValue(card), rawCards: sorted, mainRank: rankIndex(card) };
         }
         if (len === 2 && ranks[0] === ranks[1]) {
-            return { type: "pair", compareVal: rankIndex(sorted[0]), compareSuit: Math.max(suitValue(sorted[0]), suitValue(sorted[1])), rawCards: sorted, mainRank: rankIndex(sorted[0]) };
+            const higherSuit = Math.max(suitValue(sorted[0]), suitValue(sorted[1]));
+            return { type: "pair", compareVal: rankIndex(sorted[0]), compareSuit: higherSuit, rawCards: sorted, mainRank: rankIndex(sorted[0]) };
         }
         if (len === 3 && ranks[0] === ranks[1] && ranks[1] === ranks[2]) {
-            return { type: "triple", compareVal: rankIndex(sorted[0]), compareSuit: suitValue(sorted[2]), rawCards: sorted, mainRank: rankIndex(sorted[0]) };
+            const highestSuit = Math.max(suitValue(sorted[0]), suitValue(sorted[1]), suitValue(sorted[2]));
+            return { type: "triple", compareVal: rankIndex(sorted[0]), compareSuit: highestSuit, rawCards: sorted, mainRank: rankIndex(sorted[0]) };
         }
         if (len === 5) {
             const isStraight = (() => {
@@ -390,15 +658,6 @@
         return false;
     }
 
-    function showMessage(msg, isError = true) {
-        let div = document.createElement("div");
-        div.className = "toast-msg";
-        div.innerText = msg;
-        div.style.background = isError ? "#631d1dd9" : "#2c5e2cd9";
-        document.body.appendChild(div);
-        setTimeout(() => div.remove(), 1800);
-    }
-
     function renderHand() {
         const container = document.getElementById("handContainer");
         if (!container) return;
@@ -407,29 +666,33 @@
         const sortedHand = [...myHand].sort((a,b) => {
             let r = rankIndex(a) - rankIndex(b);
             if(r!==0) return r;
-            return suitValue(a)-suitValue(b);
+            return suitValue(a) - suitValue(b);
         });
-        sortedHand.forEach(card => {
+        sortedHand.forEach((card, idx) => {
             const cardDiv = document.createElement("div");
             cardDiv.className = "card";
             if (selectedCards.includes(card)) cardDiv.classList.add("selected");
             cardDiv.innerText = card;
             cardDiv.setAttribute("data-suit", getSuit(card));
+            cardDiv.style.animationDelay = `${idx * 0.03}s`;
             cardDiv.addEventListener("click", (e) => {
                 e.stopPropagation();
-                toggleSelectCard(card);
+                toggleSelectCard(card, cardDiv, e);
             });
             container.appendChild(cardDiv);
         });
     }
 
-    function toggleSelectCard(card) {
-        if (!gameActive) { showMessage("Game not started or not your turn", true); return; }
-        if (currentTurnPlayer !== myName) { showMessage("⏳ Wait for your turn", true); return; }
+    function toggleSelectCard(card, element, event) {
+        if (!gameActive) { showAnimatedMessage("Game not started or not your turn", true); return; }
+        if (currentTurnPlayer !== myName) { showAnimatedMessage("⏳ Wait for your turn", true); shakeElement(element); return; }
         if (selectedCards.includes(card)) {
             selectedCards = selectedCards.filter(c => c !== card);
         } else {
             selectedCards.push(card);
+            const x = event ? event.clientX : window.innerWidth / 2;
+            const y = event ? event.clientY : window.innerHeight / 2;
+            createParticle(x, y, "🃏");
         }
         renderHand();
     }
@@ -443,65 +706,54 @@
             let cnt = "?";
             if (handsSnapshot && handsSnapshot[p]) cnt = handsSnapshot[p].length;
             else if (p === myName && myHand) cnt = myHand.length;
-            else cnt = "?";
             const isCur = (p === currentTurnPlayer);
             html += `<span class="player-badge ${isCur ? 'current-turn' : ''}">👤 ${p} (${cnt})</span>`;
         });
         container.innerHTML = html;
     }
 
-    function listenPlayersHandCount() {
-        if (!currentRoom) return;
-        db.ref(`game/${currentRoom}/hands`).on("value", snap => {
-            const hands = snap.val() || {};
-            if (allPlayers.length) updatePlayersUI(hands);
-        });
-    }
-
-    async function afterPlayClean(winnerFlag = false) {
-        selectedCards = [];
-        renderHand();
-        if (winnerFlag) {
-            showMessage(`🏆 ${myName} wins the game! 🏆 Room reset`, false);
-            await db.ref(`game/${currentRoom}`).remove();
-            gameActive = false;
-            document.getElementById("turnText").innerText = "🏁 Game Over, please rejoin";
-        }
-    }
-
     async function playCards() {
-        if (!gameActive) { showMessage("Game not active"); return; }
-        if (currentTurnPlayer !== myName) { showMessage("Not your turn ❌"); return; }
-        if (selectedCards.length === 0) { showMessage("Select cards first"); return; }
+        if (!gameActive) { showAnimatedMessage("Game not active"); return; }
+        if (currentTurnPlayer !== myName) { showAnimatedMessage("Not your turn ❌"); return; }
+        if (selectedCards.length === 0) { showAnimatedMessage("Select cards first"); return; }
 
         const cardsToPlay = [...selectedCards];
         const typeObj = analyzeCards(cardsToPlay);
-        if (!typeObj) { showMessage("❌ Invalid combination! Only Single/Pair/Triple/Straight/Full House/Bomb allowed"); return; }
+        if (!typeObj) { showAnimatedMessage("❌ Invalid combination!"); return; }
 
         const gameSnap = await db.ref(`game/${currentRoom}`).once("value");
         const gameData = gameSnap.val();
-        if (!gameData) { showMessage("Game data missing"); return; }
+        if (!gameData) return;
         const firstTurnFlag = gameData.firstTurn === true;
-        if (firstTurnFlag && !cardsToPlay.includes("3♦")) { showMessage("💎 First move must include 3♦"); return; }
+        if (firstTurnFlag && !cardsToPlay.includes("3♦")) { showAnimatedMessage("💎 First move must include 3♦"); return; }
 
         const lastPlay = gameData.lastPlay;
-        if (!canBeat(cardsToPlay, lastPlay)) { showMessage("⚠️ Cannot beat the current hand!"); return; }
+        if (!canBeat(cardsToPlay, lastPlay)) { showAnimatedMessage("⚠️ Cannot beat current hand!"); return; }
+
+        // Animate cards being played
+        const cardElements = document.querySelectorAll(".card.selected");
+        if (cardElements.length > 0) {
+            cardElements.forEach(el => {
+                animateCardPlay(el, () => {});
+            });
+            await new Promise(resolve => setTimeout(resolve, 450));
+        }
 
         const newHand = myHand.filter(c => !cardsToPlay.includes(c));
-        if (newHand.length === myHand.length) return;
-
         const maxCard = cardsToPlay.sort((a,b)=> {
-            let diff = rankIndex(a)-rankIndex(b);
+            let diff = rankIndex(a) - rankIndex(b);
             if(diff!==0) return diff;
-            return suitValue(a)-suitValue(b);
+            return suitValue(a) - suitValue(b);
         }).slice(-1)[0];
+        
         const newLastPlay = {
             player: myName,
             cards: cardsToPlay,
             type: typeObj.type,
             compareVal: typeObj.compareVal,
             compareSuit: typeObj.compareSuit,
-            rawRank: rankIndex(maxCard)
+            rawRank: rankIndex(maxCard),
+            rawSuit: suitValue(maxCard)
         };
 
         try {
@@ -514,31 +766,36 @@
             myHand = newHand;
             selectedCards = [];
             renderHand();
+            createParticle(window.innerWidth/2, window.innerHeight/2, "💥");
 
             if (myHand.length === 0) {
-                showMessage(`🎉🎉🎉 VICTORY! ${myName} is the Big Two Champion! 🎉🎉🎉`, false);
+                createFirework();
+                showAnimatedMessage(`🎉 VICTORY! ${myName} is the Champion! 🎉`, false);
                 await db.ref(`game/${currentRoom}`).remove();
                 gameActive = false;
                 document.getElementById("turnText").innerText = "🏆 Game Over";
                 return;
             }
             await nextTurn();
-        } catch(e) { showMessage("Play failed "+e); }
+        } catch(e) { showAnimatedMessage("Play failed"); }
     }
 
     async function passTurn() {
         if (!gameActive) return;
-        if (currentTurnPlayer !== myName) { showMessage("Not your turn"); return; }
+        if (currentTurnPlayer !== myName) { showAnimatedMessage("Not your turn"); return; }
         const snap = await db.ref(`game/${currentRoom}`).once("value");
         const data = snap.val();
         if (!data) return;
-        if (!data.lastPlay) { showMessage("🚫 No cards on table, cannot pass. Please play.", true); return; }
+        if (!data.lastPlay) { showAnimatedMessage("🚫 No cards on table, cannot pass!"); return; }
 
+        createParticle(window.innerWidth/2, window.innerHeight/2, "🚫");
+        
         let passCount = data.passCount || 0;
         const players = allPlayers;
         const newPassCount = passCount + 1;
         if (newPassCount >= players.length - 1) {
             await db.ref(`game/${currentRoom}`).update({ lastPlay: null, passCount: 0, firstTurn: false });
+            showAnimatedMessage("🔄 New round! Table cleared.", false);
         } else {
             await db.ref(`game/${currentRoom}/passCount`).set(newPassCount);
         }
@@ -566,14 +823,17 @@
             const data = snap.val();
             if (!data) {
                 gameActive = false;
-                document.getElementById("turnText").innerText = "💤 No active game / Room reset";
+                document.getElementById("turnText").innerHTML = "💤 No active game";
                 return;
             }
             if (data.turn) {
                 currentTurnPlayer = data.turn;
-                document.getElementById("turnText").innerHTML = `🎲 Turn: ${currentTurnPlayer} ${currentTurnPlayer===myName ? " (YOUR TURN✨)" : ""}`;
+                const turnText = document.getElementById("turnText");
+                turnText.innerHTML = `🎲 Turn: ${currentTurnPlayer} ${currentTurnPlayer===myName ? " ✨ YOUR TURN ✨" : ""}`;
                 if (currentTurnPlayer === myName && gameActive) {
-                    // optional hint
+                    turnText.style.animation = "pulseGlow 0.8s infinite";
+                } else {
+                    turnText.style.animation = "pulseGlow 1.5s infinite";
                 }
             }
             const lastDiv = document.getElementById("lastPlayArea");
@@ -604,17 +864,15 @@
                 renderHand();
             }
         });
-        listenPlayersHandCount();
     }
 
     async function initializeGame(playersList) {
         const gameState = await db.ref(`game/${currentRoom}`).once("value");
         if (gameState.exists() && gameState.val().hands) {
-            showMessage(`Joined existing game: ${currentRoom}`, false);
             attachGameListeners();
             return;
         }
-        if (playersList.length < 2) { showMessage("Need at least 2 players to start"); return; }
+        if (playersList.length < 2) { showAnimatedMessage("Need at least 2 players"); return; }
         const deck = [];
         for (let s of ["♠","♥","♣","♦"]) {
             for (let r of RANK_ORDER) deck.push(r+s);
@@ -639,7 +897,7 @@
             passCount: 0,
             firstTurn: true
         });
-        showMessage(`🃏 Cards dealt! ${firstPlayer} starts (has 3♦)`, false);
+        showAnimatedMessage(`🃏 Cards dealt! ${firstPlayer} starts`, false);
         attachGameListeners();
     }
 
@@ -649,19 +907,14 @@
         if (!roomVal || !nameVal) { alert("Enter room and name"); return; }
         currentRoom = roomVal;
         myName = nameVal;
-        const playerRef = db.ref(`game/${currentRoom}/players/${myName}`);
-        await playerRef.set(true);
+        await db.ref(`game/${currentRoom}/players/${myName}`).set(true);
 
         const playersSnap = await db.ref(`game/${currentRoom}/players`).once("value");
         let players = Object.keys(playersSnap.val() || {});
         const gameExists = await db.ref(`game/${currentRoom}/hands`).once("value");
         if (!gameExists.exists()) {
-            if (players.length >= 2) {
-                await initializeGame(players);
-            } else {
-                showMessage(`Waiting for more players... currently ${players.length}/2+`, false);
-                attachGameListeners();
-            }
+            if (players.length >= 2) await initializeGame(players);
+            else attachGameListeners();
         } else {
             attachGameListeners();
         }
@@ -673,16 +926,12 @@
                 await initializeGame(curPlayers);
             }
         });
-        document.getElementById("turnText").innerText = "🃏 Joined, waiting for deal...";
+        document.getElementById("turnText").innerHTML = "🃏 Joined, waiting...";
     }
 
     document.getElementById("joinBtn").onclick = () => joinRoom();
     document.getElementById("playBtn").onclick = () => playCards();
     document.getElementById("passBtn").onclick = () => passTurn();
-
-    window.onload = () => {
-        console.log("Big Two PRO+ English Edition loaded");
-    };
 </script>
 </body>
 </html>

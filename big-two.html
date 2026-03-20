@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🔥 大老二至尊版 | Big Two PRO+ 對決</title>
+    <title>Big Two</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -25,7 +25,6 @@
             padding: 16px;
         }
 
-        /* 遊戲主面板 */
         .game-container {
             max-width: 1300px;
             width: 100%;
@@ -37,7 +36,6 @@
             border: 1px solid rgba(255,215,0,0.3);
         }
 
-        /* 加入區 */
         .join-panel {
             background: #2c1e12e0;
             backdrop-filter: blur(8px);
@@ -103,7 +101,6 @@
             box-shadow: 0 4px 8px #1e1e2f;
         }
 
-        /* 資訊欄 */
         .info-area {
             background: #00000070;
             border-radius: 48px;
@@ -146,7 +143,6 @@
             box-shadow: 0 0 0 2px gold;
         }
 
-        /* 桌面區 */
         .table-area {
             background: #1f5c2ecc;
             border-radius: 48px;
@@ -184,7 +180,6 @@
             transition: 0.1s;
         }
 
-        /* 手牌區 */
         .hand-area {
             margin-top: 20px;
             background: #00000055;
@@ -226,7 +221,6 @@
             box-shadow: 0 8px 18px gold;
             border: 2px solid #ffaa22;
         }
-        /* 花色顏色 */
         .card[data-suit="♥"], .card[data-suit="♦"] { color: #c33; }
         .card[data-suit="♠"], .card[data-suit="♣"] { color: #111; }
         @media (max-width: 600px) {
@@ -270,36 +264,36 @@
 <body>
 <div class="game-container" id="gameApp">
     <div class="join-panel">
-        <input type="text" id="roomInput" placeholder="🏠 房間號" value="DEMO123">
-        <input type="text" id="nameInput" placeholder="👤 玩家名稱" value="戰神">
-        <button id="joinBtn">✨ 加入 / 創建 ✨</button>
+        <input type="text" id="roomInput" placeholder="🏠 Room Code" value="DEMO123">
+        <input type="text" id="nameInput" placeholder="👤 Your Name" value="Player">
+        <button id="joinBtn">✨ Join / Create ✨</button>
     </div>
 
     <div class="info-area">
-        <div class="turn-indicator" id="turnText">⚡ 等待開始 ⚡</div>
-        <div class="players-list" id="playersList">🃏 玩家列表</div>
+        <div class="turn-indicator" id="turnText">⚡ Waiting to start ⚡</div>
+        <div class="players-list" id="playersList">🃏 Players</div>
     </div>
 
     <div class="table-area">
-        <div class="last-play-title">📜 上輪牌組</div>
-        <div class="last-cards" id="lastPlayArea">—— 無 ——</div>
+        <div class="last-play-title">📜 Last Play</div>
+        <div class="last-cards" id="lastPlayArea">—— None ——</div>
         <div id="lastPlayerName" style="font-size:0.75rem; margin-top:6px; color:#ffd58c;"></div>
     </div>
 
     <div class="hand-area">
-        <div class="hand-title">✋ 你的手牌 (點擊選牌)</div>
+        <div class="hand-title">✋ Your Hand (tap to select)</div>
         <div class="hand-cards" id="handContainer"></div>
     </div>
 
     <div class="action-buttons">
-        <button id="playBtn">🔥 出牌</button>
-        <button id="passBtn" class="pass-btn">🚫 PASS</button>
+        <button id="playBtn">🔥 Play</button>
+        <button id="passBtn" class="pass-btn">🚫 Pass</button>
     </div>
-    <footer>至尊版規則：單/對/三條/順子/葫蘆/炸彈 💣 炸彈壓萬物</footer>
+    <footer>Big Two PRO+ • Singles • Pairs • Triples • Straight • Full House • Bomb 💣 (Bomb beats everything)</footer>
 </div>
 
 <script>
-    // ----------------------------- FIREBASE 配置 (保留原始可用key) -------------------------
+    // Firebase configuration (same as original, works with existing database)
     const firebaseConfig = {
         apiKey: "AIzaSyCqKKmfHbyMrLwxthpY7oYAoNqbekWBOuYk",
         authDomain: "chat-site-12345.firebaseapp.com",
@@ -310,27 +304,25 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 全局遊戲狀態
+    // Global game state
     let currentRoom = "";
     let myName = "";
-    let myHand = [];           // 手牌字串陣列 e.g. "A♠"
-    let selectedCards = [];    // 當前選中的卡片
-    let gameActive = false;     // 遊戲進行中且玩家正常參與
+    let myHand = [];
+    let selectedCards = [];
+    let gameActive = false;
     let currentTurnPlayer = "";
-    let lastPlayData = null;    // { player, cards, type, compareValue, compareSuit, rawRank }
-    let allPlayers = [];        // 玩家名稱陣列
+    let lastPlayData = null;
+    let allPlayers = [];
 
-    // 牌型階級 & 排序基礎
+    // Card ordering
     const RANK_ORDER = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
-    const SUIT_POWER = {"♠":3, "♥":2, "♣":1, "♦":0};   // 花色比大小 (最大 ♠)
+    const SUIT_POWER = {"♠":3, "♥":2, "♣":1, "♦":0};
 
-    // 輔助函數
     function getRank(card) { return card.slice(0, -1); }
     function getSuit(card) { return card.slice(-1); }
     function rankIndex(card) { return RANK_ORDER.indexOf(getRank(card)); }
     function suitValue(card) { return SUIT_POWER[getSuit(card)]; }
 
-    // 牌型判斷 + 比較值封裝 (回傳 {type, compareVal, compareSuit, fullRank})
     function analyzeCards(cards) {
         if (!cards || cards.length === 0) return null;
         const sorted = [...cards].sort((a,b) => {
@@ -340,37 +332,30 @@
         });
         const len = sorted.length;
         const ranks = sorted.map(c => getRank(c));
-        const uniqueRanks = [...new Set(ranks)];
         const rankCounts = {};
         ranks.forEach(r => rankCounts[r] = (rankCounts[r] || 0) + 1);
         const counts = Object.values(rankCounts);
-        
-        // 單張
+
         if (len === 1) {
             const card = sorted[0];
             return { type: "single", compareVal: rankIndex(card), compareSuit: suitValue(card), rawCards: sorted, mainRank: rankIndex(card) };
         }
-        // 對子
         if (len === 2 && ranks[0] === ranks[1]) {
             return { type: "pair", compareVal: rankIndex(sorted[0]), compareSuit: Math.max(suitValue(sorted[0]), suitValue(sorted[1])), rawCards: sorted, mainRank: rankIndex(sorted[0]) };
         }
-        // 三條
         if (len === 3 && ranks[0] === ranks[1] && ranks[1] === ranks[2]) {
             return { type: "triple", compareVal: rankIndex(sorted[0]), compareSuit: suitValue(sorted[2]), rawCards: sorted, mainRank: rankIndex(sorted[0]) };
         }
-        // 5張牌型
         if (len === 5) {
             const isStraight = (() => {
                 let idxs = sorted.map(c => rankIndex(c));
                 let uniqueSorted = [...new Set(idxs)].sort((a,b)=>a-b);
                 if (uniqueSorted.length !== 5) return false;
-                // 特例: A,2,3,4,5? 但2最大不應與小順，正規大老二3最小，2獨立，不支援A2345，所以純連續檢測
                 for (let i=0;i<4;i++) if(uniqueSorted[i+1] !== uniqueSorted[i]+1) return false;
                 return true;
             })();
             const isBomb = counts.includes(4);
             const isFullHouse = counts.includes(3) && counts.includes(2);
-            
             if (isBomb) {
                 let fourRank = Object.keys(rankCounts).find(r => rankCounts[r] === 4);
                 let idx = RANK_ORDER.indexOf(fourRank);
@@ -390,30 +375,21 @@
         return null;
     }
 
-    // 比較兩組牌型 (current vs last) 是否符合壓制規則
     function canBeat(currentCards, lastPlayObj) {
-        if (!lastPlayObj || !lastPlayObj.type) return true;  // 沒上家牌，隨便出
+        if (!lastPlayObj || !lastPlayObj.type) return true;
         const cur = analyzeCards(currentCards);
         if (!cur) return false;
         const last = lastPlayObj;
-        // 炸彈無敵：炸彈可以壓任何非炸彈牌
         if (cur.type === "bomb" && last.type !== "bomb") return true;
-        if (cur.type === "bomb" && last.type === "bomb") {
-            return cur.compareVal > last.compareVal;
-        }
-        // 非同型 且 非炸彈壓炸彈不可能
+        if (cur.type === "bomb" && last.type === "bomb") return cur.compareVal > last.compareVal;
         if (cur.type !== last.type) return false;
-        // 同型比大小
         if (cur.compareVal !== last.compareVal) return cur.compareVal > last.compareVal;
-        // 點數相同，比花色 (僅單張/對子/三條需要)
         if (["single","pair","triple"].includes(cur.type)) {
             return cur.compareSuit > last.compareSuit;
         }
-        // 順子或葫蘆同點數則平手(規則不允許平手，但發生機率低，視為不能壓)
         return false;
     }
 
-    // 顯示訊息浮動
     function showMessage(msg, isError = true) {
         let div = document.createElement("div");
         div.className = "toast-msg";
@@ -423,7 +399,6 @@
         setTimeout(() => div.remove(), 1800);
     }
 
-    // 渲染手牌
     function renderHand() {
         const container = document.getElementById("handContainer");
         if (!container) return;
@@ -449,8 +424,8 @@
     }
 
     function toggleSelectCard(card) {
-        if (!gameActive) { showMessage("遊戲尚未開始或不是你的回合", true); return; }
-        if (currentTurnPlayer !== myName) { showMessage("⏳ 等待你的回合", true); return; }
+        if (!gameActive) { showMessage("Game not started or not your turn", true); return; }
+        if (currentTurnPlayer !== myName) { showMessage("⏳ Wait for your turn", true); return; }
         if (selectedCards.includes(card)) {
             selectedCards = selectedCards.filter(c => c !== card);
         } else {
@@ -459,84 +434,62 @@
         renderHand();
     }
 
-    // 取得當前最大手牌數量 (用於UI)
-    function updatePlayersUI() {
+    function updatePlayersUI(handsSnapshot = null) {
         const container = document.getElementById("playersList");
         if (!container) return;
-        if (!allPlayers.length) { container.innerText = "🃏 等待玩家加入"; return; }
+        if (!allPlayers.length) { container.innerText = "🃏 Waiting for players"; return; }
         let html = "";
         allPlayers.forEach(p => {
-            let isCurrent = (p === currentTurnPlayer);
-            let handCount = "?";
-            // 動態去拿手牌數量 (透過監聽手牌快取? 可簡單從資料庫讀但比較複雜，我們會另外監聽)
-            db.ref(`game/${currentRoom}/hands/${p}`).once("value", snap => {
-                // 非同步更新不阻塞顯示，直接再刷一次UI?
-            });
-            // 暫用本地簡易，使用全局監聽
-            html += `<span class="player-badge ${isCurrent ? 'current-turn' : ''}">👤 ${p} ${(p===myName && myHand) ? `(${myHand.length})` : ''}</span>`;
+            let cnt = "?";
+            if (handsSnapshot && handsSnapshot[p]) cnt = handsSnapshot[p].length;
+            else if (p === myName && myHand) cnt = myHand.length;
+            else cnt = "?";
+            const isCur = (p === currentTurnPlayer);
+            html += `<span class="player-badge ${isCur ? 'current-turn' : ''}">👤 ${p} (${cnt})</span>`;
         });
         container.innerHTML = html;
-        // 補充更新所有玩家手牌數量監聽 (稍後加)
     }
 
-    // 監聽所有玩家手牌變化，更新UI（簡化）
     function listenPlayersHandCount() {
         if (!currentRoom) return;
         db.ref(`game/${currentRoom}/hands`).on("value", snap => {
             const hands = snap.val() || {};
-            const badges = document.querySelectorAll(".player-badge");
-            // 更優雅: 更新playersList
-            if (allPlayers.length) {
-                let newHtml = "";
-                allPlayers.forEach(p => {
-                    let cnt = hands[p] ? hands[p].length : "0";
-                    let isCur = (p === currentTurnPlayer);
-                    newHtml += `<span class="player-badge ${isCur ? 'current-turn' : ''}">${p} (${cnt})</span>`;
-                });
-                document.getElementById("playersList").innerHTML = newHtml;
-            }
+            if (allPlayers.length) updatePlayersUI(hands);
         });
     }
 
-    // 重置選牌 & 檢查勝利
     async function afterPlayClean(winnerFlag = false) {
         selectedCards = [];
         renderHand();
         if (winnerFlag) {
-            showMessage(`🏆 ${myName} 贏得遊戲！ 🏆 房間將重置`, false);
+            showMessage(`🏆 ${myName} wins the game! 🏆 Room reset`, false);
             await db.ref(`game/${currentRoom}`).remove();
             gameActive = false;
-            document.getElementById("turnText").innerText = "🏁 遊戲結束，請重新加入";
+            document.getElementById("turnText").innerText = "🏁 Game Over, please rejoin";
         }
     }
 
-    // 出牌邏輯
     async function playCards() {
-        if (!gameActive) { showMessage("遊戲未開始"); return; }
-        if (currentTurnPlayer !== myName) { showMessage("現在不是你的回合 ❌"); return; }
-        if (selectedCards.length === 0) { showMessage("請先選擇卡片"); return; }
-        
-        // 驗證牌型有效性
+        if (!gameActive) { showMessage("Game not active"); return; }
+        if (currentTurnPlayer !== myName) { showMessage("Not your turn ❌"); return; }
+        if (selectedCards.length === 0) { showMessage("Select cards first"); return; }
+
         const cardsToPlay = [...selectedCards];
         const typeObj = analyzeCards(cardsToPlay);
-        if (!typeObj) { showMessage("❌ 無效牌型！只能出 單張/對子/三條/順子/葫蘆/炸彈"); return; }
-        
-        // 檢查是否有 3♦ 首輪規則
+        if (!typeObj) { showMessage("❌ Invalid combination! Only Single/Pair/Triple/Straight/Full House/Bomb allowed"); return; }
+
         const gameSnap = await db.ref(`game/${currentRoom}`).once("value");
         const gameData = gameSnap.val();
-        if (!gameData) { showMessage("遊戲資料遺失"); return; }
+        if (!gameData) { showMessage("Game data missing"); return; }
         const firstTurnFlag = gameData.firstTurn === true;
-        if (firstTurnFlag && !cardsToPlay.includes("3♦")) { showMessage("💎 首輪必須包含梅花3 (3♦)"); return; }
-        
-        // 壓制檢查
+        if (firstTurnFlag && !cardsToPlay.includes("3♦")) { showMessage("💎 First move must include 3♦"); return; }
+
         const lastPlay = gameData.lastPlay;
-        if (!canBeat(cardsToPlay, lastPlay)) { showMessage("⚠️ 牌型太小或無法壓制!"); return; }
-        
-        // 移除手牌中的這些牌
+        if (!canBeat(cardsToPlay, lastPlay)) { showMessage("⚠️ Cannot beat the current hand!"); return; }
+
         const newHand = myHand.filter(c => !cardsToPlay.includes(c));
         if (newHand.length === myHand.length) return;
-        
-        // 更新資料庫
+
         const maxCard = cardsToPlay.sort((a,b)=> {
             let diff = rankIndex(a)-rankIndex(b);
             if(diff!==0) return diff;
@@ -550,7 +503,7 @@
             compareSuit: typeObj.compareSuit,
             rawRank: rankIndex(maxCard)
         };
-        
+
         try {
             await db.ref(`game/${currentRoom}/hands/${myName}`).set(newHand);
             await db.ref(`game/${currentRoom}`).update({
@@ -561,41 +514,37 @@
             myHand = newHand;
             selectedCards = [];
             renderHand();
-            
-            // 勝利判定
+
             if (myHand.length === 0) {
-                showMessage(`🎉🎉🎉 勝利！ ${myName} 是大老二至尊！ 🎉🎉🎉`, false);
+                showMessage(`🎉🎉🎉 VICTORY! ${myName} is the Big Two Champion! 🎉🎉🎉`, false);
                 await db.ref(`game/${currentRoom}`).remove();
                 gameActive = false;
-                document.getElementById("turnText").innerText = "🏆 遊戲結束";
+                document.getElementById("turnText").innerText = "🏆 Game Over";
                 return;
             }
-            // 切換下一位
             await nextTurn();
-        } catch(e) { showMessage("出牌失敗 "+e); }
+        } catch(e) { showMessage("Play failed "+e); }
     }
-    
+
     async function passTurn() {
         if (!gameActive) return;
-        if (currentTurnPlayer !== myName) { showMessage("還沒輪到你"); return; }
+        if (currentTurnPlayer !== myName) { showMessage("Not your turn"); return; }
         const snap = await db.ref(`game/${currentRoom}`).once("value");
         const data = snap.val();
         if (!data) return;
-        // 若上家沒牌（新一輪開始）不允許pass
-        if (!data.lastPlay) { showMessage("🚫 桌面無牌，不能PASS，請出牌"); return; }
-        
+        if (!data.lastPlay) { showMessage("🚫 No cards on table, cannot pass. Please play.", true); return; }
+
         let passCount = data.passCount || 0;
         const players = allPlayers;
         const newPassCount = passCount + 1;
         if (newPassCount >= players.length - 1) {
-            // 一圈PASS，清空桌面
             await db.ref(`game/${currentRoom}`).update({ lastPlay: null, passCount: 0, firstTurn: false });
         } else {
             await db.ref(`game/${currentRoom}/passCount`).set(newPassCount);
         }
         await nextTurn();
     }
-    
+
     async function nextTurn() {
         const snap = await db.ref(`game/${currentRoom}/players`).once("value");
         const playersObj = snap.val();
@@ -609,42 +558,38 @@
         let nextPlayer = players[nextIdx];
         await db.ref(`game/${currentRoom}/turn`).set(nextPlayer);
     }
-    
-    // 監聽遊戲狀態
+
     function attachGameListeners() {
         if (!currentRoom) return;
         const gameRef = db.ref(`game/${currentRoom}`);
         gameRef.on("value", (snap) => {
             const data = snap.val();
-            if (!data) { 
-                gameActive = false; 
-                document.getElementById("turnText").innerText = "💤 無遊戲 / 房間重置";
-                return; 
+            if (!data) {
+                gameActive = false;
+                document.getElementById("turnText").innerText = "💤 No active game / Room reset";
+                return;
             }
-            // 更新turn
             if (data.turn) {
                 currentTurnPlayer = data.turn;
-                document.getElementById("turnText").innerHTML = `🎲 回合： ${currentTurnPlayer} ${currentTurnPlayer===myName ? " (你的回合✨)" : ""}`;
+                document.getElementById("turnText").innerHTML = `🎲 Turn: ${currentTurnPlayer} ${currentTurnPlayer===myName ? " (YOUR TURN✨)" : ""}`;
                 if (currentTurnPlayer === myName && gameActive) {
-                    // 可提示
+                    // optional hint
                 }
             }
-            // 更新lastPlay顯示
             const lastDiv = document.getElementById("lastPlayArea");
             const lastPlayerSpan = document.getElementById("lastPlayerName");
             if (data.lastPlay && data.lastPlay.cards) {
                 let cardsHtml = data.lastPlay.cards.map(c => `<div class="mini-card">${c}</div>`).join("");
                 lastDiv.innerHTML = cardsHtml;
-                lastPlayerSpan.innerHTML = `由 ${data.lastPlay.player} 打出`;
+                lastPlayerSpan.innerHTML = `Played by ${data.lastPlay.player}`;
             } else {
-                lastDiv.innerHTML = "—— 新一輪，請出牌 ——";
+                lastDiv.innerHTML = "—— New round, play a card ——";
                 lastPlayerSpan.innerHTML = "";
             }
-            // 更新玩家列表
             if (data.players) {
                 allPlayers = Object.keys(data.players);
-                updatePlayersUI();
-                // 刷新手牌數量監聽也一起
+                if (data.hands) updatePlayersUI(data.hands);
+                else updatePlayersUI();
             }
             if (data.hands && data.hands[myName]) {
                 myHand = data.hands[myName] || [];
@@ -652,8 +597,7 @@
             }
             gameActive = true;
         });
-        
-        // 自己手牌單獨監聽確保同步
+
         db.ref(`game/${currentRoom}/hands/${myName}`).on("value", (snap) => {
             if (snap.exists()) {
                 myHand = snap.val() || [];
@@ -662,28 +606,23 @@
         });
         listenPlayersHandCount();
     }
-    
-    // 開始遊戲或初始化 (第一個玩家建立)
+
     async function initializeGame(playersList) {
         const gameState = await db.ref(`game/${currentRoom}`).once("value");
         if (gameState.exists() && gameState.val().hands) {
-            // 已有遊戲，直接加入監聽
-            showMessage(`加入現有遊戲 ${currentRoom}`, false);
+            showMessage(`Joined existing game: ${currentRoom}`, false);
             attachGameListeners();
             return;
         }
-        // 新遊戲: 發牌
-        if (playersList.length < 2) { showMessage("至少需要2名玩家才能開始"); return; }
+        if (playersList.length < 2) { showMessage("Need at least 2 players to start"); return; }
         const deck = [];
         for (let s of ["♠","♥","♣","♦"]) {
             for (let r of RANK_ORDER) deck.push(r+s);
         }
-        // Fisher-Yates
         for (let i = deck.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [deck[i], deck[j]] = [deck[j], deck[i]];
         }
-        const totalPlayers = playersList.length;
         const handsMap = {};
         playersList.forEach((player, idx) => {
             handsMap[player] = deck.slice(idx * 13, (idx+1)*13);
@@ -700,37 +639,33 @@
             passCount: 0,
             firstTurn: true
         });
-        showMessage(`🃏 發牌完成！由 ${firstPlayer} 開始 (持有3♦)`, false);
+        showMessage(`🃏 Cards dealt! ${firstPlayer} starts (has 3♦)`, false);
         attachGameListeners();
     }
-    
-    // 加入/創建房間邏輯
+
     async function joinRoom() {
         const roomVal = document.getElementById("roomInput").value.trim();
         const nameVal = document.getElementById("nameInput").value.trim();
-        if (!roomVal || !nameVal) { alert("請輸入房間和名稱"); return; }
+        if (!roomVal || !nameVal) { alert("Enter room and name"); return; }
         currentRoom = roomVal;
         myName = nameVal;
-        // 將玩家加入房間players列表
         const playerRef = db.ref(`game/${currentRoom}/players/${myName}`);
         await playerRef.set(true);
-        // 取得目前房間所有玩家
+
         const playersSnap = await db.ref(`game/${currentRoom}/players`).once("value");
         let players = Object.keys(playersSnap.val() || {});
         const gameExists = await db.ref(`game/${currentRoom}/hands`).once("value");
         if (!gameExists.exists()) {
-            // 無手牌=>尚未開始, 需要觸發開始 (只要玩家>=2 自動啟動)
             if (players.length >= 2) {
                 await initializeGame(players);
             } else {
-                showMessage(`等待更多玩家加入... 目前 ${players.length}/2+`, false);
-                attachGameListeners(); // 僅監聽狀態變化
+                showMessage(`Waiting for more players... currently ${players.length}/2+`, false);
+                attachGameListeners();
             }
         } else {
-            // 遊戲進行中, 直接監聽
             attachGameListeners();
         }
-        // 動態偵測新玩家加入時自動啟動 (如果尚未開始)
+
         db.ref(`game/${currentRoom}/players`).on("value", async (snap) => {
             const curPlayers = Object.keys(snap.val() || {});
             const handsExist = await db.ref(`game/${currentRoom}/hands`).once("value");
@@ -738,223 +673,16 @@
                 await initializeGame(curPlayers);
             }
         });
-        document.getElementById("turnText").innerText = "🃏 已加入，等待發牌...";
+        document.getElementById("turnText").innerText = "🃏 Joined, waiting for deal...";
     }
-    
-    // 綁定按鈕
+
     document.getElementById("joinBtn").onclick = () => joinRoom();
     document.getElementById("playBtn").onclick = () => playCards();
     document.getElementById("passBtn").onclick = () => passTurn();
-    
-    // 防呆修復UI
+
     window.onload = () => {
-        console.log("Big Two PRO+ 至尊版載入");
+        console.log("Big Two PRO+ English Edition loaded");
     };
 </script>
-</body>
-</html>  <div id="last"></div>
-</div>
-
-<div id="hand"></div>
-
-<br>
-<button onclick="play()">Play</button>
-<button onclick="pass()">Pass</button>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCqKKmfHbyMrLwxthpY7oYAoNqbekWBOuYk",
-  authDomain: "chat-site-12345.firebaseapp.com",
-  databaseURL: "https://chat-site-12345-default-rtdb.firebaseio.com",
-  projectId: "chat-site-12345",
-  appId: "1:660571630838:web:7be88b3d899720ba1590d7"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-let room="", name="";
-let myHand=[], selected=[];
-let gameStarted=false;
-
-const rankOrder=["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
-const suitOrder={"♦":0,"♣":1,"♥":2,"♠":3};
-
-function getRank(c){ return c.slice(0,-1); }
-function getSuit(c){ return c.slice(-1); }
-function val(c){ return rankOrder.indexOf(getRank(c)); }
-
-function getType(cards){
-  cards.sort((a,b)=>val(a)-val(b));
-  if(cards.length===1) return "single";
-  if(cards.length===2 && getRank(cards[0])===getRank(cards[1])) return "pair";
-  if(cards.length===3 && cards.every(c=>getRank(c)===getRank(cards[0]))) return "triple";
-  if(cards.length===5){
-    let v=cards.map(val).sort((a,b)=>a-b);
-    let straight=v.every((x,i)=>i===0||x===v[i-1]+1);
-    let count={};
-    cards.forEach(c=>{ let r=getRank(c); count[r]=(count[r]||0)+1; });
-    let vals=Object.values(count);
-    if(vals.includes(4)) return "bomb";
-    if(vals.includes(3)&&vals.includes(2)) return "fullhouse";
-    if(straight) return "straight";
-  }
-  return null;
-}
-
-function typeRank(t){
-  return {single:1,pair:2,triple:3,straight:4,fullhouse:5,bomb:6}[t]||0;
-}
-
-function beats(cards,last){
-  if(!last) return true;
-  let t1=getType(cards);
-  let t2=last.type;
-  if(!t1) return false;
-  if(t1!==t2) return typeRank(t1)>typeRank(t2);
-  let max=cards.sort((a,b)=>{
-    if(val(a)!==val(b)) return val(a)-val(b);
-    return suitOrder[getSuit(a)]-suitOrder[getSuit(b)];
-  }).slice(-1)[0];
-  if(val(max)!==last.value) return val(max)>last.value;
-  return suitOrder[getSuit(max)]>last.suit;
-}
-
-function deck(){
-  let d=[];
-  ["♠","♥","♦","♣"].forEach(s=>{ rankOrder.forEach(r=>d.push(r+s)); });
-  return d.sort(()=>Math.random()-0.5);
-}
-
-function join(){
-  room=document.getElementById("room").value;
-  name=document.getElementById("name").value;
-  if(!room || !name) return alert("Enter room and name");
-  db.ref("game/"+room+"/players/"+name).set(true);
-  listen();
-  setTimeout(start,1000);
-}
-
-function start(){
-  db.ref("game/"+room+"/players").once("value",s=>{
-    let ps=Object.keys(s.val());
-    db.ref("game/"+room+"/hands").once("value",h=>{
-      if(h.exists()) return;
-      let d=deck();
-      let firstPlayer="";
-      ps.forEach((p,i)=>{
-        let hand=d.slice(i*13,(i+1)*13);
-        db.ref("game/"+room+"/hands/"+p).set(hand);
-        if(hand.includes("3♦")) firstPlayer=p;
-      });
-      db.ref("game/"+room).update({
-        turn:firstPlayer,
-        lastPlay:null,
-        passCount:0,
-        firstTurn:true
-      });
-    });
-  });
-}
-
-function listen(){
-  db.ref("game/"+room+"/hands/"+name).on("value",s=>{
-    myHand=s.val()||[];
-    render();
-  });
-  db.ref("game/"+room+"/turn").on("value",s=>{
-    document.getElementById("turn").innerText="Turn: "+s.val();
-  });
-  db.ref("game/"+room+"/lastPlay").on("value",s=>{
-    let d=s.val();
-    document.getElementById("last").innerText=d? d.player+" → "+d.cards.join(", ") : "";
-  });
-}
-
-function render(){
-  let div=document.getElementById("hand");
-  div.innerHTML="";
-  myHand.sort((a,b)=>val(a)-val(b));
-  myHand.forEach(c=>{
-    let el=document.createElement("div");
-    el.className="card";
-    el.innerText=c;
-    el.onclick=()=>toggleCard(el,c);
-    el.addEventListener("touchmove",()=>{
-      if(!selected.includes(c)){
-        selected.push(c);
-        el.classList.add("selected");
-      }
-    });
-    div.appendChild(el);
-  });
-}
-
-function toggleCard(el,c){
-  if(selected.includes(c)){
-    selected=selected.filter(x=>x!==c);
-    el.classList.remove("selected");
-  }else{
-    selected.push(c);
-    el.classList.add("selected");
-  }
-}
-
-function play(){
-  db.ref("game/"+room).once("value",snap=>{
-    let data=snap.val();
-    if(data.turn!==name) return alert("Not your turn");
-    let t=getType(selected);
-    if(!t) return alert("Invalid cards");
-    if(data.firstTurn && !selected.includes("3♦")) return alert("First move must include 3♦");
-    if(!beats(selected,data.lastPlay)) return alert("Too weak");
-    let max=selected.sort((a,b)=>{
-      if(val(a)!==val(b)) return val(a)-val(b);
-      return suitOrder[getSuit(a)]-suitOrder[getSuit(b)];
-    }).slice(-1)[0];
-    myHand=myHand.filter(c=>!selected.includes(c));
-    db.ref("game/"+room+"/hands/"+name).set(myHand).then(()=>{
-      selected=[];
-      render();
-    });
-    db.ref("game/"+room).update({
-      lastPlay:{player:name,cards:selected,type:t,value:val(max),suit:suitOrder[getSuit(max)]},
-      passCount:0,
-      firstTurn:false
-    });
-    if(myHand.length===0){
-      alert("🎉 WIN!");
-      db.ref("game/"+room).remove();
-      return;
-    }
-    next();
-  });
-}
-
-function pass(){
-  db.ref("game/"+room).once("value",s=>{
-    let d=s.val();
-    let players=Object.keys(d.players);
-    let pc=(d.passCount||0)+1;
-    if(pc>=players.length-1){
-      db.ref("game/"+room).update({lastPlay:null,passCount:0});
-    }else{
-      db.ref("game/"+room+"/passCount").set(pc);
-    }
-    next();
-  });
-}
-
-function next(){
-  db.ref("game/"+room+"/players").once("value",s=>{
-    let ps=Object.keys(s.val());
-    db.ref("game/"+room+"/turn").once("value",snap=>{
-      let i=ps.indexOf(snap.val());
-      db.ref("game/"+room+"/turn").set(ps[(i+1)%ps.length]);
-    });
-  });
-}
-</script>
-
 </body>
 </html>

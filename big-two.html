@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Big Two · Deluxe Edition</title>
+    <title>Big Two · Deluxe Online</title>
+    <!-- Firebase compat SDK (global firebase object) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         * {
             user-select: none;
@@ -44,43 +47,10 @@
             transition: all 0.2s;
             z-index: 10;
         }
-        .top {
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            justify-content: center;
-            width: auto;
-            max-width: 85%;
-        }
-        .left {
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            flex-direction: column;
-            align-items: center;
-            width: auto;
-            padding: 15px 10px;
-        }
-        .right {
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            flex-direction: column;
-            align-items: center;
-            width: auto;
-            padding: 15px 10px;
-        }
-        .bottom {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.45);
-            padding: 12px 20px;
-            width: auto;
-            max-width: 90%;
-            overflow-x: auto;
-            justify-content: center;
-        }
+        .top { top: 15px; left: 50%; transform: translateX(-50%); justify-content: center; width: auto; max-width: 85%; }
+        .left { left: 15px; top: 50%; transform: translateY(-50%); flex-direction: column; align-items: center; width: auto; padding: 15px 10px; }
+        .right { right: 15px; top: 50%; transform: translateY(-50%); flex-direction: column; align-items: center; width: auto; padding: 15px 10px; }
+        .bottom { bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.45); padding: 12px 20px; width: auto; max-width: 90%; overflow-x: auto; justify-content: center; }
         .card {
             width: 64px;
             height: 88px;
@@ -112,32 +82,12 @@
             opacity: 0.7;
             position: absolute;
         }
-        /* 左侧卡片顺时针旋转90度 */
-        .left .card {
-            transform: rotate(90deg);
-            width: 88px;
-            height: 64px;
-            font-size: 24px;
-        }
-        .left .card.selected {
-            transform: rotate(90deg) translateY(-8px);
-        }
-        .left .card.back {
-            transform: rotate(90deg);
-        }
-        /* 右侧卡片逆时针旋转90度 */
-        .right .card {
-            transform: rotate(-90deg);
-            width: 88px;
-            height: 64px;
-            font-size: 24px;
-        }
-        .right .card.selected {
-            transform: rotate(-90deg) translateY(-8px);
-        }
-        .right .card.back {
-            transform: rotate(-90deg);
-        }
+        .left .card { transform: rotate(90deg); width: 88px; height: 64px; font-size: 24px; }
+        .left .card.selected { transform: rotate(90deg) translateY(-8px); }
+        .left .card.back { transform: rotate(90deg); }
+        .right .card { transform: rotate(-90deg); width: 88px; height: 64px; font-size: 24px; }
+        .right .card.selected { transform: rotate(-90deg) translateY(-8px); }
+        .right .card.back { transform: rotate(-90deg); }
         .selected {
             transform: translateY(-14px) scale(1.02);
             background: #fff3b0;
@@ -147,7 +97,6 @@
             box-shadow: 0 0 0 4px #ffd966, 0 0 0 8px rgba(255,220,100,0.4);
             border-radius: 60px;
         }
-        /* 左右两侧手牌垂直两列布局 */
         .left .hand-cards, .right .hand-cards {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -155,7 +104,6 @@
             justify-items: center;
             align-items: center;
         }
-        /* 上下区域水平排列 */
         .top .hand-cards, .bottom .hand-cards {
             display: flex;
             flex-direction: row;
@@ -234,7 +182,6 @@
             color: white;
             text-shadow: 1px 1px 0 #00000066;
         }
-        /* 右下角AI难度调节面板 */
         .ai-panel {
             position: absolute;
             bottom: 20px;
@@ -270,7 +217,7 @@
         }
         @keyframes flyToCenter {
             0% { transform: scale(1) translate(0,0); opacity: 1; }
-            100% { transform: scale(0.2) translate(0, -70px); opacity: 0; }
+            100% { transform: scale(0.2) translate(0,-70px); opacity: 0; }
         }
         .animate-out {
             animation: flyToCenter 0.2s ease forwards !important;
@@ -298,7 +245,6 @@
             pointer-events: none;
             z-index: 25;
         }
-        /* 右上角显示得分区域 */
         .score-top-right {
             position: absolute;
             top: 15px;
@@ -315,32 +261,88 @@
             z-index: 5;
             border: 1px solid rgba(255,236,179,0.3);
         }
+        .join-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            font-family: monospace;
+        }
+        .join-card {
+            background: #1e3a2f;
+            border-radius: 48px;
+            padding: 30px 40px;
+            text-align: center;
+            border: 2px solid #e9c891;
+            box-shadow: 0 20px 30px black;
+            color: #f9eec1;
+            min-width: 320px;
+        }
+        .join-card input, .join-card select {
+            margin: 12px 0;
+            padding: 12px 18px;
+            font-size: 18px;
+            border-radius: 60px;
+            border: none;
+            background: #2c5a42;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+        }
+        .join-card button {
+            background: #ffc107;
+            font-size: 18px;
+            padding: 8px 24px;
+            margin-top: 12px;
+            width: 100%;
+        }
+        .status-wait {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .start-game-btn {
+            background: #4caf50;
+            margin-top: 10px;
+            padding: 8px 20px;
+            font-size: 16px;
+        }
+        .start-game-btn:hover {
+            background: #45a049;
+        }
+        .waiting-for-players {
+            font-size: 12px;
+            margin-top: 8px;
+            color: #ffd966;
+        }
     </style>
 </head>
 <body>
 <div class="table">
-    <!-- 右上角得分显示 -->
-    <div class="score-top-right" id="topScoreArea">Jen (0)<br>Round: 1</div>
-
+    <div class="score-top-right" id="topScoreArea">Round 1</div>
     <div class="player top" id="playerTop"></div>
     <div class="player left" id="playerLeft"></div>
     <div class="player right" id="playerRight"></div>
     <div class="player bottom" id="playerBottom"></div>
 
     <div id="center-area">
-        <div class="pile-cards" id="pileDisplay">New Round</div>
-        <div class="round-info" id="statusMsg">Waiting</div>
+        <div class="pile-cards" id="pileDisplay">🃟 New Round</div>
+        <div class="round-info" id="statusMsg">Waiting for players</div>
         <div>
             <button id="playBtn">Play</button>
             <button id="passBtn">Pass</button>
-            <button id="resetBtn">New Game</button>
+            <button id="resetBtn">Restart Game</button>
         </div>
     </div>
-    <div class="turn-indicator" id="turnText">Your Turn</div>
-    
-    <!-- 右下角AI难度调节 -->
+    <div class="turn-indicator" id="turnText">--</div>
+
     <div class="ai-panel">
-        <label>AI Difficulty:</label>
+        <label>🤖 AI Difficulty:</label>
         <select id="aiDifficulty">
             <option value="easy">Easy</option>
             <option value="medium" selected>Medium</option>
@@ -348,520 +350,708 @@
         </select>
     </div>
 </div>
+<button id="deleteRoomBtn" style="position:absolute; top:10px; right:120px; z-index:50; background:#a53f2b;">Delete Room</button>
 
 <script>
-    (function(){
-        const SUITS = ["♠","♥","♦","♣"];
-        const RANK_ORDER = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
-        const SUIT_POWER = { "♠": 4, "♥": 3, "♦": 2, "♣": 1 };
-        
-        let players = [[], [], [], []];
-        let currentPlayer = 0;
-        let selectedIndices = [];
-        let lastPlay = null;
-        let passCount = 0;
-        let gameActive = true;
-        let scores = [0, 0, 0, 0];
-        let roundNumber = 1;
-        let isAIPlaying = false;
-        let audioCtx = null;
-        
-        const playerNames = ["You", "AI Left", "Jen", "AI Right"];
-        
-        function getRankValue(r) { return RANK_ORDER.indexOf(r); }
-        
-        function isCardGreater(c1, c2) {
-            let v1 = getRankValue(c1.r), v2 = getRankValue(c2.r);
-            if(v1 !== v2) return v1 > v2;
-            return SUIT_POWER[c1.s] > SUIT_POWER[c2.s];
+    // ======================= FIREBASE CONFIG =======================
+    const firebaseConfig = {
+        apiKey: "AIzaSyCqKKmfHbyMrLwxthpY9oYAoNqbekWBOuYk",
+        authDomain: "chat-site-12345.firebaseapp.com",
+        databaseURL: "https://chat-site-12345-default-rtdb.firebaseio.com",
+        projectId: "chat-site-12345",
+        appId: "1:660571630838:web:7be88b3d899720ba1590d7"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ======================= CARD GAME CONSTANTS =======================
+    const SUITS = ["♠","♥","♦","♣"];
+    const RANK_ORDER = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+    const SUIT_POWER = { "♠": 4, "♥": 3, "♦": 2, "♣": 1 };
+    
+    function getRankValue(r) { return RANK_ORDER.indexOf(r); }
+    function isCardGreater(c1, c2) {
+        let v1 = getRankValue(c1.r), v2 = getRankValue(c2.r);
+        if(v1 !== v2) return v1 > v2;
+        return SUIT_POWER[c1.s] > SUIT_POWER[c2.s];
+    }
+    
+    function getHandType(cards) {
+        if(cards.length === 0) return null;
+        if(cards.length === 1) {
+            return { type: "single", compareRank: getRankValue(cards[0].r), compareSuit: SUIT_POWER[cards[0].s], cards: [...cards] };
         }
-        
-        function getHandType(cards) {
-            if(cards.length === 0) return null;
-            if(cards.length === 1) {
-                return { type: "single", compareRank: getRankValue(cards[0].r), compareSuit: SUIT_POWER[cards[0].s], cards };
-            }
-            if(cards.length === 2 && cards[0].r === cards[1].r) {
-                let higher = isCardGreater(cards[0], cards[1]) ? cards[0] : cards[1];
-                return { type: "pair", compareRank: getRankValue(higher.r), compareSuit: SUIT_POWER[higher.s], cards };
-            }
-            if(cards.length === 3 && cards[0].r === cards[1].r && cards[1].r === cards[2].r) {
-                return { type: "triplet", compareRank: getRankValue(cards[0].r), compareSuit: Math.max(...cards.map(c=>SUIT_POWER[c.s])), cards };
-            }
-            
-            let rankCount = new Map();
-            for(let c of cards) {
-                let rv = getRankValue(c.r);
-                rankCount.set(rv, (rankCount.get(rv) || 0) + 1);
-            }
-            let counts = Array.from(rankCount.values()).sort((a,b)=>b-a);
-            
-            if(cards.length === 5 && counts[0] === 3 && counts[1] === 2) {
-                let tripletRank = null;
-                for(let [rk, cnt] of rankCount) if(cnt === 3) tripletRank = rk;
-                let maxSuit = 0;
-                for(let c of cards) if(getRankValue(c.r) === tripletRank) maxSuit = Math.max(maxSuit, SUIT_POWER[c.s]);
-                return { type: "fullhouse", compareRank: tripletRank, compareSuit: maxSuit, cards };
-            }
-            
-            if(cards.length === 5 && counts[0] === 4 && counts[1] === 1) {
-                let fourRank = null;
-                for(let [rk, cnt] of rankCount) if(cnt === 4) fourRank = rk;
-                let maxSuit = 0;
-                for(let c of cards) if(getRankValue(c.r) === fourRank) maxSuit = Math.max(maxSuit, SUIT_POWER[c.s]);
-                return { type: "fourkind", compareRank: fourRank, compareSuit: maxSuit, cards };
-            }
-            
-            if(cards.length >= 5) {
-                let uniqueRanks = [...new Set(cards.map(c => getRankValue(c.r)))].sort((a,b)=>a-b);
-                if(uniqueRanks.length === cards.length && !uniqueRanks.includes(12) && uniqueRanks.length >=5) {
-                    let isStraight = true;
-                    for(let i=0;i<uniqueRanks.length-1;i++) {
-                        if(uniqueRanks[i+1] !== uniqueRanks[i]+1) { isStraight = false; break; }
-                    }
-                    if(isStraight) {
-                        let maxRank = Math.max(...uniqueRanks);
-                        let maxSuit = 0;
-                        for(let c of cards) if(getRankValue(c.r) === maxRank) maxSuit = Math.max(maxSuit, SUIT_POWER[c.s]);
-                        return { type: "straight", compareRank: maxRank, compareSuit: maxSuit, cards };
-                    }
+        if(cards.length === 2 && cards[0].r === cards[1].r) {
+            let higher = isCardGreater(cards[0], cards[1]) ? cards[0] : cards[1];
+            return { type: "pair", compareRank: getRankValue(higher.r), compareSuit: SUIT_POWER[higher.s], cards: [...cards] };
+        }
+        if(cards.length === 3 && cards[0].r === cards[1].r && cards[1].r === cards[2].r) {
+            return { type: "triplet", compareRank: getRankValue(cards[0].r), compareSuit: Math.max(...cards.map(c=>SUIT_POWER[c.s])), cards: [...cards] };
+        }
+        let rankCount = new Map();
+        for(let c of cards) {
+            let rv = getRankValue(c.r);
+            rankCount.set(rv, (rankCount.get(rv) || 0) + 1);
+        }
+        let counts = Array.from(rankCount.values()).sort((a,b)=>b-a);
+        if(cards.length === 5 && counts[0] === 3 && counts[1] === 2) {
+            let tripletRank = null;
+            for(let [rk, cnt] of rankCount) if(cnt === 3) tripletRank = rk;
+            let maxSuit = 0;
+            for(let c of cards) if(getRankValue(c.r) === tripletRank) maxSuit = Math.max(maxSuit, SUIT_POWER[c.s]);
+            return { type: "fullhouse", compareRank: tripletRank, compareSuit: maxSuit, cards: [...cards] };
+        }
+        if(cards.length === 5 && counts[0] === 4 && counts[1] === 1) {
+            let fourRank = null;
+            for(let [rk, cnt] of rankCount) if(cnt === 4) fourRank = rk;
+            let maxSuit = 0;
+            for(let c of cards) if(getRankValue(c.r) === fourRank) maxSuit = Math.max(maxSuit, SUIT_POWER[c.s]);
+            return { type: "fourkind", compareRank: fourRank, compareSuit: maxSuit, cards: [...cards] };
+        }
+        if(cards.length >= 5) {
+            let uniqueRanks = [...new Set(cards.map(c => getRankValue(c.r)))].sort((a,b)=>a-b);
+            if(uniqueRanks.length === cards.length && !uniqueRanks.includes(12) && uniqueRanks.length >=5) {
+                let isStraight = true;
+                for(let i=0;i<uniqueRanks.length-1;i++) {
+                    if(uniqueRanks[i+1] !== uniqueRanks[i]+1) { isStraight = false; break; }
+                }
+                if(isStraight) {
+                    let maxRank = Math.max(...uniqueRanks);
+                    let maxSuit = 0;
+                    for(let c of cards) if(getRankValue(c.r) === maxRank) maxSuit = Math.max(maxSuit, SUIT_POWER[c.s]);
+                    return { type: "straight", compareRank: maxRank, compareSuit: maxSuit, cards: [...cards] };
                 }
             }
-            return null;
         }
-        
-        function canBeat(last, current) {
-            if(!last) return true;
-            if(last.type !== current.type) return false;
-            if(current.compareRank !== last.compareRank) return current.compareRank > last.compareRank;
-            return current.compareSuit > last.compareSuit;
+        return null;
+    }
+    
+    function canBeat(last, current) {
+        if(!last) return true;
+        if(last.type !== current.type) return false;
+        if(current.compareRank !== last.compareRank) return current.compareRank > last.compareRank;
+        return current.compareSuit > last.compareSuit;
+    }
+    
+    function createDeck() {
+        let deck = [];
+        for(let r of RANK_ORDER)
+            for(let s of SUITS)
+                deck.push({ r, s });
+        for(let i=deck.length-1;i>0;i--) {
+            let j = Math.floor(Math.random()*(i+1));
+            [deck[i],deck[j]] = [deck[j],deck[i]];
         }
-        
-        function createDeck() {
-            let deck = [];
-            for(let r of RANK_ORDER)
-                for(let s of SUITS)
-                    deck.push({ r, s });
-            for(let i=deck.length-1;i>0;i--) {
-                let j = Math.floor(Math.random()*(i+1));
-                [deck[i],deck[j]] = [deck[j],deck[i]];
+        return deck;
+    }
+    
+    // Generate a fresh game state from the current player list
+    function generateGameStateFromPlayers(playerNamesArray) {
+        const deck = createDeck();
+        const hands = [[],[],[],[]];
+        for(let i=0;i<4;i++) hands[i] = deck.slice(i*13, (i+1)*13);
+        for(let i=0;i<4;i++) {
+            hands[i].sort((a,b) => {
+                let va = getRankValue(a.r), vb = getRankValue(b.r);
+                if(va !== vb) return va - vb;
+                return SUIT_POWER[a.s] - SUIT_POWER[b.s];
+            });
+        }
+        let starter = 0;
+        for(let i=0;i<4;i++) {
+            if(hands[i].some(c => c.r === "3" && c.s === "♣")) {
+                starter = i;
+                break;
             }
-            return deck;
+        }
+        return {
+            hands: hands,
+            currentPlayer: starter,
+            lastPlay: null,
+            passCount: 0,
+            scores: [0,0,0,0],
+            roundNumber: 1,
+            gameActive: true,
+            version: 1
+        };
+    }
+    
+    // ======================= GLOBAL VARIABLES =======================
+    let roomId = null;
+    let mySeat = -1;
+    let playersList = [];
+    let localGameState = null;
+    let localSelectedIndices = [];
+    let isProcessingAction = false;
+    let aiTimeout = null;
+    let audioCtx = null;
+    let unsubscribePlayers = null;
+    let unsubscribeGame = null;
+    let isGameStarted = false;
+    
+    function playBeep(freq, duration=0.12) {
+        if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const play = () => {
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            osc.start();
+            osc.stop(now + duration);
+        };
+        if(audioCtx.state === 'suspended') audioCtx.resume().then(play);
+        else play();
+    }
+    
+    // ======================= RENDER UI =======================
+    function renderAll() {
+        if(!playersList.length) return;
+        
+        // If game hasn't started, show waiting message
+        if(!isGameStarted || !localGameState) {
+            for(let i=0;i<4;i++) {
+                const elementId = ["playerBottom","playerLeft","playerTop","playerRight"][i];
+                const container = document.getElementById(elementId);
+                if(!container) continue;
+                container.innerHTML = '';
+                const wrapper = document.createElement('div');
+                wrapper.className = "hand-cards";
+                const playerName = playersList[i]?.name || `Empty Slot`;
+                const isAI = playersList[i]?.isAI || false;
+                // Show back cards placeholder
+                for(let j=0;j<8;j++) {
+                    const div = document.createElement('div');
+                    div.className = "card back";
+                    wrapper.appendChild(div);
+                }
+                const nameDiv = document.createElement('div');
+                nameDiv.className = "score-badge";
+                let displayName = playerName;
+                if(i === mySeat) displayName = `${playerName} (You)`;
+                if(isAI) displayName = `🤖 ${displayName}`;
+                nameDiv.innerText = displayName;
+                container.appendChild(wrapper);
+                container.appendChild(nameDiv);
+            }
+            document.getElementById("pileDisplay").innerHTML = "🃟 Waiting for game start";
+            
+            // Check if all 4 seats are filled
+            const allSeatsFilled = playersList.length === 4;
+            if(allSeatsFilled) {
+                document.getElementById("statusMsg").innerHTML = "✅ All seats filled! Game starting automatically...";
+                // Auto-start game when all 4 seats are filled
+                if(!isGameStarted && playersList.length === 4 && playersList[0]?.name === playersList[mySeat]?.name) {
+                    setTimeout(() => startGameWithAI(), 500);
+                }
+            } else {
+                document.getElementById("statusMsg").innerHTML = `👥 Waiting for players: ${playersList.length}/4 seats filled`;
+            }
+            document.getElementById("turnText").innerText = "Game not started";
+            return;
         }
         
-        function dealNewGame() {
-            let deck = createDeck();
-            for(let i=0;i<4;i++) players[i] = deck.slice(i*13, (i+1)*13);
-            for(let i=0;i<4;i++) {
-                players[i].sort((a,b) => {
-                    let va = getRankValue(a.r), vb = getRankValue(b.r);
-                    if(va !== vb) return va - vb;
-                    return SUIT_POWER[a.s] - SUIT_POWER[b.s];
+        // Game started: normal rendering
+        const hands = localGameState.hands;
+        const current = localGameState.currentPlayer;
+        const active = localGameState.gameActive;
+        const scores = localGameState.scores;
+        const round = localGameState.roundNumber;
+        const last = localGameState.lastPlay;
+        
+        for(let i=0;i<4;i++) {
+            const elementId = ["playerBottom","playerLeft","playerTop","playerRight"][i];
+            const container = document.getElementById(elementId);
+            if(!container) continue;
+            container.innerHTML = '';
+            const wrapper = document.createElement('div');
+            wrapper.className = "hand-cards";
+            const playerName = playersList[i]?.name || `Seat ${i}`;
+            const isAI = playersList[i]?.isAI || false;
+            
+            if(i === mySeat) {
+                hands[i].forEach((card, idx) => {
+                    const div = document.createElement('div');
+                    div.className = "card";
+                    if(localSelectedIndices.includes(idx)) div.classList.add("selected");
+                    const suitColor = (card.s === '♥' || card.s === '♦') ? '#c33' : '#222';
+                    div.style.color = suitColor;
+                    div.innerText = `${card.r}${card.s}`;
+                    div.onclick = (e) => {
+                        e.stopPropagation();
+                        if(!active || localGameState.currentPlayer !== mySeat || isProcessingAction) return;
+                        if(localSelectedIndices.includes(idx)) {
+                            localSelectedIndices = localSelectedIndices.filter(i=>i!==idx);
+                            div.classList.remove("selected");
+                        } else {
+                            localSelectedIndices.push(idx);
+                            div.classList.add("selected");
+                        }
+                    };
+                    wrapper.appendChild(div);
                 });
-            }
-            let starter = 0;
-            for(let i=0;i<4;i++) {
-                if(players[i].some(c => c.r === "3" && c.s === "♣")) {
-                    starter = i;
-                    break;
+            } else {
+                for(let j=0;j<hands[i].length;j++) {
+                    const div = document.createElement('div');
+                    div.className = "card back";
+                    wrapper.appendChild(div);
                 }
             }
-            currentPlayer = starter;
-            lastPlay = null;
-            passCount = 0;
-            gameActive = true;
-            selectedIndices = [];
-            isAIPlaying = false;
-            updateUI();
-            renderAll();
-            if(currentPlayer !== 0) setTimeout(() => aiTurn(), getRandomAIDelay());
+            const nameDiv = document.createElement('div');
+            nameDiv.className = "score-badge";
+            let displayName = playerName;
+            if(i === mySeat) displayName = `${playerName} (You)`;
+            if(isAI) displayName = `🤖 ${displayName}`;
+            nameDiv.innerText = `${displayName}  (${scores[i]})`;
+            container.appendChild(wrapper);
+            container.appendChild(nameDiv);
         }
         
-        function endRound(winnerIdx) {
-            gameActive = false;
-            scores[winnerIdx]++;
-            roundNumber++;
-            updateTopScores();
-            playBeep(880, 0.2);
-            setTimeout(() => {
-                alert(playerNames[winnerIdx] + " wins this round!");
-                dealNewGame();
-                currentPlayer = winnerIdx;
-                lastPlay = null;
-                passCount = 0;
-                selectedIndices = [];
-                updateUI();
-                renderAll();
-                if(currentPlayer !== 0) setTimeout(() => aiTurn(), getRandomAIDelay());
-            }, 300);
+        document.getElementById("topScoreArea").innerHTML = `Round ${round}<br>🏆 Scores`;
+        const pileDiv = document.getElementById("pileDisplay");
+        if(last && last.cards) {
+            let html = '';
+            for(let card of last.cards) {
+                let color = (card.s === '♥' || card.s === '♦') ? '#ff8888' : '#ffffff';
+                html += `<span class="pile-card" style="color:${color};">${card.r}${card.s}</span>`;
+            }
+            pileDiv.innerHTML = html;
+        } else {
+            pileDiv.innerHTML = "🃟 New Round";
+        }
+        pileDiv.classList.add("pile-new");
+        setTimeout(()=>pileDiv.classList.remove("pile-new"), 200);
+        
+        const statusSpan = document.getElementById("statusMsg");
+        if(last) statusSpan.innerText = `Last: ${last.type}`;
+        else statusSpan.innerText = "Free to play";
+        if(current === mySeat && active) statusSpan.style.background = "#ffd966cc";
+        else statusSpan.style.background = "#000000aa";
+        
+        const turnDiv = document.getElementById("turnText");
+        if(!active) turnDiv.innerText = "Game Over";
+        else if(current === mySeat) turnDiv.innerText = "✨ Your Turn ✨";
+        else turnDiv.innerText = `${playersList[current]?.name || "Player"} is thinking...`;
+        
+        for(let i=0;i<4;i++) {
+            const el = document.getElementById(["playerBottom","playerLeft","playerTop","playerRight"][i]);
+            if(el) {
+                if(current === i && active) el.classList.add("active-player");
+                else el.classList.remove("active-player");
+            }
+        }
+    }
+    
+    // ======================= FIREBASE ACTIONS =======================
+    async function commitGameState(newState) {
+        if(!roomId) return false;
+        newState.version = (newState.version || 0) + 1;
+        await db.ref(`rooms/${roomId}/gameState`).set(newState);
+        return true;
+    }
+    
+    async function tryPlay() {
+        if(!localGameState || !localGameState.gameActive) { alert("Game not active"); return; }
+        if(localGameState.currentPlayer !== mySeat) { alert("Not your turn"); return; }
+        if(localSelectedIndices.length === 0) { alert("Select cards first"); return; }
+        const hand = localGameState.hands[mySeat];
+        const selectedCards = localSelectedIndices.map(i => hand[i]);
+        const move = getHandType(selectedCards);
+        if(!move) { alert("Invalid combination. Allowed: single, pair, triplet, straight (5+), fullhouse, four of a kind."); return; }
+        if(!canBeat(localGameState.lastPlay, move)) { alert("Cannot beat current hand."); return; }
+        if(isProcessingAction) return;
+        isProcessingAction = true;
+        
+        const newState = JSON.parse(JSON.stringify(localGameState));
+        const newHand = newState.hands[mySeat].filter((_,idx) => !localSelectedIndices.includes(idx));
+        newState.hands[mySeat] = newHand;
+        newState.lastPlay = move;
+        newState.passCount = 0;
+        playBeep(660,0.12);
+        if(newHand.length === 0) {
+            newState.gameActive = false;
+            newState.scores[mySeat]++;
+            newState.roundNumber++;
+        } else {
+            newState.currentPlayer = (newState.currentPlayer + 1) % 4;
+        }
+        await commitGameState(newState);
+        localSelectedIndices = [];
+        isProcessingAction = false;
+        if(newHand.length === 0) {
+            setTimeout(() => startNewRoundAfterWin(), 800);
+        }
+    }
+    
+    async function tryPass() {
+        if(!localGameState || !localGameState.gameActive) return;
+        if(localGameState.currentPlayer !== mySeat) return;
+        if(isProcessingAction) return;
+        isProcessingAction = true;
+        const newState = JSON.parse(JSON.stringify(localGameState));
+        newState.passCount++;
+        playBeep(440,0.08);
+        if(newState.passCount >= 3) {
+            newState.lastPlay = null;
+            newState.passCount = 0;
+            playBeep(520,0.15);
+        }
+        newState.currentPlayer = (newState.currentPlayer + 1) % 4;
+        await commitGameState(newState);
+        localSelectedIndices = [];
+        isProcessingAction = false;
+    }
+    
+    async function restartGame() {
+        if(!roomId) return;
+        if(isProcessingAction) return;
+        const fresh = generateGameStateFromPlayers(playersList.map(p => p.name));
+        fresh.version = (localGameState?.version || 0) + 1;
+        await commitGameState(fresh);
+        localSelectedIndices = [];
+    }
+    
+    async function startNewRoundAfterWin() {
+        if(!roomId) return;
+        const fresh = generateGameStateFromPlayers(playersList.map(p => p.name));
+        fresh.version = Date.now();
+        await commitGameState(fresh);
+        localSelectedIndices = [];
+    }
+    
+    // Start the game: fill empty slots with AI and initialize game state
+    async function startGameWithAI() {
+        if(isGameStarted) {
+            return;
         }
         
-        function checkWin() {
-            for(let i=0;i<4;i++) {
-                if(players[i].length === 0) {
-                    endRound(i);
-                    return true;
+        // Fill missing slots with AI
+        let newPlayers = [...playersList];
+        while(newPlayers.length < 4) {
+            newPlayers.push({ name: `AI_${newPlayers.length+1}`, isAI: true });
+        }
+        
+        // Update players list in Firebase
+        await db.ref(`rooms/${roomId}/players`).set(newPlayers);
+        
+        // Create initial game state
+        const freshState = generateGameStateFromPlayers(newPlayers.map(p => p.name));
+        await db.ref(`rooms/${roomId}/gameState`).set(freshState);
+    }
+    
+    // AI decision logic
+    async function aiDecisionIfNeeded(state) {
+        if(!state.gameActive) return;
+        if(state.currentPlayer === mySeat) return;
+        const seat = state.currentPlayer;
+        if(!playersList[seat] || !playersList[seat].isAI) return;
+        if(isProcessingAction) return;
+        if(aiTimeout) clearTimeout(aiTimeout);
+        aiTimeout = setTimeout(async () => {
+            const snap = await db.ref(`rooms/${roomId}/gameState`).get();
+            if(!snap.exists()) return;
+            const latest = snap.val();
+            if(!latest.gameActive) return;
+            if(latest.currentPlayer !== seat) return;
+            const hand = latest.hands[seat];
+            if(hand.length === 0) return;
+            const allMoves = getAllPossibleMoves(hand);
+            const validMoves = allMoves.filter(mv => canBeat(latest.lastPlay, mv));
+            const difficulty = document.getElementById("aiDifficulty").value;
+            let chosenMove = null;
+            if(validMoves.length > 0) {
+                if(difficulty === "easy") {
+                    if(Math.random() < 0.35) {
+                        await performAIAction(seat, null, latest);
+                        return;
+                    }
+                    chosenMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                } else if(difficulty === "medium") {
+                    validMoves.sort((a,b) => a.compareRank !== b.compareRank ? a.compareRank - b.compareRank : a.compareSuit - b.compareSuit);
+                    chosenMove = validMoves[0];
+                } else {
+                    validMoves.sort((a,b) => b.compareRank !== a.compareRank ? b.compareRank - a.compareRank : b.compareSuit - a.compareSuit);
+                    chosenMove = validMoves[0];
                 }
             }
-            return false;
+            if(chosenMove) await performAIAction(seat, chosenMove.cards, latest);
+            else await performAIAction(seat, null, latest);
+        }, 400 + Math.random() * 500);
+    }
+    
+    async function performAIAction(seat, cardsToPlay, currentState) {
+        if(isProcessingAction) return;
+        isProcessingAction = true;
+        try {
+            const newState = JSON.parse(JSON.stringify(currentState));
+            if(cardsToPlay && cardsToPlay.length) {
+                const oldHand = newState.hands[seat];
+                const toRemoveSet = new Set(cardsToPlay.map(c=>c.r+c.s));
+                const newHand = oldHand.filter(c => !toRemoveSet.has(c.r+c.s));
+                newState.hands[seat] = newHand;
+                const move = getHandType(cardsToPlay);
+                newState.lastPlay = move;
+                newState.passCount = 0;
+                playBeep(660,0.1);
+                if(newHand.length === 0) {
+                    newState.gameActive = false;
+                    newState.scores[seat]++;
+                    newState.roundNumber++;
+                } else {
+                    newState.currentPlayer = (newState.currentPlayer + 1) % 4;
+                }
+            } else {
+                newState.passCount++;
+                playBeep(440,0.08);
+                if(newState.passCount >= 3) {
+                    newState.lastPlay = null;
+                    newState.passCount = 0;
+                    playBeep(520,0.15);
+                }
+                newState.currentPlayer = (newState.currentPlayer + 1) % 4;
+            }
+            await commitGameState(newState);
+            if(newState.gameActive === false && newState.hands[seat].length === 0) {
+                setTimeout(() => startNewRoundAfterWin(), 800);
+            }
+        } finally {
+            isProcessingAction = false;
+        }
+    }
+    
+    function getAllPossibleMoves(hand) {
+        let moves = [];
+        for(let i=0;i<hand.length;i++) {
+            let t = getHandType([hand[i]]);
+            if(t) moves.push(t);
+        }
+        for(let i=0;i<hand.length-1;i++) {
+            if(hand[i].r === hand[i+1].r) {
+                let t = getHandType([hand[i], hand[i+1]]);
+                if(t) moves.push(t);
+            }
+        }
+        for(let i=0;i<hand.length-2;i++) {
+            if(hand[i].r === hand[i+1].r && hand[i+1].r === hand[i+2].r) {
+                let t = getHandType([hand[i], hand[i+1], hand[i+2]]);
+                if(t) moves.push(t);
+            }
+        }
+        function getAllCombinations(arr,k){
+            let res=[];
+            function helper(start,cur){
+                if(cur.length===k){ res.push([...cur]); return; }
+                for(let i=start;i<arr.length;i++){ cur.push(arr[i]); helper(i+1,cur); cur.pop(); }
+            }
+            helper(0,[]);
+            return res;
+        }
+        let combos5 = getAllCombinations(hand,5);
+        for(let combo of combos5){
+            let t = getHandType(combo);
+            if(t && (t.type==="straight"||t.type==="fullhouse"||t.type==="fourkind")) moves.push(t);
+        }
+        let keySet=new Set();
+        let unique=[];
+        for(let mv of moves){
+            let key=mv.type+"|"+mv.cards.map(c=>c.r+c.s).sort().join(",");
+            if(!keySet.has(key)){ keySet.add(key); unique.push(mv);}
+        }
+        return unique;
+    }
+    
+    // ======================= ROOM & PLAYER HANDLING =======================
+    async function createNewRoom(roomName, playerName, humanCount) {
+        const roomRef = db.ref(`rooms/${roomName}`);
+        
+        // Create players array with specified number of humans and fill rest with AI
+        let players = [];
+        for(let i = 0; i < humanCount; i++) {
+            if(i === 0) {
+                players.push({ name: playerName, isAI: false });
+            } else {
+                players.push({ name: `Human_${i+1}`, isAI: false });
+            }
+        }
+        while(players.length < 4) {
+            players.push({ name: `AI_${players.length+1}`, isAI: true });
         }
         
-        function performPlay(playerIdx, cardsIndicesOrCards) {
-            if(!gameActive) return false;
-            let hand = players[playerIdx];
-            let selectedCards;
-            if(Array.isArray(cardsIndicesOrCards) && typeof cardsIndicesOrCards[0] === 'number') {
-                selectedCards = cardsIndicesOrCards.map(i => hand[i]);
-            } else {
-                selectedCards = cardsIndicesOrCards;
-            }
-            let moveType = getHandType(selectedCards);
-            if(!moveType) return false;
-            if(!canBeat(lastPlay, moveType)) return false;
-            
-            if(playerIdx === 0) {
-                let newHand = hand.filter((_, idx) => !selectedIndices.includes(idx));
-                players[playerIdx] = newHand;
-                animateCardsOut(selectedIndices, playerIdx);
-            } else {
-                let newHand = hand.filter(c => !selectedCards.includes(c));
-                players[playerIdx] = newHand;
-            }
-            lastPlay = moveType;
-            passCount = 0;
-            playBeep(660, 0.1);
-            updatePileDisplay();
-            if(checkWin()) return true;
-            currentPlayer = (currentPlayer + 1) % 4;
-            selectedIndices = [];
-            updateUI();
-            renderAll();
-            if(!gameActive) return true;
-            if(currentPlayer !== 0) {
-                setTimeout(() => aiTurn(), getRandomAIDelay());
-            } else {
-                updateUITurnText();
-            }
+        // Shuffle players to randomize seating (but keep creator as seat 0 for simplicity)
+        // Actually we'll keep creator as seat 0
+        await roomRef.child("players").set(players);
+        
+        mySeat = 0;
+        playersList = players;
+        roomId = roomName;
+        return true;
+    }
+    
+    async function joinExistingRoom(roomName, playerName) {
+        const roomRef = db.ref(`rooms/${roomName}`);
+        const playersSnap = await roomRef.child("players").get();
+        let players = playersSnap.exists() ? playersSnap.val() : [];
+        if(!Array.isArray(players)) players = [];
+        
+        // Check if player already in room
+        const existing = players.find(p => p.name === playerName);
+        if(existing) {
+            mySeat = players.findIndex(p => p.name === playerName);
+            playersList = players;
+            roomId = roomName;
             return true;
         }
         
-        function passTurn(playerIdx) {
-            if(!gameActive) return;
-            playBeep(440, 0.08);
-            passCount++;
-            if(passCount >= 3) {
-                lastPlay = null;
-                passCount = 0;
-                updatePileDisplay();
-                playBeep(520, 0.15);
-            }
-            currentPlayer = (currentPlayer + 1) % 4;
-            selectedIndices = [];
-            updateUI();
-            renderAll();
-            if(checkWin()) return;
-            if(currentPlayer !== 0) setTimeout(() => aiTurn(), getRandomAIDelay());
-            else updateUITurnText();
+        // Count existing humans (non-AI players)
+        const humanCount = players.filter(p => !p.isAI).length;
+        
+        // Find an AI slot to replace
+        const aiIndex = players.findIndex(p => p.isAI === true);
+        if(aiIndex === -1) {
+            alert("Room is full (all seats taken)");
+            return false;
         }
         
-        function getAllPossibleMoves(hand) {
-            let moves = [];
-            for(let i=0;i<hand.length;i++) {
-                let t = getHandType([hand[i]]);
-                if(t) moves.push(t);
-            }
-            for(let i=0;i<hand.length-1;i++) {
-                for(let j=i+1;j<hand.length;j++) {
-                    if(hand[i].r === hand[j].r) {
-                        let t = getHandType([hand[i], hand[j]]);
-                        if(t) moves.push(t);
-                    }
-                }
-            }
-            for(let i=0;i<hand.length-2;i++) {
-                if(hand[i].r === hand[i+1].r && hand[i+1].r === hand[i+2].r) {
-                    let t = getHandType([hand[i], hand[i+1], hand[i+2]]);
-                    if(t) moves.push(t);
-                }
-            }
-            let combos = getAllCombinations(hand, 5);
-            for(let combo of combos) {
-                let t = getHandType(combo);
-                if(t && (t.type === "straight" || t.type === "fullhouse" || t.type === "fourkind")) {
-                    moves.push(t);
-                }
-            }
-            let keySet = new Set();
-            let unique = [];
-            for(let mv of moves) {
-                let key = mv.type + "|" + mv.cards.map(c=>c.r+c.s).sort().join(",");
-                if(!keySet.has(key)) {
-                    keySet.add(key);
-                    unique.push(mv);
-                }
-            }
-            return unique;
-        }
+        // Replace AI with human player
+        players[aiIndex] = { name: playerName, isAI: false };
+        await roomRef.child("players").set(players);
         
-        function getAllCombinations(arr, k) {
-            let result = [];
-            function helper(start, combo) {
-                if(combo.length === k) {
-                    result.push([...combo]);
-                    return;
-                }
-                for(let i=start; i<arr.length; i++) {
-                    combo.push(arr[i]);
-                    helper(i+1, combo);
-                    combo.pop();
-                }
-            }
-            helper(0, []);
-            return result;
-        }
+        mySeat = aiIndex;
+        playersList = players;
+        roomId = roomName;
+        return true;
+    }
+    
+    async function joinOrCreateRoom(roomName, playerName, humanCount) {
+        const roomRef = db.ref(`rooms/${roomName}`);
+        const roomSnap = await roomRef.get();
         
-        function getRandomAIDelay() {
-            return Math.floor(Math.random() * 500) + 500;
+        if(!roomSnap.exists()) {
+            // Create new room
+            return await createNewRoom(roomName, playerName, humanCount);
+        } else {
+            // Join existing room
+            return await joinExistingRoom(roomName, playerName);
         }
-        
-        function aiTurn() {
-            if(isAIPlaying || !gameActive) return;
-            if(currentPlayer === 0) return;
-            isAIPlaying = true;
-            updateUITurnText("thinking");
-            let delay = getRandomAIDelay();
-            setTimeout(() => {
-                if(!gameActive || currentPlayer === 0) { isAIPlaying=false; renderAll(); return; }
-                let hand = players[currentPlayer];
-                if(hand.length === 0) return;
-                let allMoves = getAllPossibleMoves(hand);
-                let validMoves = allMoves.filter(move => canBeat(lastPlay, move));
-                let difficulty = document.getElementById("aiDifficulty").value;
-                if(validMoves.length > 0) {
-                    let chosenMove = null;
-                    if(difficulty === "easy") {
-                        if(Math.random() < 0.35) {
-                            passTurn(currentPlayer);
-                            isAIPlaying = false;
-                            renderAll();
-                            return;
-                        }
-                        let randomIndex = Math.floor(Math.random() * validMoves.length);
-                        chosenMove = validMoves[randomIndex];
-                    } else if(difficulty === "medium") {
-                        validMoves.sort((a,b) => {
-                            if(a.compareRank !== b.compareRank) return a.compareRank - b.compareRank;
-                            return a.compareSuit - b.compareSuit;
-                        });
-                        chosenMove = validMoves[0];
-                    } else {
-                        validMoves.sort((a,b) => {
-                            if(a.compareRank !== b.compareRank) return b.compareRank - a.compareRank;
-                            return b.compareSuit - a.compareSuit;
-                        });
-                        chosenMove = validMoves[0];
-                    }
-                    if(chosenMove) performPlay(currentPlayer, chosenMove.cards);
-                    else passTurn(currentPlayer);
-                } else {
-                    passTurn(currentPlayer);
+    }
+    
+    // Listen to players and gameState
+    function startListening() {
+        const roomPlayersRef = db.ref(`rooms/${roomId}/players`);
+        unsubscribePlayers = roomPlayersRef.on('value', (snap) => {
+            if(snap.exists()) {
+                playersList = snap.val();
+                const myName = playersList[mySeat]?.name;
+                if(myName) {
+                    mySeat = playersList.findIndex(p => p.name === myName);
                 }
-                isAIPlaying = false;
+                if(mySeat === -1 && myName) {
+                    alert("You were removed from the room.");
+                    location.reload();
+                }
                 renderAll();
-            }, delay);
-        }
-        
-        function playerPlay() {
-            if(!gameActive || currentPlayer !== 0 || isAIPlaying) return;
-            let hand = players[0];
-            if(selectedIndices.length === 0) return;
-            let cards = selectedIndices.map(i => hand[i]);
-            let move = getHandType(cards);
-            if(!move) { alert("Invalid combination. Allowed: single, pair, triplet, straight (5+), fullhouse (3+2), four of a kind (4+1)."); return; }
-            if(!canBeat(lastPlay, move)) { alert("Cannot beat the current hand."); return; }
-            performPlay(0, selectedIndices);
-            renderAll();
-        }
-        
-        function playerPass() {
-            if(!gameActive || currentPlayer !== 0 || isAIPlaying) return;
-            passTurn(0);
-        }
-        
-        function animateCardsOut(indices, playerIdx) {
-            if(playerIdx !== 0) return;
-            let cardsDivs = document.querySelectorAll("#playerBottom .card");
-            indices.forEach(idx => {
-                if(cardsDivs[idx]) {
-                    cardsDivs[idx].classList.add("animate-out");
-                    setTimeout(() => {}, 150);
-                }
-            });
-        }
-        
-        function playBeep(freq, duration=0.12) {
-            if(!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-            if(audioCtx.state === 'suspended') {
-                audioCtx.resume().then(() => {
-                    playTone(freq, duration);
-                });
-            } else {
-                playTone(freq, duration);
-            }
-        }
-        function playTone(freq, duration) {
-            try {
-                const now = audioCtx.currentTime;
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-                osc.start();
-                osc.stop(now + duration);
-            } catch(e) {}
-        }
-        
-        function renderAll() {
-            renderPlayerHand(0, "playerBottom");
-            renderPlayerAI(1, "playerLeft");
-            renderPlayerAI(2, "playerTop");
-            renderPlayerAI(3, "playerRight");
-            updateTopScores();
-            updateUITurnText();
-            let statusDiv = document.getElementById("statusMsg");
-            if(lastPlay) {
-                let typeName = lastPlay.type;
-                updatePileDisplay();
-                statusDiv.innerText = "Last: " + typeName;
-            } else {
-                document.getElementById("pileDisplay").innerHTML = "New Round";
-                statusDiv.innerText = "Free to play";
-            }
-            document.getElementById("pileDisplay").classList.add("pile-new");
-            setTimeout(()=>document.getElementById("pileDisplay").classList.remove("pile-new"), 200);
-            
-            [0,1,2,3].forEach(i => {
-                let el = document.getElementById(["playerBottom","playerLeft","playerTop","playerRight"][i]);
-                if(el) {
-                    if(currentPlayer === i && gameActive) el.classList.add("active-player");
-                    else el.classList.remove("active-player");
-                }
-            });
-        }
-        
-        function renderPlayerHand(pid, elementId) {
-            let container = document.getElementById(elementId);
-            if(!container) return;
-            container.innerHTML = '';
-            let hand = players[pid];
-            let wrapper = document.createElement('div');
-            wrapper.className = "hand-cards";
-            hand.forEach((card, idx) => {
-                let cardDiv = document.createElement('div');
-                cardDiv.className = "card";
-                if(selectedIndices.includes(idx)) cardDiv.classList.add("selected");
-                let suitColor = (card.s === '♥' || card.s === '♦') ? '#c33' : '#222';
-                cardDiv.style.color = suitColor;
-                cardDiv.innerText = `${card.r}${card.s}`;
-                if(pid === 0) {
-                    cardDiv.onclick = (e) => {
-                        e.stopPropagation();
-                        if(currentPlayer !== 0 || !gameActive || isAIPlaying) return;
-                        if(selectedIndices.includes(idx)) {
-                            selectedIndices = selectedIndices.filter(i=>i!==idx);
-                            cardDiv.classList.remove("selected");
-                        } else {
-                            selectedIndices.push(idx);
-                            cardDiv.classList.add("selected");
-                        }
-                    };
-                }
-                wrapper.appendChild(cardDiv);
-            });
-            let nameDiv = document.createElement('div');
-            nameDiv.className = "score-badge";
-            nameDiv.innerText = `${playerNames[pid]} (${scores[pid]})`;
-            container.appendChild(wrapper);
-            container.appendChild(nameDiv);
-        }
-        
-        function renderPlayerAI(pid, elementId) {
-            let container = document.getElementById(elementId);
-            if(!container) return;
-            container.innerHTML = '';
-            let wrapper = document.createElement('div');
-            wrapper.className = "hand-cards";
-            let hand = players[pid];
-            for(let i=0;i<hand.length;i++) {
-                let cardDiv = document.createElement('div');
-                cardDiv.className = "card back";
-                wrapper.appendChild(cardDiv);
-            }
-            let nameDiv = document.createElement('div');
-            nameDiv.className = "score-badge";
-            nameDiv.innerText = `${playerNames[pid]} (${scores[pid]})`;
-            container.appendChild(wrapper);
-            container.appendChild(nameDiv);
-        }
-        
-        function updateTopScores() {
-            document.getElementById("topScoreArea").innerHTML = `Jen (${scores[2]})<br>Round: ${roundNumber}`;
-            let bottomScoreDiv = document.querySelector("#playerBottom .score-badge");
-            if(bottomScoreDiv) bottomScoreDiv.innerText = `You (${scores[0]})`;
-        }
-        
-        function updateUI() {
-            updateUITurnText();
-            let statusDiv = document.getElementById("statusMsg");
-            if(currentPlayer===0) statusDiv.style.background = "#ffd966cc";
-            else statusDiv.style.background = "#000000aa";
-        }
-        
-        function updateUITurnText(state) {
-            let turnDiv = document.getElementById("turnText");
-            if(!gameActive) turnDiv.innerText = "Game Over";
-            else if(currentPlayer===0) turnDiv.innerText = "Your Turn";
-            else turnDiv.innerText = playerNames[currentPlayer] + " thinking...";
-        }
-        
-        function updatePileDisplay() {
-            let pileDiv = document.getElementById("pileDisplay");
-            if(lastPlay && lastPlay.cards) {
-                let html = '';
-                for(let card of lastPlay.cards) {
-                    let color = (card.s === '♥' || card.s === '♦') ? '#ff6666' : '#ffffff';
-                    html += `<span class="pile-card" style="color: ${color};">${card.r}${card.s}</span>`;
-                }
-                pileDiv.innerHTML = html;
-            } else {
-                pileDiv.innerHTML = "New Round";
-            }
-        }
-        
-        function resetGame() {
-            if(audioCtx && audioCtx.state !== 'running') audioCtx.resume();
-            scores = [0,0,0,0];
-            roundNumber = 1;
-            dealNewGame();
-            updateTopScores();
-            renderAll();
-        }
-        
-        document.getElementById("playBtn").onclick = () => { playerPlay(); };
-        document.getElementById("passBtn").onclick = () => { playerPass(); };
-        document.getElementById("resetBtn").onclick = () => { resetGame(); };
-        document.body.addEventListener("click", () => {
-            if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         });
         
-        dealNewGame();
-        renderAll();
-    })();
+        const gameRef = db.ref(`rooms/${roomId}/gameState`);
+        unsubscribeGame = gameRef.on('value', (snap) => {
+            if(snap.exists()) {
+                isGameStarted = true;
+                localGameState = snap.val();
+                if(localGameState.currentPlayer !== mySeat) localSelectedIndices = [];
+                renderAll();
+                if(localGameState.gameActive && localGameState.currentPlayer !== mySeat) {
+                    aiDecisionIfNeeded(localGameState);
+                }
+            } else {
+                isGameStarted = false;
+                localGameState = null;
+                renderAll();
+            }
+        });
+    }
+    
+    // ======================= UI ENTRY =======================
+    function showJoinOverlay() {
+        const overlay = document.createElement('div');
+        overlay.className = 'join-overlay';
+        overlay.innerHTML = `
+            <div class="join-card">
+                <h2>♠️ Big Two · Deluxe Online ♥️</h2>
+                <input type="text" id="roomNameInput" placeholder="Room Name" autocomplete="off">
+                <input type="text" id="playerNameInput" placeholder="Your Name">
+                <select id="humanCountSelect">
+                    <option value="1">👤 1 Human Player + 3 AI</option>
+                    <option value="2">👥 2 Human Players + 2 AI</option>
+                    <option value="3">👥👥 3 Human Players + 1 AI</option>
+                    <option value="4">👥👥👥👥 4 Human Players (No AI)</option>
+                </select>
+                <button id="joinConfirmBtn">Create New Room</button>
+                <button id="joinExistingBtn" style="background:#6c757d;">Join Existing Room</button>
+                <div class="status-wait" id="joinStatus"></div>
+                <div class="waiting-for-players">💡 Create a room with your chosen players, then share room name with friends to join!</div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        
+        document.getElementById('joinConfirmBtn').onclick = async () => {
+            const room = document.getElementById('roomNameInput').value.trim();
+            const name = document.getElementById('playerNameInput').value.trim();
+            const humanCount = parseInt(document.getElementById('humanCountSelect').value);
+            if(!room || !name) { alert("Enter both room and name"); return; }
+            overlay.querySelector('#joinStatus').innerText = "Creating room...";
+            const success = await joinOrCreateRoom(room, name, humanCount);
+            if(success) {
+                overlay.remove();
+                startListening();
+                document.getElementById("playBtn").onclick = () => tryPlay();
+                document.getElementById("passBtn").onclick = () => tryPass();
+                document.getElementById("resetBtn").onclick = () => restartGame();
+                document.getElementById("deleteRoomBtn").onclick = async () => {
+                    if(confirm("Delete entire room? All players will be kicked.")){
+                        await db.ref(`rooms/${roomId}`).remove();
+                        alert("Room deleted. Refresh page.");
+                        location.reload();
+                    }
+                };
+            } else {
+                overlay.querySelector('#joinStatus').innerText = "Failed to create room. Try another name.";
+            }
+        };
+        
+        document.getElementById('joinExistingBtn').onclick = async () => {
+            const room = document.getElementById('roomNameInput').value.trim();
+            const name = document.getElementById('playerNameInput').value.trim();
+            if(!room || !name) { alert("Enter both room and name"); return; }
+            overlay.querySelector('#joinStatus').innerText = "Joining room...";
+            const success = await joinExistingRoom(room, name);
+            if(success) {
+                overlay.remove();
+                startListening();
+                document.getElementById("playBtn").onclick = () => tryPlay();
+                document.getElementById("passBtn").onclick = () => tryPass();
+                document.getElementById("resetBtn").onclick = () => restartGame();
+                document.getElementById("deleteRoomBtn").onclick = async () => {
+                    if(confirm("Delete entire room? All players will be kicked.")){
+                        await db.ref(`rooms/${roomId}`).remove();
+                        alert("Room deleted. Refresh page.");
+                        location.reload();
+                    }
+                };
+            } else {
+                overlay.querySelector('#joinStatus').innerText = "Failed to join room. It may be full or doesn't exist.";
+            }
+        };
+    }
+    
+    // Start
+    showJoinOverlay();
+    document.body.addEventListener("click", () => {
+        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    });
 </script>
 </body>
 </html>

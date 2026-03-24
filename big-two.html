@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Big Two · Online</title>
+    <title>Big Two · Deluxe Edition</title>
     <style>
         * {
             user-select: none;
@@ -28,127 +28,191 @@
             height: 100%;
             background: linear-gradient(145deg, #0a6b3a 0%, #064e2a 100%);
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            gap: 20px;
         }
         .login-screen.hidden {
             display: none;
         }
         .login-box {
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             backdrop-filter: blur(10px);
-            padding: 40px;
+            padding: 50px;
             border-radius: 20px;
-            border: 2px solid #e9c891;
+            border: 3px solid #e9c891;
             text-align: center;
-            min-width: 350px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            min-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
         }
         .login-box h1 {
             color: #ffd966;
-            font-size: 2.5em;
-            margin-bottom: 30px;
+            font-size: 3em;
+            margin-bottom: 40px;
             text-shadow: 2px 2px 4px #000;
         }
-        .login-box input, .login-box select {
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            color: #ffd966;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .form-group input {
             width: 100%;
-            padding: 12px 16px;
-            margin-bottom: 15px;
+            padding: 12px;
             border: 2px solid #e9c891;
-            border-radius: 10px;
+            border-radius: 8px;
             background: rgba(255,255,255,0.1);
             color: white;
-            font-size: 14px;
+            font-size: 16px;
             font-family: inherit;
         }
-        .login-box input::placeholder {
-            color: #ccc;
+        .form-group input::placeholder {
+            color: #999;
         }
-        .login-box select {
-            cursor: pointer;
+        .player-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
         }
-        .login-box select option {
-            background: #064e2a;
+        .player-btn {
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #e9c891;
+            border-radius: 10px;
             color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        .player-btn.selected {
+            background: #4CAF50;
+            border-color: #8BC34A;
+            color: #fff;
+        }
+        .player-btn.secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        .bet-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .bet-btn {
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #e9c891;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        .bet-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .bet-btn.selected {
+            background: #ffc107;
+            border-color: #ff9800;
+            color: #000;
+        }
+        .bet-btn:hover:not(:disabled) {
+            background: rgba(255,255,255,0.2);
         }
         .login-box button {
             width: 100%;
-            padding: 12px 20px;
-            margin-bottom: 10px;
+            padding: 15px;
             background: #e6b422;
             border: none;
             border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
-            font-size: 16px;
+            font-size: 18px;
             color: #000;
+            transition: 0.3s;
+            margin-bottom: 10px;
         }
         .login-box button:hover {
             background: #f0c040;
             transform: scale(1.02);
         }
-        .login-box .status {
+        .status {
             color: #ffcccc;
             font-size: 14px;
-            margin-top: 15px;
+            margin-top: 20px;
             min-height: 20px;
             word-wrap: break-word;
         }
-        .mode-select {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+        .status.success {
+            color: #66ff66;
         }
-        .mode-btn {
-            flex: 1;
-            padding: 10px;
-            background: rgba(255,255,255,0.2);
-            border: 2px solid #e9c891;
-            color: white;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-            font-size: 14px;
-        }
-        .mode-btn.active {
-            background: #e6b422;
-            color: #000;
-        }
-        .login-content {
-            display: none;
-        }
-        .login-content.active {
-            display: block;
-        }
-        .player-select {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .player-option {
+        .available-rooms {
+            color: #a0a0a0;
+            font-size: 13px;
+            margin-top: 15px;
             padding: 15px;
-            background: rgba(255,255,255,0.1);
-            border: 2px solid #e9c891;
+            background: rgba(255,255,255,0.05);
             border-radius: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid rgba(233, 200, 145, 0.3);
+        }
+        .room-item {
+            background: rgba(255,255,255,0.08);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #e6b422;
             cursor: pointer;
             transition: 0.2s;
+        }
+        .room-item:hover {
+            background: rgba(255,255,255,0.12);
+        }
+        .room-code {
+            color: #ffd966;
             font-weight: bold;
+            font-family: monospace;
+            flex: 1;
+        }
+        .room-info-text {
+            color: #a0a0a0;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .delete-btn {
+            background: #ff6b6b;
             color: white;
-            font-size: 16px;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+            transition: 0.2s;
         }
-        .player-option:hover {
-            background: rgba(255,255,255,0.2);
+        .delete-btn:hover {
+            background: #ff5252;
         }
-        .player-option.selected {
-            background: #e6b422;
-            color: #000;
-            border-color: #ffd966;
+        .no-rooms-text {
+            color: #888;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
         }
         .table {
             position: relative;
@@ -161,6 +225,10 @@
             box-shadow: 0 30px 40px rgba(0,0,0,0.5), inset 0 1px 4px rgba(255,255,255,0.3);
             border: 2px solid #e9c891;
             overflow: visible;
+            display: none;
+        }
+        .table.show {
+            display: block;
         }
         .player {
             position: absolute;
@@ -173,9 +241,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             transition: all 0.2s;
             z-index: 10;
-        }
-        .player.hidden {
-            display: none;
         }
         .top {
             top: 15px;
@@ -213,6 +278,9 @@
             max-width: 90%;
             overflow-x: auto;
             justify-content: center;
+        }
+        .hidden {
+            display: none !important;
         }
         .card {
             width: 64px;
@@ -347,15 +415,10 @@
             transition: 0.1s linear;
             box-shadow: 0 2px 0 #8b5a2b;
             font-family: inherit;
-            color: #000;
         }
         button:active {
             transform: translateY(2px);
             box-shadow: 0 1px 0 #8b5a2b;
-        }
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
         }
         .score-badge {
             background: transparent;
@@ -368,7 +431,7 @@
             color: white;
             text-shadow: 1px 1px 0 #00000066;
         }
-        .online-panel {
+        .ai-panel {
             position: absolute;
             bottom: 20px;
             right: 25px;
@@ -385,7 +448,36 @@
             font-weight: bold;
             color: white;
             font-family: monospace;
-            flex-wrap: wrap;
+        }
+        .ai-panel select {
+            background: #2c2c2c;
+            border: 1px solid #ffd966;
+            border-radius: 25px;
+            padding: 5px 12px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 13px;
+            font-family: monospace;
+        }
+        .ai-panel label {
+            text-shadow: 1px 1px 0 #000;
+            letter-spacing: 1px;
+        }
+        @keyframes flyToCenter {
+            0% { transform: scale(1) translate(0,0); opacity: 1; }
+            100% { transform: scale(0.2) translate(0, -70px); opacity: 0; }
+        }
+        .animate-out {
+            animation: flyToCenter 0.2s ease forwards !important;
+        }
+        @keyframes pilePop {
+            0% { transform: scale(0.9); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pile-new {
+            animation: pilePop 0.2s ease-out;
         }
         .turn-indicator {
             position: absolute;
@@ -418,7 +510,7 @@
             z-index: 5;
             border: 1px solid rgba(255,236,179,0.3);
         }
-        .room-code {
+        .coins-display {
             position: absolute;
             top: 15px;
             left: 20px;
@@ -428,59 +520,133 @@
             border-radius: 30px;
             font-weight: bold;
             color: #ffecb3;
-            font-size: 14px;
+            font-size: 16px;
             font-family: monospace;
             z-index: 5;
             border: 1px solid rgba(255,236,179,0.3);
-            cursor: pointer;
         }
-        .room-code:hover {
+        .room-code-btn {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #e9c891;
+            color: #ffd966;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 5;
+        }
+        .room-code-btn:hover {
             background: rgba(0,0,0,0.7);
         }
     </style>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
     <div class="login-box">
         <h1>🃏 Big Two</h1>
         
-        <div class="mode-select">
-            <button class="mode-btn active" onclick="switchMode('create')">Create</button>
-            <button class="mode-btn" onclick="switchMode('join')">Join</button>
+        <!-- 第一步：輸入名字 -->
+        <div id="nameStep">
+            <div class="form-group">
+                <label>Your Name:</label>
+                <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+            </div>
+            <button type="button" onclick="submitName()">Continue</button>
         </div>
 
-        <div id="create-mode" class="login-content active">
-            <input type="text" id="nameCreate" placeholder="Your name" maxlength="20">
-            
-            <label style="color: #ffd966; font-weight: bold; display: block; margin-bottom: 10px;">Number of Players:</label>
-            <div class="player-select">
-                <div class="player-option" onclick="selectPlayers(2)">
-                    👥 2 Players
-                </div>
-                <div class="player-option" onclick="selectPlayers(3)">
-                    👥👥 3 Players
-                </div>
-                <div class="player-option" onclick="selectPlayers(4)">
-                    👥👥👥 4 Players
+        <!-- 第二步：選擇遊戲模式 -->
+        <div id="modeStep" style="display: none;">
+            <div style="color: #e9c891; margin-bottom: 20px; font-weight: bold;">
+                Welcome, <span id="displayName"></span>!
+            </div>
+            <div class="form-group">
+                <label>Select Game Mode:</label>
+                <div class="player-options">
+                    <button type="button" class="player-btn" onclick="selectMode('solo')">Solo (vs 3 AI)</button>
+                    <button type="button" class="player-btn" onclick="selectMode('multiplayer')">Multiplayer</button>
                 </div>
             </div>
-            
-            <button onclick="createRoom()" style="width: 100%; background: #4CAF50;">Create Room</button>
+            <button type="button" class="player-btn secondary" onclick="backToName()" style="width: 100%; margin-top: 10px;">Back</button>
         </div>
 
-        <div id="join-mode" class="login-content">
-            <input type="text" id="nameJoin" placeholder="Your name" maxlength="20">
-            <input type="text" id="roomCode" placeholder="Room code" maxlength="6">
-            <button onclick="joinRoom()" style="width: 100%; background: #2196F3;">Join Room</button>
+        <!-- 多人遊戲：選擇創建或加入 -->
+        <div id="actionStep" style="display: none;">
+            <div style="color: #e9c891; margin-bottom: 20px; font-weight: bold;">
+                Multiplayer Mode
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <button type="button" class="player-btn" onclick="goToCreate()">Create Room</button>
+                <button type="button" class="player-btn" onclick="goToJoin()">Join Room</button>
+            </div>
+            <button type="button" class="player-btn secondary" onclick="goToMode()" style="width: 100%;">Back</button>
         </div>
 
-        <div class="status" id="statusMsg"></div>
+        <!-- 創建房間 -->
+        <div id="createStep" style="display: none;">
+            <div style="color: #e9c891; margin-bottom: 15px; font-weight: bold; text-align: left;">
+                Creating a new room...
+            </div>
+            <div class="form-group">
+                <label>Number of Players:</label>
+                <div class="player-options">
+                    <button type="button" class="player-btn" onclick="selectPlayers(2)">2 Players</button>
+                    <button type="button" class="player-btn" onclick="selectPlayers(3)">3 Players</button>
+                    <button type="button" class="player-btn" onclick="selectPlayers(4)">4 Players</button>
+                </div>
+            </div>
+            <button type="button" onclick="createGame()">Create Game</button>
+            <div class="status" id="createStatus"></div>
+            <button type="button" class="player-btn secondary" onclick="goToAction()" style="width: 100%; margin-top: 10px;">Back</button>
+        </div>
+
+        <!-- 加入房間 -->
+        <div id="joinStep" style="display: none;">
+            <div style="color: #e9c891; margin-bottom: 15px; font-weight: bold; text-align: left;">
+                Join an existing room...
+            </div>
+            <div class="form-group">
+                <label>Room Code:</label>
+                <input type="text" id="joinCode" placeholder="e.g., BTAB12" maxlength="10">
+            </div>
+            <button type="button" onclick="joinGame()">Join Game</button>
+            <div class="status" id="joinStatus"></div>
+            <div class="form-group" style="margin-top: 20px;">
+                <label>Available Rooms:</label>
+                <div class="available-rooms" id="joinRooms">Loading...</div>
+            </div>
+            <button type="button" class="player-btn secondary" onclick="goToAction()" style="width: 100%; margin-top: 10px;">Back</button>
+        </div>
+
+        <!-- Solo 模式：選擇下注 -->
+        <div id="betStep" style="display: none;">
+            <div style="color: #e9c891; margin-bottom: 15px; font-weight: bold; text-align: left;">
+                Select your bet amount:
+            </div>
+            <div class="bet-options">
+                <button type="button" class="bet-btn" id="bet10" onclick="selectBet(10)">10 💰</button>
+                <button type="button" class="bet-btn" id="bet25" onclick="selectBet(25)">25 💰</button>
+                <button type="button" class="bet-btn" id="bet100" onclick="selectBet(100)">100 💰</button>
+            </div>
+            <div style="color: #a0a0a0; margin-bottom: 20px; font-size: 14px;">
+                Your coins: <span id="currentCoins" style="color: #ffd966; font-weight: bold;">100</span>
+            </div>
+            <button type="button" onclick="startSoloGame()" id="startGameBtn" disabled style="opacity: 0.5; cursor: not-allowed;">Start Game</button>
+            <button type="button" class="player-btn secondary" onclick="goToMode()" style="width: 100%; margin-top: 10px;">Back</button>
+        </div>
     </div>
 </div>
 
-<div class="table" id="gameTable" style="display: none;">
-    <div class="room-code" id="roomDisplay" onclick="copyCode()">ROOM: ???</div>
-    <div class="score-top-right" id="scoreDisplay">???<br>Round: 1</div>
+<!-- GAME TABLE -->
+<div class="table" id="gameTable">
+    <div class="coins-display" id="coinsDisplay">���� 100</div>
+    <div class="score-top-right" id="topScoreArea">Round: 1</div>
+    <button class="room-code-btn" id="roomCodeBtn" style="display: none;" onclick="copyRoomCode()">Room: ??? (Click to copy)</button>
 
     <div class="player top" id="playerTop"></div>
     <div class="player left" id="playerLeft"></div>
@@ -489,420 +655,851 @@
 
     <div id="center-area">
         <div class="pile-cards" id="pileDisplay">New Round</div>
-        <div class="round-info" id="statusInfo">Waiting</div>
+        <div class="round-info" id="statusMsg">Waiting</div>
         <div>
-            <button onclick="playCard()">Play</button>
-            <button onclick="passCard()">Pass</button>
-            <button onclick="newRound()">New Round</button>
-            <button onclick="leaveGame()" style="background: #f44336;">Leave</button>
+            <button id="playBtn">Play</button>
+            <button id="passBtn">Pass</button>
+            <button id="resetBtn">New Game</button>
+            <button id="leaveBtn" style="background: #ff6b6b;">Leave Game</button>
         </div>
     </div>
-    <div class="turn-indicator" id="turnText">Loading...</div>
+    <div class="turn-indicator" id="turnText">Your Turn</div>
     
-    <div class="online-panel">
-        Players: <span id="playerCount">0/2</span>
+    <div class="ai-panel" id="aiPanel">
+        <label>AI Difficulty:</label>
+        <select id="aiDifficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+        </select>
     </div>
 </div>
 
 <script>
-let gameState = {
-    playerName: '',
-    roomCode: '',
-    playerIndex: 0,
-    totalPlayers: 4,
-    players: [[], [], [], []],
-    playerNames: ['', '', '', ''],
-    selectedCards: [],
-    currentPlayer: 0,
-    lastPlay: null,
-    passCount: 0,
-    scores: [0, 0, 0, 0],
-    round: 1,
-    gameActive: false
-};
+const COINS_KEY = 'BIG_TWO_COINS';
+const ROOMS_KEY = 'BIG_TWO_ROOMS';
 
-const SUITS = ['♣', '♦', '♥', '♠'];
-const RANKS = ['3','4','5','6','7','8','9','10','J','Q','K','A','2'];
-const RANK_VAL = { '3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14,'2':15 };
-const SUIT_VAL = { '♣':1, '♦':2, '♥':3, '♠':4 };
+let playerName = '';
+let gameMode = ''; // 'solo' or 'multiplayer'
+let selectedPlayers = 0;
+let selectedBet = 0;
 
-function switchMode(mode) {
-    document.querySelectorAll('.login-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.mode-btn').forEach(el => el.classList.remove('active'));
-    
-    if(mode === 'create') {
-        document.getElementById('create-mode').classList.add('active');
-        document.querySelectorAll('.mode-btn')[0].classList.add('active');
-    } else {
-        document.getElementById('join-mode').classList.add('active');
-        document.querySelectorAll('.mode-btn')[1].classList.add('active');
+function loadCoins(name) {
+    try {
+        let coinsData = localStorage.getItem(COINS_KEY);
+        let coins = coinsData ? JSON.parse(coinsData) : {};
+        return coins[name] || 100;
+    } catch (e) {
+        return 100;
     }
+}
+
+function saveCoins(name, amount) {
+    try {
+        let coinsData = localStorage.getItem(COINS_KEY);
+        let coins = coinsData ? JSON.parse(coinsData) : {};
+        coins[name] = amount;
+        localStorage.setItem(COINS_KEY, JSON.stringify(coins));
+    } catch (e) {
+        console.error('Cannot save coins:', e);
+    }
+}
+
+function loadRooms() {
+    try {
+        let roomsData = localStorage.getItem(ROOMS_KEY);
+        return roomsData ? JSON.parse(roomsData) : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveRooms(rooms) {
+    try {
+        localStorage.setItem(ROOMS_KEY, JSON.stringify(rooms));
+    } catch (e) {
+        console.error('Cannot save rooms:', e);
+    }
+}
+
+// ===== 登錄流程 =====
+function submitName() {
+    let name = document.getElementById('playerName').value.trim();
+    if (!name) {
+        alert('Please enter your name!');
+        return;
+    }
+    playerName = name;
+    document.getElementById('displayName').textContent = name;
+    
+    document.getElementById('nameStep').style.display = 'none';
+    document.getElementById('modeStep').style.display = 'block';
+}
+
+function selectMode(mode) {
+    gameMode = mode;
+    document.querySelectorAll('#modeStep .player-btn').forEach(b => b.classList.remove('selected'));
+    event.target.classList.add('selected');
+    
+    if (mode === 'solo') {
+        document.getElementById('modeStep').style.display = 'none';
+        document.getElementById('betStep').style.display = 'block';
+        selectedBet = 0;
+        document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById('startGameBtn').disabled = true;
+        document.getElementById('startGameBtn').style.opacity = '0.5';
+        document.getElementById('currentCoins').textContent = loadCoins(playerName);
+    } else {
+        document.getElementById('modeStep').style.display = 'none';
+        document.getElementById('actionStep').style.display = 'block';
+    }
+}
+
+function goToMode() {
+    document.getElementById('modeStep').style.display = 'block';
+    document.getElementById('betStep').style.display = 'none';
+    document.getElementById('actionStep').style.display = 'none';
+}
+
+function backToName() {
+    document.getElementById('nameStep').style.display = 'block';
+    document.getElementById('modeStep').style.display = 'none';
+    playerName = '';
+    gameMode = '';
+    document.getElementById('playerName').value = '';
+}
+
+function goToAction() {
+    document.getElementById('actionStep').style.display = 'block';
+    document.getElementById('createStep').style.display = 'none';
+    document.getElementById('joinStep').style.display = 'none';
+}
+
+function goToCreate() {
+    document.getElementById('actionStep').style.display = 'none';
+    document.getElementById('createStep').style.display = 'block';
+    selectedPlayers = 0;
+    document.querySelectorAll('#createStep .player-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('createStatus').textContent = '';
+}
+
+function goToJoin() {
+    document.getElementById('actionStep').style.display = 'none';
+    document.getElementById('joinStep').style.display = 'block';
+    document.getElementById('joinCode').value = '';
+    document.getElementById('joinStatus').textContent = '';
+    updateAvailableRooms();
 }
 
 function selectPlayers(num) {
-    gameState.totalPlayers = num;
-    document.querySelectorAll('.player-option').forEach(el => el.classList.remove('selected'));
-    event.target.closest('.player-option').classList.add('selected');
-    showMsg('Selected: ' + num + ' players');
+    selectedPlayers = num;
+    document.querySelectorAll('#createStep .player-btn').forEach(b => b.classList.remove('selected'));
+    event.target.classList.add('selected');
+}
+
+function selectBet(amount) {
+    selectedBet = amount;
+    document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('bet' + amount).classList.add('selected');
+    
+    let myCoins = loadCoins(playerName);
+    if (amount <= myCoins) {
+        document.getElementById('startGameBtn').disabled = false;
+        document.getElementById('startGameBtn').style.opacity = '1';
+        document.getElementById('startGameBtn').style.cursor = 'pointer';
+    } else {
+        document.getElementById('startGameBtn').disabled = true;
+        document.getElementById('startGameBtn').style.opacity = '0.5';
+        document.getElementById('startGameBtn').style.cursor = 'not-allowed';
+    }
 }
 
 function generateRoomCode() {
-    return 'BT' + Math.random().toString(36).substr(2,4).toUpperCase();
+    return 'BT' + Math.random().toString(36).substr(2, 6).toUpperCase();
 }
 
-function createRoom() {
-    let name = document.getElementById('nameCreate').value.trim();
-    if(!name) {
-        showMsg('Enter your name');
+function createGame() {
+    if (selectedPlayers === 0) {
+        document.getElementById('createStatus').textContent = '❌ Select number of players!';
         return;
     }
     
-    if(gameState.totalPlayers === 4) {
-        showMsg('Please select number of players (2, 3, or 4)');
-        return;
-    }
+    let roomCode = generateRoomCode();
+    let rooms = loadRooms();
     
-    gameState.playerName = name;
-    gameState.roomCode = generateRoomCode();
-    gameState.playerIndex = 0;
-    gameState.playerNames[0] = name;
-    gameState.scores = [0, 0, 0, 0];
-    gameState.round = 1;
+    rooms[roomCode] = {
+        code: roomCode,
+        totalPlayers: selectedPlayers,
+        playerNames: [playerName, '', '', ''],
+        players: [[], [], [], []],
+        scores: [0, 0, 0, 0],
+        currentPlayer: 0,
+        lastPlay: null,
+        passCount: 0,
+        gameActive: false,
+        round: 1,
+        createdAt: new Date().getTime()
+    };
+    saveRooms(rooms);
     
-    startGame();
-    dealCards();
-    updateUI();
+    document.getElementById('createStatus').textContent = '✓ Room created! Starting...';
+    setTimeout(() => {
+        startGame_Multiplayer(roomCode, 0, [playerName, '', '', '']);
+    }, 1000);
 }
 
-function joinRoom() {
-    let name = document.getElementById('nameJoin').value.trim();
-    let code = document.getElementById('roomCode').value.trim();
+function updateAvailableRooms() {
+    let rooms = loadRooms();
+    let roomList = Object.keys(rooms).filter(code => {
+        let room = rooms[code];
+        let joined = room.playerNames.filter(n => n).length;
+        return joined < room.totalPlayers;
+    });
     
-    if(!name || !code) {
-        showMsg('Enter name and room code');
-        return;
-    }
-    
-    gameState.playerName = name;
-    gameState.roomCode = code;
-    gameState.playerIndex = 1;
-    gameState.playerNames[1] = name;
-    
-    showMsg('Joined room');
-    setTimeout(() => startGame(), 1000);
-}
-
-function startGame() {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('gameTable').style.display = 'block';
-    document.getElementById('roomDisplay').textContent = 'ROOM: ' + gameState.roomCode;
-    document.getElementById('playerCount').textContent = gameState.playerIndex + 1 + '/' + gameState.totalPlayers;
-    
-    // Hide unused player positions
-    if(gameState.totalPlayers === 2) {
-        document.getElementById('playerLeft').classList.add('hidden');
-        document.getElementById('playerRight').classList.add('hidden');
-        document.getElementById('playerTop').classList.add('hidden');
-    } else if(gameState.totalPlayers === 3) {
-        document.getElementById('playerRight').classList.add('hidden');
-    }
-}
-
-function dealCards() {
-    // Create and shuffle deck
-    let deck = [];
-    for(let rank of RANKS) {
-        for(let suit of SUITS) {
-            deck.push({ rank, suit });
-        }
-    }
-    
-    // Shuffle
-    for(let i = deck.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
-    }
-    
-    // Calculate cards per player based on total players
-    let cardsPerPlayer = 0;
-    if(gameState.totalPlayers === 2) cardsPerPlayer = 26;
-    else if(gameState.totalPlayers === 3) cardsPerPlayer = 17;
-    else cardsPerPlayer = 13;
-    
-    // Deal to players
-    for(let p = 0; p < gameState.totalPlayers; p++) {
-        gameState.players[p] = [];
-        for(let i = 0; i < cardsPerPlayer; i++) {
-            if(deck.length > 0) {
-                gameState.players[p].push(deck.pop());
-            }
-        }
-        // Sort hand
-        gameState.players[p].sort((a, b) => {
-            let av = RANK_VAL[a.rank];
-            let bv = RANK_VAL[b.rank];
-            if(av !== bv) return av - bv;
-            return SUIT_VAL[a.suit] - SUIT_VAL[b.suit];
+    let html = '';
+    if (roomList.length === 0) {
+        html = '<div class="no-rooms-text">No available rooms</div>';
+    } else {
+        roomList.forEach(code => {
+            let room = rooms[code];
+            let joined = room.playerNames.filter(n => n).length;
+            html += `
+                <div class="room-item" onclick="quickJoinRoom('${code}')">
+                    <span class="room-code">${code}</span>
+                    <span class="room-info-text">${joined}/${room.totalPlayers} players</span>
+                </div>
+            `;
         });
     }
     
-    // Find who has 3♣
-    for(let p = 0; p < gameState.totalPlayers; p++) {
-        if(gameState.players[p].some(c => c.rank === '3' && c.suit === '♣')) {
-            gameState.currentPlayer = p;
+    document.getElementById('joinRooms').innerHTML = html;
+}
+
+function quickJoinRoom(code) {
+    document.getElementById('joinCode').value = code;
+}
+
+function joinGame() {
+    let code = document.getElementById('joinCode').value.trim().toUpperCase();
+    if (!code) {
+        document.getElementById('joinStatus').textContent = '❌ Enter room code!';
+        return;
+    }
+    
+    let rooms = loadRooms();
+    if (!rooms[code]) {
+        document.getElementById('joinStatus').textContent = '❌ Room not found!';
+        updateAvailableRooms();
+        return;
+    }
+    
+    let room = rooms[code];
+    let playerIdx = -1;
+    for (let i = 0; i < room.totalPlayers; i++) {
+        if (!room.playerNames[i]) {
+            playerIdx = i;
             break;
         }
     }
     
-    gameState.gameActive = true;
-    gameState.lastPlay = null;
-    gameState.passCount = 0;
-    gameState.selectedCards = [];
-}
-
-function getCardRank(card) {
-    return RANK_VAL[card.rank];
-}
-
-function getCardSuit(card) {
-    return SUIT_VAL[card.suit];
-}
-
-function canBeat(lastCards, newCards) {
-    if(!lastCards || lastCards.length === 0) return true;
-    if(newCards.length !== lastCards.length) return false;
-    
-    if(newCards.length === 1) {
-        let lastRank = getCardRank(lastCards[0]);
-        let newRank = getCardRank(newCards[0]);
-        if(newRank > lastRank) return true;
-        if(newRank === lastRank && getCardSuit(newCards[0]) > getCardSuit(lastCards[0])) return true;
-        return false;
-    }
-    
-    if(newCards.length === 2) {
-        if(newCards[0].rank !== newCards[1].rank) return false;
-        if(lastCards[0].rank !== lastCards[1].rank) return false;
-        let lastRank = getCardRank(lastCards[0]);
-        let newRank = getCardRank(newCards[0]);
-        if(newRank > lastRank) return true;
-        if(newRank === lastRank) {
-            let lastSuit = Math.max(getCardSuit(lastCards[0]), getCardSuit(lastCards[1]));
-            let newSuit = Math.max(getCardSuit(newCards[0]), getCardSuit(newCards[1]));
-            return newSuit > lastSuit;
-        }
-        return false;
-    }
-    
-    if(newCards.length === 3) {
-        if(newCards[0].rank !== newCards[1].rank || newCards[1].rank !== newCards[2].rank) return false;
-        if(lastCards[0].rank !== lastCards[1].rank || lastCards[1].rank !== lastCards[2].rank) return false;
-        let lastRank = getCardRank(lastCards[0]);
-        let newRank = getCardRank(newCards[0]);
-        return newRank > lastRank;
-    }
-    
-    return false;
-}
-
-function playCard() {
-    if(!gameState.gameActive) return;
-    if(gameState.currentPlayer !== gameState.playerIndex) {
-        showMsg('Not your turn');
-        return;
-    }
-    if(gameState.selectedCards.length === 0) {
-        showMsg('Select cards');
+    if (playerIdx === -1) {
+        document.getElementById('joinStatus').textContent = '❌ Room is full!';
         return;
     }
     
-    let hand = gameState.players[gameState.playerIndex];
-    let selected = gameState.selectedCards.map(i => hand[i]);
+    room.playerNames[playerIdx] = playerName;
+    rooms[code] = room;
+    saveRooms(rooms);
     
-    if(!canBeat(gameState.lastPlay, selected)) {
-        showMsg('Cannot beat');
+    document.getElementById('joinStatus').textContent = '✓ Joined! Starting...';
+    setTimeout(() => {
+        startGame_Multiplayer(code, playerIdx, [...room.playerNames]);
+    }, 1000);
+}
+
+function startSoloGame() {
+    if (selectedBet === 0) {
+        alert('Please select a bet amount!');
         return;
     }
     
-    // Remove cards from hand
-    gameState.selectedCards.sort((a, b) => b - a);
-    gameState.selectedCards.forEach(i => {
-        hand.splice(i, 1);
-    });
-    
-    gameState.lastPlay = selected;
-    gameState.passCount = 0;
-    gameState.selectedCards = [];
-    gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.totalPlayers;
-    
-    if(hand.length === 0) {
-        gameState.scores[gameState.playerIndex]++;
-        gameState.gameActive = false;
-        showMsg(gameState.playerNames[gameState.playerIndex] + ' WINS!');
+    let myCoins = loadCoins(playerName);
+    if (selectedBet > myCoins) {
+        alert('You don\'t have enough coins!');
+        return;
     }
     
-    updateUI();
+    myCoins -= selectedBet;
+    saveCoins(playerName, myCoins);
+    
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('gameTable').classList.add('show');
+    document.getElementById('coinsDisplay').textContent = '💰 ' + myCoins;
+    document.getElementById('aiPanel').style.display = 'flex';
+    document.getElementById('roomCodeBtn').style.display = 'none';
+    
+    startGame_Solo();
 }
 
-function passCard() {
-    if(!gameState.gameActive) return;
-    if(gameState.currentPlayer !== gameState.playerIndex) return;
+function startGame_Multiplayer(roomCode, playerIdx, playerNames) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('gameTable').classList.add('show');
+    document.getElementById('roomCodeBtn').style.display = 'block';
+    document.getElementById('roomCodeBtn').textContent = 'Room: ' + roomCode + ' (Click to copy)';
+    document.getElementById('coinsDisplay').style.display = 'none';
+    document.getElementById('aiPanel').style.display = 'none';
     
-    gameState.passCount++;
-    if(gameState.passCount >= gameState.totalPlayers - 1) {
-        gameState.lastPlay = null;
-        gameState.passCount = 0;
-    }
-    
-    gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.totalPlayers;
-    gameState.selectedCards = [];
-    updateUI();
+    startGame_Multi(roomCode, playerIdx, playerNames);
 }
 
-function newRound() {
-    gameState.round++;
-    dealCards();
-    updateUI();
+function copyRoomCode() {
+    let code = document.getElementById('roomCodeBtn').textContent.match(/BT[A-Z0-9]+/)[0];
+    navigator.clipboard.writeText(code);
+    alert('Room code copied: ' + code);
 }
 
 function leaveGame() {
-    if(confirm('Leave game?')) {
+    if (confirm('Leave game?')) {
         location.reload();
     }
 }
 
-function updateUI() {
-    // Update player hands based on total players
-    if(gameState.totalPlayers === 2) {
-        renderHand(gameState.playerIndex, 'playerBottom');
-        renderOppCards(1, 'playerTop');
-    } else if(gameState.totalPlayers === 3) {
-        renderHand(gameState.playerIndex, 'playerBottom');
-        renderOppCards(1, 'playerLeft');
-        renderOppCards(2, 'playerTop');
-    } else {
-        renderHand(gameState.playerIndex, 'playerBottom');
-        renderOppCards(1, 'playerLeft');
-        renderOppCards(2, 'playerTop');
-        renderOppCards(3, 'playerRight');
+// ===== SOLO 遊戲邏輯 =====
+(function(){
+    const SUITS = ["♠","♥","♦","♣"];
+    const RANK_ORDER = ["3","4","5","6","7","8","9","10","J","Q","K","A","2"];
+    const SUIT_POWER = { "♠": 4, "♥": 3, "♦": 2, "♣": 1 };
+    
+    let players = [[], [], [], []];
+    let currentPlayer = 0;
+    let selectedIndices = [];
+    let lastPlay = null;
+    let passCount = 0;
+    let gameActive = true;
+    let scores = [0, 0, 0, 0];
+    let roundNumber = 1;
+    let isAIPlaying = false;
+    let audioCtx = null;
+    let soloGameActive = false;
+    
+    const playerNames = ["You", "AI Left", "AI Top", "AI Right"];
+    
+    function getRankValue(r) { return RANK_ORDER.indexOf(r); }
+    
+    function isCardGreater(c1, c2) {
+        let v1 = getRankValue(c1.r), v2 = getRankValue(c2.r);
+        if(v1 !== v2) return v1 > v2;
+        return SUIT_POWER[c1.s] > SUIT_POWER[c2.s];
     }
     
-    // Update scores
-    let scoreIdx = gameState.totalPlayers === 2 ? 1 : gameState.totalPlayers === 3 ? 2 : 2;
-    document.getElementById('scoreDisplay').innerHTML = 
-        gameState.playerNames[scoreIdx] + ' (' + gameState.scores[scoreIdx] + ')<br>Round: ' + gameState.round;
-    
-    // Update player count
-    let count = 0;
-    for(let i = 0; i < gameState.totalPlayers; i++) {
-        if(gameState.playerNames[i]) count++;
-    }
-    document.getElementById('playerCount').textContent = count + '/' + gameState.totalPlayers;
-    
-    // Update turn
-    document.getElementById('turnText').textContent = 
-        (gameState.currentPlayer === gameState.playerIndex ? 'YOUR TURN' : 
-         gameState.playerNames[gameState.currentPlayer] + ' turn');
-    
-    // Update pile
-    if(gameState.lastPlay && gameState.lastPlay.length > 0) {
-        let html = gameState.lastPlay.map(c => {
-            let color = (c.suit === '♥' || c.suit === '♦') ? '#ff6666' : '#fff';
-            return `<span style="color:${color}">${c.rank}${c.suit}</span>`;
-        }).join(' ');
-        document.getElementById('pileDisplay').innerHTML = html;
-    } else {
-        document.getElementById('pileDisplay').innerHTML = 'New Round';
-    }
-    
-    // Update active player
-    let playerIds = ['playerBottom', 'playerLeft', 'playerTop', 'playerRight'];
-    playerIds.forEach((id, i) => {
-        let el = document.getElementById(id);
-        if(i < gameState.totalPlayers) {
-            if(gameState.currentPlayer === i && gameState.gameActive) {
-                el.classList.add('active-player');
-            } else {
-                el.classList.remove('active-player');
+    function getHandType(cards) {
+        if(cards.length === 0) return null;
+        if(cards.length === 1) {
+            return { type: "single", compareRank: getRankValue(cards[0].r), compareSuit: SUIT_POWER[cards[0].s], cards };
+        }
+        if(cards.length === 2 && cards[0].r === cards[1].r) {
+            let higher = isCardGreater(cards[0], cards[1]) ? cards[0] : cards[1];
+            return { type: "pair", compareRank: getRankValue(higher.r), compareSuit: SUIT_POWER[higher.s], cards };
+        }
+        if(cards.length === 3 && cards[0].r === cards[1].r && cards[1].r === cards[2].r) {
+            return { type: "triplet", compareRank: getRankValue(cards[0].r), compareSuit: Math.max(...cards.map(c=>SUIT_POWER[c.s])), cards };
+        }
+        
+        let rankCount = new Map();
+        for(let c of cards) {
+            let rv = getRankValue(c.r);
+            rankCount.set(rv, (rankCount.get(rv) || 0) + 1);
+        }
+        let counts = Array.from(rankCount.values()).sort((a,b)=>b-a);
+        
+        if(cards.length === 5 && counts[0] === 3 && counts[1] === 2) {
+            let tripletRank = null;
+            for(let [rk, cnt] of rankCount) if(cnt === 3) tripletRank = rk;
+            let maxSuit = 0;
+            for(let c of cards) if(getRankValue(c.r) === tripletRank) maxSuit = Math.max(maxSuit, SUIT_POWER[c.s]);
+            return { type: "fullhouse", compareRank: tripletRank, compareSuit: maxSuit, cards };
+        }
+        
+        if(cards.length === 5 && counts[0] === 4 && counts[1] === 1) {
+            let fourRank = null;
+            for(let [rk, cnt] of rankCount) if(cnt === 4) fourRank = rk;
+            let maxSuit = 0;
+            for(let c of cards) if(getRankValue(c.r) === fourRank) maxSuit = Math.max(maxSuit, SUIT_POWER[c.s]);
+            return { type: "fourkind", compareRank: fourRank, compareSuit: maxSuit, cards };
+        }
+        
+        if(cards.length >= 5) {
+            let uniqueRanks = [...new Set(cards.map(c => getRankValue(c.r)))].sort((a,b)=>a-b);
+            if(uniqueRanks.length === cards.length && !uniqueRanks.includes(12) && uniqueRanks.length >=5) {
+                let isStraight = true;
+                for(let i=0;i<uniqueRanks.length-1;i++) {
+                    if(uniqueRanks[i+1] !== uniqueRanks[i]+1) { isStraight = false; break; }
+                }
+                if(isStraight) {
+                    let maxRank = Math.max(...uniqueRanks);
+                    let maxSuit = 0;
+                    for(let c of cards) if(getRankValue(c.r) === maxRank) maxSuit = Math.max(maxSuit, SUIT_POWER[c.s]);
+                    return { type: "straight", compareRank: maxRank, compareSuit: maxSuit, cards };
+                }
             }
         }
-    });
-}
-
-function renderHand(playerIdx, elementId) {
-    let container = document.getElementById(elementId);
-    container.innerHTML = '';
-    let hand = gameState.players[playerIdx];
-    
-    let wrapper = document.createElement('div');
-    wrapper.className = 'hand-cards';
-    
-    hand.forEach((card, idx) => {
-        let cardEl = document.createElement('div');
-        cardEl.className = 'card';
-        if(gameState.selectedCards.includes(idx)) cardEl.classList.add('selected');
-        
-        let color = (card.suit === '♥' || card.suit === '♦') ? '#c33' : '#000';
-        cardEl.style.color = color;
-        cardEl.textContent = card.rank + card.suit;
-        
-        cardEl.onclick = () => {
-            if(gameState.currentPlayer !== playerIdx) return;
-            let idx2 = gameState.selectedCards.indexOf(idx);
-            if(idx2 >= 0) {
-                gameState.selectedCards.splice(idx2, 1);
-                cardEl.classList.remove('selected');
-            } else {
-                gameState.selectedCards.push(idx);
-                cardEl.classList.add('selected');
-            }
-        };
-        
-        wrapper.appendChild(cardEl);
-    });
-    
-    let info = document.createElement('div');
-    info.className = 'score-badge';
-    info.textContent = gameState.playerNames[playerIdx] + ' (' + gameState.scores[playerIdx] + ')';
-    
-    container.appendChild(wrapper);
-    container.appendChild(info);
-}
-
-function renderOppCards(playerIdx, elementId) {
-    let container = document.getElementById(elementId);
-    container.innerHTML = '';
-    let hand = gameState.players[playerIdx];
-    
-    let wrapper = document.createElement('div');
-    wrapper.className = 'hand-cards';
-    
-    for(let i = 0; i < hand.length; i++) {
-        let cardEl = document.createElement('div');
-        cardEl.className = 'card back';
-        wrapper.appendChild(cardEl);
+        return null;
     }
     
-    let info = document.createElement('div');
-    info.className = 'score-badge';
-    info.textContent = gameState.playerNames[playerIdx] + ' (' + gameState.scores[playerIdx] + ')';
+    function canBeat(last, current) {
+        if(!last) return true;
+        if(last.type !== current.type) return false;
+        if(current.compareRank !== last.compareRank) return current.compareRank > last.compareRank;
+        return current.compareSuit > last.compareSuit;
+    }
     
-    container.appendChild(wrapper);
-    container.appendChild(info);
-}
+    function createDeck() {
+        let deck = [];
+        for(let r of RANK_ORDER)
+            for(let s of SUITS)
+                deck.push({ r, s });
+        for(let i=deck.length-1;i>0;i--) {
+            let j = Math.floor(Math.random()*(i+1));
+            [deck[i],deck[j]] = [deck[j],deck[i]];
+        }
+        return deck;
+    }
+    
+    function dealNewGame() {
+        let deck = createDeck();
+        for(let i=0;i<4;i++) players[i] = deck.slice(i*13, (i+1)*13);
+        for(let i=0;i<4;i++) {
+            players[i].sort((a,b) => {
+                let va = getRankValue(a.r), vb = getRankValue(b.r);
+                if(va !== vb) return va - vb;
+                return SUIT_POWER[a.s] - SUIT_POWER[b.s];
+            });
+        }
+        let starter = 0;
+        for(let i=0;i<4;i++) {
+            if(players[i].some(c => c.r === "3" && c.s === "♣")) {
+                starter = i;
+                break;
+            }
+        }
+        currentPlayer = starter;
+        lastPlay = null;
+        passCount = 0;
+        gameActive = true;
+        selectedIndices = [];
+        isAIPlaying = false;
+        updateUI();
+        renderAll();
+        if(currentPlayer !== 0) setTimeout(() => aiTurn(), getRandomAIDelay());
+    }
+    
+    function endRound(winnerIdx) {
+        gameActive = false;
+        scores[winnerIdx]++;
+        
+        if (soloGameActive && gameMode === 'solo') {
+            let myCoins = loadCoins(playerName);
+            if (winnerIdx === 0) {
+                myCoins += 20;
+                alert(playerNames[winnerIdx] + " wins this round! +20 coins!");
+            } else {
+                myCoins -= 10;
+                alert(playerNames[winnerIdx] + " wins this round! You lost -10 coins!");
+            }
+            saveCoins(playerName, myCoins);
+            document.getElementById('coinsDisplay').textContent = '💰 ' + myCoins;
+        } else {
+            alert(playerNames[winnerIdx] + " wins this round!");
+        }
+        
+        roundNumber++;
+        updateTopScores();
+        playBeep(880, 0.2);
+        setTimeout(() => {
+            dealNewGame();
+            currentPlayer = winnerIdx;
+            lastPlay = null;
+            passCount = 0;
+            selectedIndices = [];
+            updateUI();
+            renderAll();
+            if(currentPlayer !== 0) setTimeout(() => aiTurn(), getRandomAIDelay());
+        }, 1500);
+    }
+    
+    function checkWin() {
+        for(let i=0;i<4;i++) {
+            if(players[i].length === 0) {
+                endRound(i);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    function performPlay(playerIdx, cardsIndicesOrCards) {
+        if(!gameActive) return false;
+        let hand = players[playerIdx];
+        let selectedCards;
+        if(Array.isArray(cardsIndicesOrCards) && typeof cardsIndicesOrCards[0] === 'number') {
+            selectedCards = cardsIndicesOrCards.map(i => hand[i]);
+        } else {
+            selectedCards = cardsIndicesOrCards;
+        }
+        let moveType = getHandType(selectedCards);
+        if(!moveType) return false;
+        if(!canBeat(lastPlay, moveType)) return false;
+        
+        if(playerIdx === 0) {
+            let newHand = hand.filter((_, idx) => !selectedIndices.includes(idx));
+            players[playerIdx] = newHand;
+            animateCardsOut(selectedIndices, playerIdx);
+        } else {
+            let newHand = hand.filter(c => !selectedCards.includes(c));
+            players[playerIdx] = newHand;
+        }
+        lastPlay = moveType;
+        passCount = 0;
+        playBeep(660, 0.1);
+        updatePileDisplay();
+        if(checkWin()) return true;
+        currentPlayer = (currentPlayer + 1) % 4;
+        selectedIndices = [];
+        updateUI();
+        renderAll();
+        if(!gameActive) return true;
+        if(currentPlayer !== 0) {
+            setTimeout(() => aiTurn(), getRandomAIDelay());
+        } else {
+            updateUITurnText();
+        }
+        return true;
+    }
+    
+    function passTurn(playerIdx) {
+        if(!gameActive) return;
+        playBeep(440, 0.08);
+        passCount++;
+        if(passCount >= 3) {
+            lastPlay = null;
+            passCount = 0;
+            updatePileDisplay();
+            playBeep(520, 0.15);
+        }
+        currentPlayer = (currentPlayer + 1) % 4;
+        selectedIndices = [];
+        updateUI();
+        renderAll();
+        if(checkWin()) return;
+        if(currentPlayer !== 0) setTimeout(() => aiTurn(), getRandomAIDelay());
+        else updateUITurnText();
+    }
+    
+    function getAllPossibleMoves(hand) {
+        let moves = [];
+        for(let i=0;i<hand.length;i++) {
+            let t = getHandType([hand[i]]);
+            if(t) moves.push(t);
+        }
+        for(let i=0;i<hand.length-1;i++) {
+            for(let j=i+1;j<hand.length;j++) {
+                if(hand[i].r === hand[j].r) {
+                    let t = getHandType([hand[i], hand[j]]);
+                    if(t) moves.push(t);
+                }
+            }
+        }
+        for(let i=0;i<hand.length-2;i++) {
+            if(hand[i].r === hand[i+1].r && hand[i+1].r === hand[i+2].r) {
+                let t = getHandType([hand[i], hand[i+1], hand[i+2]]);
+                if(t) moves.push(t);
+            }
+        }
+        let combos = getAllCombinations(hand, 5);
+        for(let combo of combos) {
+            let t = getHandType(combo);
+            if(t && (t.type === "straight" || t.type === "fullhouse" || t.type === "fourkind")) {
+                moves.push(t);
+            }
+        }
+        let keySet = new Set();
+        let unique = [];
+        for(let mv of moves) {
+            let key = mv.type + "|" + mv.cards.map(c=>c.r+c.s).sort().join(",");
+            if(!keySet.has(key)) {
+                keySet.add(key);
+                unique.push(mv);
+            }
+        }
+        return unique;
+    }
+    
+    function getAllCombinations(arr, k) {
+        let result = [];
+        function helper(start, combo) {
+            if(combo.length === k) {
+                result.push([...combo]);
+                return;
+            }
+            for(let i=start; i<arr.length; i++) {
+                combo.push(arr[i]);
+                helper(i+1, combo);
+                combo.pop();
+            }
+        }
+        helper(0, []);
+        return result;
+    }
+    
+    function getRandomAIDelay() {
+        return Math.floor(Math.random() * 500) + 500;
+    }
+    
+    function aiTurn() {
+        if(isAIPlaying || !gameActive) return;
+        if(currentPlayer === 0) return;
+        isAIPlaying = true;
+        updateUITurnText("thinking");
+        let delay = getRandomAIDelay();
+        setTimeout(() => {
+            if(!gameActive || currentPlayer === 0) { isAIPlaying=false; renderAll(); return; }
+            let hand = players[currentPlayer];
+            if(hand.length === 0) return;
+            let allMoves = getAllPossibleMoves(hand);
+            let validMoves = allMoves.filter(move => canBeat(lastPlay, move));
+            let difficulty = document.getElementById("aiDifficulty").value;
+            if(validMoves.length > 0) {
+                let chosenMove = null;
+                if(difficulty === "easy") {
+                    if(Math.random() < 0.35) {
+                        passTurn(currentPlayer);
+                        isAIPlaying = false;
+                        renderAll();
+                        return;
+                    }
+                    let randomIndex = Math.floor(Math.random() * validMoves.length);
+                    chosenMove = validMoves[randomIndex];
+                } else if(difficulty === "medium") {
+                    validMoves.sort((a,b) => {
+                        if(a.compareRank !== b.compareRank) return a.compareRank - b.compareRank;
+                        return a.compareSuit - b.compareSuit;
+                    });
+                    chosenMove = validMoves[0];
+                } else {
+                    validMoves.sort((a,b) => {
+                        if(a.compareRank !== b.compareRank) return b.compareRank - a.compareRank;
+                        return b.compareSuit - a.compareSuit;
+                    });
+                    chosenMove = validMoves[0];
+                }
+                if(chosenMove) performPlay(currentPlayer, chosenMove.cards);
+                else passTurn(currentPlayer);
+            } else {
+                passTurn(currentPlayer);
+            }
+            isAIPlaying = false;
+            renderAll();
+        }, delay);
+    }
+    
+    function playerPlay() {
+        if(!gameActive || currentPlayer !== 0 || isAIPlaying) return;
+        let hand = players[0];
+        if(selectedIndices.length === 0) return;
+        let cards = selectedIndices.map(i => hand[i]);
+        let move = getHandType(cards);
+        if(!move) { alert("Invalid combination."); return; }
+        if(!canBeat(lastPlay, move)) { alert("Cannot beat the current hand."); return; }
+        performPlay(0, selectedIndices);
+        renderAll();
+    }
+    
+    function playerPass() {
+        if(!gameActive || currentPlayer !== 0 || isAIPlaying) return;
+        passTurn(0);
+    }
+    
+    function animateCardsOut(indices, playerIdx) {
+        if(playerIdx !== 0) return;
+        let cardsDivs = document.querySelectorAll("#playerBottom .card");
+        indices.forEach(idx => {
+            if(cardsDivs[idx]) {
+                cardsDivs[idx].classList.add("animate-out");
+            }
+        });
+    }
+    
+    function playBeep(freq, duration=0.12) {
+        if(!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if(audioCtx.state === 'suspended') {
+            audioCtx.resume().then(() => {
+                playTone(freq, duration);
+            });
+        } else {
+            playTone(freq, duration);
+        }
+    }
+    
+    function playTone(freq, duration) {
+        try {
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+            osc.start();
+            osc.stop(now + duration);
+        } catch(e) {}
+    }
+    
+    function renderAll() {
+        renderPlayerHand(0, "playerBottom");
+        renderPlayerAI(1, "playerLeft");
+        renderPlayerAI(2, "playerTop");
+        renderPlayerAI(3, "playerRight");
+        updateTopScores();
+        updateUITurnText();
+        let statusDiv = document.getElementById("statusMsg");
+        if(lastPlay) {
+            let typeName = lastPlay.type;
+            updatePileDisplay();
+            statusDiv.innerText = "Last: " + typeName;
+        } else {
+            document.getElementById("pileDisplay").innerHTML = "New Round";
+            statusDiv.innerText = "Free to play";
+        }
+        document.getElementById("pileDisplay").classList.add("pile-new");
+        setTimeout(()=>document.getElementById("pileDisplay").classList.remove("pile-new"), 200);
+        
+        [0,1,2,3].forEach(i => {
+            let el = document.getElementById(["playerBottom","playerLeft","playerTop","playerRight"][i]);
+            if(el) {
+                if(currentPlayer === i && gameActive) el.classList.add("active-player");
+                else el.classList.remove("active-player");
+            }
+        });
+    }
+    
+    function renderPlayerHand(pid, elementId) {
+        let container = document.getElementById(elementId);
+        if(!container) return;
+        container.innerHTML = '';
+        let hand = players[pid];
+        let wrapper = document.createElement('div');
+        wrapper.className = "hand-cards";
+        hand.forEach((card, idx) => {
+            let cardDiv = document.createElement('div');
+            cardDiv.className = "card";
+            if(selectedIndices.includes(idx)) cardDiv.classList.add("selected");
+            let suitColor = (card.s === '♥' || card.s === '♦') ? '#c33' : '#222';
+            cardDiv.style.color = suitColor;
+            cardDiv.innerText = `${card.r}${card.s}`;
+            if(pid === 0) {
+                cardDiv.onclick = (e) => {
+                    e.stopPropagation();
+                    if(currentPlayer !== 0 || !gameActive || isAIPlaying) return;
+                    if(selectedIndices.includes(idx)) {
+                        selectedIndices = selectedIndices.filter(i=>i!==idx);
+                        cardDiv.classList.remove("selected");
+                    } else {
+                        selectedIndices.push(idx);
+                        cardDiv.classList.add("selected");
+                    }
+                };
+            }
+            wrapper.appendChild(cardDiv);
+        });
+        let nameDiv = document.createElement('div');
+        nameDiv.className = "score-badge";
+        nameDiv.innerText = `${playerNames[pid]} (${scores[pid]})`;
+        container.appendChild(wrapper);
+        container.appendChild(nameDiv);
+    }
+    
+    function renderPlayerAI(pid, elementId) {
+        let container = document.getElementById(elementId);
+        if(!container) return;
+        container.innerHTML = '';
+        let wrapper = document.createElement('div');
+        wrapper.className = "hand-cards";
+        let hand = players[pid];
+        for(let i=0;i<hand.length;i++) {
+            let cardDiv = document.createElement('div');
+            cardDiv.className = "card back";
+            wrapper.appendChild(cardDiv);
+        }
+        let nameDiv = document.createElement('div');
+        nameDiv.className = "score-badge";
+        nameDiv.innerText = `${playerNames[pid]} (${scores[pid]})`;
+        container.appendChild(wrapper);
+        container.appendChild(nameDiv);
+    }
+    
+    function updateTopScores() {
+        document.getElementById("topScoreArea").innerHTML = `Round: ${roundNumber}`;
+    }
+    
+    function updateUI() {
+        updateUITurnText();
+        let statusDiv = document.getElementById("statusMsg");
+        if(currentPlayer===0) statusDiv.style.background = "#ffd966cc";
+        else statusDiv.style.background = "#000000aa";
+    }
+    
+    function updateUITurnText(state) {
+        let turnDiv = document.getElementById("turnText");
+        if(!gameActive) turnDiv.innerText = "Game Over";
+        else if(currentPlayer===0) turnDiv.innerText = "Your Turn";
+        else turnDiv.innerText = playerNames[currentPlayer] + " thinking...";
+    }
+    
+    function updatePileDisplay() {
+        let pileDiv = document.getElementById("pileDisplay");
+        if(lastPlay && lastPlay.cards) {
+            let html = '';
+            for(let card of lastPlay.cards) {
+                let color = (card.s === '♥' || card.s === '♦') ? '#ff6666' : '#ffffff';
+                html += `<span class="pile-card" style="color: ${color};">${card.r}${card.s}</span>`;
+            }
+            pileDiv.innerHTML = html;
+        } else {
+            pileDiv.innerHTML = "New Round";
+        }
+    }
+    
+    function resetGame() {
+        if(audioCtx && audioCtx.state !== 'running') audioCtx.resume();
+        scores = [0,0,0,0];
+        roundNumber = 1;
+        dealNewGame();
+        updateTopScores();
+        renderAll();
+    }
+    
+    document.getElementById("playBtn").onclick = () => { playerPlay(); };
+    document.getElementById("passBtn").onclick = () => { playerPass(); };
+    document.getElementById("resetBtn").onclick = () => { resetGame(); };
+    document.getElementById("leaveBtn").onclick = () => { leaveGame(); };
+    
+    window.startGame_Solo = function() {
+        soloGameActive = true;
+        gameMode = 'solo';
+        dealNewGame();
+        renderAll();
+    };
+})();
 
-function copyCode() {
-    navigator.clipboard.writeText(gameState.roomCode);
-    showMsg('Code copied!');
-}
-
-function showMsg(msg) {
-    let el = document.getElementById('statusMsg');
-    el.textContent = msg;
-    setTimeout(() => { el.textContent = ''; }, 3000);
-}
-
-console.log('Big Two loaded!');
+// ===== 多人遊戲邏輯 =====
+window.startGame_Multi = function(roomCode, playerIdx, playerNames_arr) {
+    // 多人遊戲將在後續完整實現
+    alert('多人遊戲仍在完整開發中，敬請期待！');
+};
 </script>
+
 </body>
 </html>

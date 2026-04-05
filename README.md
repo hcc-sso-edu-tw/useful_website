@@ -7,7 +7,7 @@
 * [Pyhton editor](https://hcc-sso-edu-tw.github.io/useful_website/code_editor.html)
   
 # Games
-* [Ragdoll Archers](https://hcc-sso-edu-tw.github.io/useful_website/186.html)
+* [Ragdoll Archers](https://www.crazygames.com/game/ragdoll-archers)
 * [Brawl Simulator 3D](https://hcc-sso-edu-tw.github.io/useful_website/Brawl%20Simulator%203D.html)
 * [T-rex Game](https://hcc-sso-edu-tw.github.io/useful_website/t-rex-runner/)
 * [Snake Game](https://hcc-sso-edu-tw.github.io/useful_website/Snake-Game/)

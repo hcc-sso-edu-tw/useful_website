@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Optical Illusion Circle Toggle</title>
+  <style>
+    body {
+      margin: 0;
+      background: #eee;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      background: white;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="canvas" width="600" height="600"></canvas>
+
+<script>
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+
+  let mode = 0; // 0 = color, 1 = grayscale
+
+  function drawCircle(colors) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const r = 260; // 🔴 bigger circle
+    const slice = (Math.PI * 2) / 3;
+
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(
+        cx,
+        cy,
+        r,
+        -Math.PI / 2 + i * slice,
+        -Math.PI / 2 + (i + 1) * slice
+      );
+      ctx.closePath();
+      ctx.fillStyle = colors[i];
+      ctx.fill();
+    }
+
+    // center dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+    ctx.fillStyle = "white";
+    ctx.fill();
+  }
+
+  function draw() {
+    if (mode === 0) {
+      drawCircle(["red", "lime", "blue"]);
+    } else {
+      drawCircle(["#444", "#bbb", "#eee"]);
+    }
+  }
+
+  draw();
+
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "Space") {
+      e.preventDefault();
+      mode = 1 - mode;
+      draw();
+    }
+  });
+</script>
+
+</body>
+</html>

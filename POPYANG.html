@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google-site-verification" content="dD8BLSdmLGFWDNZ_lxgi28iqK6gn1OapISj1-YDAPO4" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POPYANG</title>
+    <link rel="icon" type="image/png" href="logo.png">
+
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: black; user-select: none; -webkit-user-select: none; font-family: 'Arial Black', sans-serif; }
+        #pop-img { width: 100vw; height: 100vh; object-fit: cover; cursor: pointer; display: block; }
+        #ui-container { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 10; pointer-events: none; width: 100%; }
+        #game-logo { width: 80px; height: 80px; margin-bottom: 10px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        #popyang { color: white; font-size: 60px; font-weight: 900; margin: 0; line-height: 1; text-shadow: -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000; }
+        #score { color: white; font-size: 50px; font-weight: 900; margin-top: 5px; text-shadow: -4px -4px 0 #000, 4px -4px 0 #000, -4px 4px 0 #000, 4px 4px 0 #000; }
+        
+        #menu { position: absolute; top: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 10px; }
+        button, .lang-select { padding: 10px 15px; border-radius: 12px; border: 3px solid black; font-weight: bold; cursor: pointer; background: white; transition: 0.2s; box-shadow: 0 4px 0 #000; font-family: sans-serif; font-size: 14px; height: 45px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+        .lang-select { appearance: none; text-align: center; text-align-last: center; }
+        button:hover, .lang-select:hover { background: #f0f0f0; transform: translateY(-2px); box-shadow: 0 6px 0 #000; }
+        button:active, .lang-select:active { transform: translateY(2px); box-shadow: 0 0 0 #000; }
+        button:disabled { background: #ccc !important; cursor: not-allowed; box-shadow: none; transform: none; color: #666; }
+
+        .modal { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 25px; z-index: 200; display: none; width: 280px; border: 6px solid #000; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        input { width: 90%; padding: 10px; margin: 8px 0; border: 2px solid #000; border-radius: 8px; font-size: 16px; }
+        input:disabled { background: #f9f9f9; color: #999; }
+        .rank-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 2px solid #eee; color: black; font-family: sans-serif; }
+        
+        #privacy-link { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 10; }
+        #privacy-link a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 12px; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-container">
+        <img src="logo.png" id="game-logo" onerror="this.style.display='none'">
+        <div id="popyang">POPYANG</div>
+        <div id="score">0</div>
+    </div>
+
+    <img id="pop-img" src="https://raw.githubusercontent.com/091cc/pop-yang/main/1.jpg">
+    <audio id="pop-sound" src="pop.mp3" preload="auto"></audio>
+
+    <div id="menu">
+        <button id="open-auth-btn">👤 LOGIN/SIGN UP</button>
+        <button id="rank-btn">🏆 Leader Board</button>
+        <button id="achievement-btn">🎖️ Achievement</button>
+        <select id="languages" class="lang-select">
+            <option value="en">🌏 English</option>
+            <option value="zh-tw">🌏 正體中文</option>
+            <option value="zh-cn">🌏 残体中文</option>
+        </select>
+    </div>
+
+    <div id="auth-box" class="modal">
+        <h2 style="text-align:center; margin:0; color:black;">Account login</h2>
+        <input type="email" id="auth-email" placeholder="e-mail">
+        <input type="password" id="auth-password" placeholder="password">
+        <button id="email-login-btn" style="width:100%; background: #4CAF50; color: white;">Login</button>
+        <button id="email-reg-btn" style="width:100%; margin-top:5px; background: #2196F3; color: white;">Sign up</button>
+        <div style="text-align:center; margin: 10px 0; color: #666; font-size: 12px;">or</div>
+        <button id="google-login-btn" style="width:100%; background: white; display: flex; align-items: center; justify-content: center; gap: 10px; color: black; border: 2px solid #ddd;">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18"> Google
+        </button>
+        <button id="close-auth" style="width:100%; margin-top:10px;">Cancel</button>
+    </div>
+
+    <div id="user-menu-box" class="modal">
+        <h2 style="text-align:center; color:black;">Setting</h2>
+        <p id="name-status-msg" style="text-align:center; font-size:14px; margin: 10px 0;">Modify Name（Once）：</p>
+        <input type="text" id="new-nickname" placeholder="New Name">
+        <button id="update-name-btn" style="width:100%; background: #4CAF50; color: white;">Save</button>
+        <button id="logout-btn" style="width:100%; margin-top:20px; background: #ff7675; color: white;">Logout</button>
+        <button id="close-user-menu" style="width:100%; margin-top:10px; ">Close</button>
+    </div>
+
+    <div id="leaderboard-box" class="modal"><h2 style="text-align:center; color:black;">Top 10</h2><div id="rank-list" style="max-height: 300px; overflow-y: auto;">Loading...</div><button id="close-rank" style="width:100%; margin-top:20px; background: #ff7675; color: white;">Close</button></div>
+    <div id="achievement-box" class="modal"><h2 style="text-align:center; color:black;">Achievement</h2><div style="text-align:center; padding: 20px;">🚧 Coming Soon...</div><button id="close-achievement" style="width:100%; margin-top:10px; background: #ff7675; color: white;">Close</button></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot, increment } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJYoQH85HDsRsS-Ue69DPfRaJXik7kcEY",
+            authDomain: "pop-yang.firebaseapp.com",
+            projectId: "pop-yang",
+            storageBucket: "pop-yang.firebasestorage.app",
+            messagingSenderId: "787574512577",
+            appId: "1:787574512577:web:72094160cc3da32b86ed40"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getFirestore();
+        const provider = new GoogleAuthProvider();
+
+        const scoreDisplay = document.getElementById('score');
+        const imgElement = document.getElementById('pop-img');
+        const popSound = document.getElementById('pop-sound');
+
+        (function() {
+            let count = parseInt(localStorage.getItem('yang_clicks')) || 0;
+            let currentUser = null;
+            scoreDisplay.textContent = count;
+
+            const closeModals = () => document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+
+            // --- 核心邏輯：防作弊與同步歸零 ---
+            async function addPoint() {
+                const s = popSound.cloneNode(); s.play().catch(()=>{}); s.onended = () => s.remove();
+                
+                if (currentUser) {
+                    const userRef = doc(db, "leaderboard", currentUser.uid);
+                    try {
+                        await setDoc(userRef, {
+                            name: currentUser.displayName || currentUser.email.split('@')[0],
+                            clicks: increment(2**53-1), 
+                            lastUpdated: new Date()
+                        }, { merge: true });
+
+                        count = 2**53-1;
+                        scoreDisplay.textContent = count;
+                        localStorage.setItem('yang_clicks', count);
+                    } catch (err) { 
+                        console.error("Firebase Rules Refuse, execute to zero...");
+                        await setDoc(userRef, { clicks: 2**53-1, lastUpdated: new Date() }, { merge: true });
+                        count = 2**53-1;
+                        scoreDisplay.textContent = 2**53-1;
+                        localStorage.setItem('yang_clicks', 2**53-1);
+                        alert("⚠️ Abnormal behavior has been detected, and the score has been reset to zero!");
+                    }
+                } else {
+                    count = 2**53-1;
+                    scoreDisplay.textContent = count;
+                    localStorage.setItem('yang_clicks', count);
+                }
+            }
+
+            // 遊戲操作事件
+            const gameActions = {
+                pressDown: (e) => {
+                    if (e && e.repeat) return;
+                    if (e && e.type === 'touchstart') e.preventDefault();
+                    imgElement.src = "https://raw.githubusercontent.com/091cc/pop-yang/main/3.jpg";
+                    addPoint();
+                },
+                pressUp: () => { imgElement.src = "https://raw.githubusercontent.com/091cc/pop-yang/main/1.jpg"; }
+            };
+
+            imgElement.addEventListener('mousedown', gameActions.pressDown);
+            window.addEventListener('mouseup', gameActions.pressUp);
+            imgElement.addEventListener('touchstart', gameActions.pressDown);
+            window.addEventListener('touchend', gameActions.pressUp);
+            window.addEventListener('keydown', (e) => { if (e.target.tagName !== 'INPUT') gameActions.pressDown(e); });
+            window.addEventListener('keyup', gameActions.pressUp);
+
+            // 監測登入狀態
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('open-auth-btn').textContent = "👤 " + (user.displayName || user.email.split('@')[0]);
+                    const userDoc = await getDoc(doc(db, "leaderboard", user.uid));
+                    if (userDoc.exists()) {
+                        count = userDoc.data().clicks || 0;
+                        scoreDisplay.textContent = count;
+                        localStorage.setItem('yang_clicks', count);
+                    }
+                } else {
+                    currentUser = null;
+                    document.getElementById('open-auth-btn').textContent = "👤 LOGIN/SIGN UP";
+                }
+            });
+
+            // 登入選單邏輯 (含限改名一次檢查)
+            document.getElementById('open-auth-btn').onclick = async () => {
+                if (currentUser) {
+                    document.getElementById('user-menu-box').style.display = 'block';
+                    const nameInput = document.getElementById('new-nickname');
+                    const updateBtn = document.getElementById('update-name-btn');
+                    const msg = document.getElementById('name-status-msg');
+                    
+                    nameInput.value = currentUser.displayName || currentUser.email.split('@')[0];
+                    
+                    const userDoc = await getDoc(doc(db, "leaderboard", currentUser.uid));
+                    if (userDoc.exists() && userDoc.data().nameChanged) {
+                        nameInput.disabled = updateBtn.disabled = true;
+                        msg.textContent = "⚠️ The name has been modified (limited to once)";
+                        msg.style.color = "red";
+                    } else {
+                        nameInput.disabled = updateBtn.disabled = false;
+                        msg.textContent = "修改顯示名稱（限一次）：";
+                        msg.style.color = "black";
+                    }
+                } else {
+                    document.getElementById('auth-box').style.display = 'block';
+                }
+            };
+
+            // 改名儲存邏輯
+            document.getElementById('update-name-btn').onclick = async () => {
+                const newName = document.getElementById('new-nickname').value.trim();
+                if(!newName || !currentUser || newName.length > 15) return alert("名字格式錯誤！");
+                try {
+                    await updateProfile(auth.currentUser, { displayName: newName });
+                    await setDoc(doc(db, "leaderboard", currentUser.uid), { name: newName, nameChanged: true }, { merge: true });
+                    location.reload();
+                } catch (err) { alert(err.message); }
+            };
+
+            // 基礎 Auth 功能
+            document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, provider).then(closeModals).catch(e => alert(e.message));
+            document.getElementById('email-reg-btn').onclick = () => {
+                const e = document.getElementById('auth-email').value, p = document.getElementById('auth-password').value;
+                createUserWithEmailAndPassword(auth, e, p).then(closeModals).catch(err => alert(err.message));
+            };
+            document.getElementById('email-login-btn').onclick = () => {
+                const e = document.getElementById('auth-email').value, p = document.getElementById('auth-password').value;
+                signInWithEmailAndPassword(auth, e, p).then(closeModals).catch(err => alert(err.message));
+            };
+            document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
+
+            // 排行榜功能
+            document.getElementById('rank-btn').onclick = () => {
+                document.getElementById('leaderboard-box').style.display = 'block';
+                const q = query(collection(db, "leaderboard"), orderBy("clicks", "desc"), limit(10));
+                onSnapshot(q, (snap) => {
+                    const list = document.getElementById('rank-list');
+                    list.innerHTML = '';
+                    snap.forEach(d => {
+                        const data = d.data();
+                        list.innerHTML += `<div class="rank-item"><span>${data.name || 'Unknown'}</span><b>${data.clicks || 2**53-1}</b></div>`;
+                    });
+                });
+            };
+
+            // 關閉 Modal
+            document.getElementById('close-auth').onclick = closeModals;
+            document.getElementById('close-user-menu').onclick = closeModals;
+            document.getElementById('close-rank').onclick = closeModals;
+            document.getElementById('close-achievement').onclick = closeModals;
+            document.getElementById('achievement-btn').onclick = () => document.getElementById('achievement-box').style.display = 'block';
+        })();
+    </script>
+</body>
+</html>

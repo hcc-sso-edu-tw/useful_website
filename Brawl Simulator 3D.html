@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en-us">
 <head>
 <base href="https://cdn.jsdelivr.net/gh/genizy/google-class@main/brawl-3d/">
@@ -25,28 +26,86 @@
             height: 100%;
         }
         #loading-text {
-  font-weight: bold;
-  background: linear-gradient(
-    270deg,
-    #ff0000,
-    #ff7f00,
-    #ffff00,
-    #00ff00,
-    #0000ff,
-    #4b0082,
-    #8f00ff
-  );
-  background-size: 400% 400%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: rainbow 3s ease infinite;
-}
+            font-weight: bold;
+            background: linear-gradient(
+                270deg,
+                #ff0000,
+                #ff7f00,
+                #ffff00,
+                #00ff00,
+                #0000ff,
+                #4b0082,
+                #8f00ff
+            );
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 3s ease infinite;
+        }
 
-@keyframes rainbow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ========= 虚拟摇杆样式 (透明且在最上层) ========= */
+        .virtual-joystick {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 130px;
+            height: 130px;
+            z-index: 10000;
+            touch-action: none;
+            display: none;  /* 默认隐藏，仅在移动端显示 */
+        }
+        .joystick-base {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.3), 0 0 15px rgba(0,0,0,0.2);
+            transition: all 0.05s ease;
+        }
+        .joystick-thumb {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.65);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+            transition: transform 0.02s linear;
+            pointer-events: none;
+        }
+        /* 仅在触摸设备且为移动端（或平板）显示摇杆 */
+        @media (hover: none) and (pointer: coarse) {
+            .virtual-joystick {
+                display: block;
+            }
+        }
+        /* 小屏幕适配稍微缩小摇杆 */
+        @media (max-width: 600px) {
+            .virtual-joystick {
+                width: 110px;
+                height: 110px;
+                bottom: 20px;
+                left: 20px;
+            }
+            .joystick-thumb {
+                width: 42px;
+                height: 42px;
+            }
+        }
+        /* 确保canvas区域不会被摇杆遮挡关键UI，但摇杆在左上区域不影响主要操作 */
+        .unity-desktop {
+            position: relative;
+        }
     </style>
 <!-- Additional head modules -->
 </head>
@@ -66,7 +125,13 @@
 <div class="spinner"></div>
 </div>
 </div>
-<!-- Additional body modules -->
+
+<!-- 虚拟摇杆 DOM 结构 (透明，最上层) -->
+<div class="virtual-joystick" id="virtualJoystick">
+    <div class="joystick-base" id="joystickBase"></div>
+    <div class="joystick-thumb" id="joystickThumb"></div>
+</div>
+
 <script>
       var loadingText = document.querySelector("#loading-text");
     let totalBytes = 0;
@@ -1103,6 +1168,217 @@ window.OpenAuthDialog = function() {
 
 document.body.appendChild(script);
 })();
-    </script>
+
+// ========= 透明虚拟摇杆核心逻辑 (模拟WASD移动) =========
+(function initVirtualJoystick() {
+    // 仅在支持触摸的设备且移动端样式已显示时初始化 (通过CSS媒体查询控制显示，但逻辑也需检测触摸能力)
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (!isTouchDevice) return; // 非触摸设备不启用摇杆逻辑
+
+    const joystickContainer = document.getElementById('virtualJoystick');
+    const base = document.getElementById('joystickBase');
+    const thumb = document.getElementById('joystickThumb');
+    if (!joystickContainer || !base || !thumb) return;
+
+    let active = false;
+    let startX = 0, startY = 0;
+    let currentDx = 0, currentDy = 0;
+    let animFrameId = null;
+    let currentActiveKeys = new Set();   // 当前模拟按下的键 (w/a/s/d)
+    
+    const maxRadius = 45;      // 最大移动半径 (px)
+    const deadZone = 0.2;      // 方向死区阈值
+    
+    // 获取canvas用于派发事件及焦点
+    const canvas = document.getElementById('unity-canvas');
+    
+    // 辅助函数: 派发键盘事件到document (确保Unity能捕获)
+    function dispatchKeyEvent(type, key, code) {
+        try {
+            const event = new KeyboardEvent(type, {
+                key: key,
+                code: code,
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            // 同时派发到canvas和document，增加兼容性
+            if (canvas) canvas.dispatchEvent(event);
+            document.dispatchEvent(event);
+        } catch(e) {
+            // fallback
+        }
+    }
+    
+    // 更新按键状态 (根据方向矢量)
+    function updateKeysFromVector(dx, dy) {
+        const magnitude = Math.hypot(dx, dy);
+        let normX = 0, normY = 0;
+        if (magnitude > deadZone) {
+            normX = dx / magnitude;
+            normY = dy / magnitude;
+        }
+        
+        // 计算需要按下的键 (基于WASD)
+        const shouldPress = new Set();
+        // 上 (W) : 垂直负方向
+        if (normY < -deadZone) shouldPress.add('w');
+        // 下 (S) : 垂直正方向
+        if (normY > deadZone) shouldPress.add('s');
+        // 左 (A) : 水平负方向
+        if (normX < -deadZone) shouldPress.add('a');
+        // 右 (D) : 水平正方向
+        if (normX > deadZone) shouldPress.add('d');
+        
+        // 找出需要释放的按键 (之前按下但新方向不需要)
+        const toRelease = [...currentActiveKeys].filter(k => !shouldPress.has(k));
+        // 找出需要按下的按键
+        const toPress = [...shouldPress].filter(k => !currentActiveKeys.has(k));
+        
+        // 发送keyup事件
+        for (let key of toRelease) {
+            let code = `Key${key.toUpperCase()}`;
+            dispatchKeyEvent('keyup', key, code);
+            currentActiveKeys.delete(key);
+        }
+        // 发送keydown事件
+        for (let key of toPress) {
+            let code = `Key${key.toUpperCase()}`;
+            dispatchKeyEvent('keydown', key, code);
+            currentActiveKeys.add(key);
+        }
+    }
+    
+    // 重置摇杆UI与按键
+    function resetJoystick() {
+        active = false;
+        // 释放所有仍按下的按键
+        for (let key of currentActiveKeys) {
+            let code = `Key${key.toUpperCase()}`;
+            dispatchKeyEvent('keyup', key, code);
+        }
+        currentActiveKeys.clear();
+        currentDx = 0;
+        currentDy = 0;
+        // 重置thumb位置
+        thumb.style.transform = 'translate(-50%, -50%)';
+        if (animFrameId) cancelAnimationFrame(animFrameId);
+        animFrameId = null;
+    }
+    
+    // 更新摇杆视觉与按键 (触摸移动时调用)
+    function updateJoystick(clientX, clientY) {
+        if (!active) return;
+        const rect = base.getBoundingClientRect();
+        const centerX = rect.left + rect.width/2;
+        const centerY = rect.top + rect.height/2;
+        let dx = clientX - centerX;
+        let dy = clientY - centerY;
+        const distance = Math.min(maxRadius, Math.hypot(dx, dy));
+        if (distance > 0) {
+            dx = dx * distance / Math.hypot(dx, dy);
+            dy = dy * distance / Math.hypot(dx, dy);
+        } else {
+            dx = 0; dy = 0;
+        }
+        currentDx = dx;
+        currentDy = dy;
+        // 移动thumb UI
+        const thumbX = (dx / maxRadius) * 100;
+        const thumbY = (dy / maxRadius) * 100;
+        thumb.style.transform = `translate(calc(-50% + ${thumbX}%), calc(-50% + ${thumbY}%))`;
+        
+        // 计算归一化方向矢量 (范围 -1..1)
+        let normX = dx / maxRadius;
+        let normY = dy / maxRadius;
+        // 限制范围
+        normX = Math.min(1, Math.max(-1, normX));
+        normY = Math.min(1, Math.max(-1, normY));
+        
+        // 实时更新按键
+        updateKeysFromVector(normX, normY);
+    }
+    
+    // 触摸开始
+    function onTouchStart(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const touch = e.touches[0];
+        if (!touch) return;
+        const rect = base.getBoundingClientRect();
+        const touchX = touch.clientX;
+        const touchY = touch.clientY;
+        // 检测触摸点是否在摇杆底座范围内
+        if (touchX >= rect.left && touchX <= rect.right && touchY >= rect.top && touchY <= rect.bottom) {
+            active = true;
+            // 让canvas获得焦点 (确保游戏响应)
+            if (window.FocusGame) window.FocusGame();
+            else if (canvas) canvas.focus();
+            // 初始定位thumb
+            const centerX = rect.left + rect.width/2;
+            const centerY = rect.top + rect.height/2;
+            let dx = touchX - centerX;
+            let dy = touchY - centerY;
+            const distance = Math.min(maxRadius, Math.hypot(dx, dy));
+            if (distance > 0) {
+                dx = dx * distance / Math.hypot(dx, dy);
+                dy = dy * distance / Math.hypot(dy, dy);
+            } else {
+                dx = 0; dy = 0;
+            }
+            currentDx = dx;
+            currentDy = dy;
+            const thumbX = (dx / maxRadius) * 100;
+            const thumbY = (dy / maxRadius) * 100;
+            thumb.style.transform = `translate(calc(-50% + ${thumbX}%), calc(-50% + ${thumbY}%))`;
+            let normX = dx / maxRadius;
+            let normY = dy / maxRadius;
+            normX = Math.min(1, Math.max(-1, normX));
+            normY = Math.min(1, Math.max(-1, normY));
+            updateKeysFromVector(normX, normY);
+        }
+    }
+    
+    function onTouchMove(e) {
+        if (!active) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const touch = e.touches[0];
+        if (touch) {
+            updateJoystick(touch.clientX, touch.clientY);
+        }
+    }
+    
+    function onTouchEnd(e) {
+        if (!active) return;
+        e.preventDefault();
+        e.stopPropagation();
+        resetJoystick();
+    }
+    
+    function onTouchCancel(e) {
+        if (!active) return;
+        e.preventDefault();
+        e.stopPropagation();
+        resetJoystick();
+    }
+    
+    // 绑定摇杆区域事件
+    joystickContainer.addEventListener('touchstart', onTouchStart, { passive: false });
+    joystickContainer.addEventListener('touchmove', onTouchMove, { passive: false });
+    joystickContainer.addEventListener('touchend', onTouchEnd, { passive: false });
+    joystickContainer.addEventListener('touchcancel', onTouchCancel, { passive: false });
+    
+    // 防止全局页面滚动
+    document.body.addEventListener('touchmove', function(e) {
+        if (active && e.target === joystickContainer || joystickContainer.contains(e.target)) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+    
+    // 初始状态无按键
+    console.log('[Joystick] A transparent virtual joystick has been loaded; mobile devices can use WASD to simulate it.');
+})();
+</script>
 </body>
 </html>

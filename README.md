@@ -6,7 +6,7 @@
 * [Sounds Board](https://hcc-sso-edu-tw.github.io/useful_website/179.html)
 * [Pyhton editor](https://hcc-sso-edu-tw.github.io/useful_website/code_editor.html)
 * [Graph](https://hcc-sso-edu-tw.github.io/useful_website/graph.html)
-* [Smpte](https://hcc-sso-edu-tw.github,io/useful_website/smpte.html)
+* [Smpte](https://hcc-sso-edu-tw.github.io/useful_website/smpte.html)
   
 # Games
 * [Ragdoll Archers](https://www.crazygames.com/game/ragdoll-archers)

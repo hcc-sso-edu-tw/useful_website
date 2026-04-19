@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+	const YCbCr = (Y, Cb, Cr) => {
+		Y = (Y - 256) / 3504;
+		Cb = (Cb - 2048) / 3584;
+		Cr = (Cr - 2048) / 3584;
+		const R = Y + 1.5748 * Cr;
+		const G = Y - 0.1873242729306488 * Cb - 0.46812427293064884 * Cr;
+		const B = Y + 1.8556 * Cb;
+		return `color(sRGB ${R} ${G} ${B})`;
+	};
+
+	document.documentElement.style.height = "100%";
+	document.body.style.backgroundColor = "black";
+	document.body.style.height = "calc(100% - 16px)";
+	document.body.style.textAlign = "center";
+	const svgNS = "http://www.w3.org/2000/svg";
+	const svg = document.body.appendChild(document.createElementNS(svgNS, "svg"));
+	svg.setAttribute("viewBox", "0 0 1920 1080");
+	svg.style.height = "100%";
+	const linearGradient = svg.appendChild(document.createElementNS(svgNS, "linearGradient"));
+	linearGradient.id = "ramp";
+	[
+		{ offset: 0 / 1235, stopColor: YCbCr(256, 2048, 2048) },
+		{ offset: 1030 / 1235, stopColor: YCbCr(3760, 2048, 2048) },
+	].forEach(v => {
+		const element = linearGradient.appendChild(document.createElementNS(svgNS, "stop"));
+		element.setAttribute("offset", v.offset);
+		element.setAttribute("stop-color", v.stopColor);
+	});
+	const pattern2 = [YCbCr(2884, 2048, 2048), YCbCr(3760, 2048, 2048), YCbCr(982, 1648, 2516), YCbCr(976, 2448, 1580)];
+	const pattern3 = [YCbCr(256, 2048, 2048), YCbCr(564, 2787, 2425)];
+	let c = 0;
+	const rects = Array.from([
+		{ x: 0, y: 0, width: 240, height: 630, fill: YCbCr(1658, 2048, 2048) },
+		{ x: 240, y: 0, width: 205, height: 630, fill: YCbCr(2884, 2048, 2048) },
+		{ x: 445, y: 0, width: 206, height: 630, fill: YCbCr(2694, 704, 2171) },
+		{ x: 651, y: 0, width: 206, height: 630, fill: YCbCr(2325, 2356, 704) },
+		{ x: 857, y: 0, width: 206, height: 630, fill: YCbCr(2136, 1012, 827) },
+		{ x: 1063, y: 0, width: 206, height: 630, fill: YCbCr(1004, 3084, 3269) },
+		{ x: 1269, y: 0, width: 206, height: 630, fill: YCbCr(815, 1740, 3392) },
+		{ x: 1475, y: 0, width: 205, height: 630, fill: YCbCr(446, 3392, 1925) },
+		{ x: 1680, y: 0, width: 240, height: 630, fill: YCbCr(1658, 2048, 2048) },
+		{ x: 0, y: 630, width: 240, height: 90, fill: YCbCr(3015, 2459, 256) },
+		{ x: 240, y: 630, width: 205, height: 90, fill: pattern2[c] },
+		{ x: 445, y: 630, width: 1235, height: 90, fill: YCbCr(2884, 2048, 2048) },
+		{ x: 1680, y: 630, width: 240, height: 90, fill: YCbCr(509, 3840, 1884) },
+		{ x: 0, y: 720, width: 240, height: 90, fill: YCbCr(3507, 256, 2212) },
+		{ x: 240, y: 720, width: 205, height: 90, fill: pattern3[c === 3 ? 1 : 0] },
+		{ x: 445, y: 720, width: 1235, height: 90, fill: "url(\"#ramp\")" },
+		{ x: 1680, y: 720, width: 240, height: 90, fill: YCbCr(1001, 1637, 3840) },
+		{ x: 0, y: 810, width: 240, height: 270, fill: YCbCr(782, 2048, 2048) },
+		{ x: 240, y: 810, width: 309, height: 270, fill: YCbCr(256, 2048, 2048) },
+		{ x: 549, y: 810, width: 411, height: 270, fill: YCbCr(3760, 2048, 2048) },
+		{ x: 960, y: 810, width: 171, height: 270, fill: YCbCr(256, 2048, 2048) },
+		{ x: 1131, y: 810, width: 69, height: 270, fill: YCbCr(186, 2048, 2048) },
+		{ x: 1200, y: 810, width: 68, height: 270, fill: YCbCr(256, 2048, 2048) },
+		{ x: 1268, y: 810, width: 69, height: 270, fill: YCbCr(326, 2048, 2048) },
+		{ x: 1337, y: 810, width: 68, height: 270, fill: YCbCr(256, 2048, 2048) },
+		{ x: 1405, y: 810, width: 69, height: 270, fill: YCbCr(396, 2048, 2048) },
+		{ x: 1474, y: 810, width: 206, height: 270, fill: YCbCr(256, 2048, 2048) },
+		{ x: 1680, y: 810, width: 240, height: 270, fill: YCbCr(782, 2048, 2048) },
+	], v => {
+		const element = svg.appendChild(document.createElementNS(svgNS, "rect"));
+		element.setAttribute("x", v.x);
+		element.setAttribute("y", v.y);
+		element.setAttribute("width", v.width);
+		element.setAttribute("height", v.height);
+		element.style.fill = v.fill;
+		return element;
+	});
+
+	let audioContext = null, oscillator = null;
+	window.addEventListener("keypress", ev => {
+		if (ev.key === 'C' || ev.key === 'c') {
+			c = (c + 1) % 4;
+			rects[10].style.fill = pattern2[c];
+			rects[14].style.fill = pattern3[c === 3 ? 1 : 0];
+		} else if (ev.key === 'F' || ev.key === 'f') {
+			if (document.fullscreenElement) {
+				document.exitFullscreen();
+			} else {
+				svg.requestFullscreen();
+			}
+		} else if (ev.key === 'M' || ev.key === 'm') {
+			if (oscillator) {
+				oscillator.stop();
+				oscillator.disconnect();
+				oscillator = null;
+			} else {
+				audioContext ??= new window.AudioContext();
+				oscillator = audioContext.createOscillator();
+				oscillator.type = "sine";
+				oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+				oscillator.connect(audioContext.destination);
+				oscillator.start();
+			}
+		}
+	});
+});
+</script>
+</head>
+<body></body>
+</html>

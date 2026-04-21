@@ -102,6 +102,25 @@ window.addEventListener("DOMContentLoaded", () => {
 	});
 });
 </script>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+	const triggerKey = (key) => {
+		window.dispatchEvent(new KeyboardEvent("keypress", { key }));
+	};
+
+	// Single click → toggle sound (same as pressing M)
+	document.addEventListener("click", () => {
+		triggerKey('m');
+	});
+
+	// Double click → toggle fullscreen (same as pressing F)
+	document.addEventListener("dblclick", () => {
+		triggerKey('f');
+	});
+});
+</script>
+
 </head>
 <body></body>
 </html>

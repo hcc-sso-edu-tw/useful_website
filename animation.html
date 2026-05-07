@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Effect</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #111;
+      color: #00ff88;
+      font-family: "Courier New", monospace;
+      font-size: 36px;
+    }
+
+    .typing-container {
+      display: inline;
+    }
+
+    #text {
+      white-space: pre-wrap;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 3px;
+      height: 38px;
+      background: #00ff88;
+      vertical-align: bottom;
+      animation: blink 0.8s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <span class="typing-container">
+    <span id="text"></span><span class="cursor"></span>
+  </span>
+
+  <script>
+    const textElement = document.getElementById("text");
+
+    let currentHTML = "";
+    let isBusy = false;
+
+    async function t(html) {
+
+      if (isBusy) return;
+      isBusy = true;
+
+      let i = 0;
+
+      while (i < html.length) {
+
+        if (html[i] === "<") {
+
+          const closeIndex = html.indexOf(">", i);
+
+          const tag = html.substring(i, closeIndex + 1);
+
+          currentHTML += tag;
+
+          textElement.innerHTML = currentHTML;
+
+          i = closeIndex + 1;
+
+        } else {
+
+          currentHTML += html[i];
+
+          textElement.innerHTML = currentHTML;
+
+          i++;
+
+          const speed = Math.random() * 120 + 50;
+
+          await s(speed);
+        }
+      }
+
+      isBusy = false;
+    }
+
+    async function d(amount) {
+
+      if (isBusy) return;
+      isBusy = true;
+
+      for (let i = 0; i < amount; i++) {
+
+        currentHTML = currentHTML.slice(0, -1);
+
+        textElement.innerHTML = currentHTML;
+
+        const speed = Math.random() * 60 + 40;
+
+        await s(speed);
+      }
+
+      isBusy = false;
+    }
+
+    function s(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function demo() {
+      await t("If ");
+      await s(100)
+      await t("you can't fly");
+      await s(400)
+      await t(",");
+      await s(600)
+      await t(" then run;");
+      await s(2000)
+      await d(27)
+      await t("if");
+      await s(500)
+      await t(" you can't run");
+      await s(400)
+      await t(",");
+      await s(400)
+      await t(" then walk;");
+      await s(2000)
+      await d(31)
+      await t("if");
+      await s(500)
+      await t(" you can't walk");
+      await s(200)
+      await t(",");
+      await s(400)
+      await t(" then crawl.");
+      await s(1500)
+      await d(30)
+      await s(3000)
+      await t("Whatever you do,")
+      await s(500)
+      await t(" you have to")
+      await s(1000)
+      await t(" <b>keep moving forward.</b>")
+      await s(3000)
+      await d(100)
+
+    }
+    demo();
+  </script>
+
+</body>
+</html>

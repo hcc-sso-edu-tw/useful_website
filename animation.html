@@ -1,22 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Typing Effect</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>...</title>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
     body {
       margin: 0;
-      padding: 40px;
-      background: #111;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      background:
+        radial-gradient(
+          circle at center,
+          #1b1b1b 0%,
+          #101010 45%,
+          #000000 100%
+        );
+
+      transition: background 2.5s ease;
+
       color: #00ff88;
+
       font-family: "Courier New", monospace;
-      font-size: 36px;
+      font-size: 42px;
+      font-weight: 500;
+      letter-spacing: 1px;
+
+      text-align: center;
+    }
+
+    body.fade-bg {
+      background: #000000;
     }
 
     .typing-container {
-      display: inline;
+      position: relative;
+      display: inline-block;
+
+      text-shadow:
+        0 0 5px #00ff88,
+        0 0 15px rgba(0, 255, 136, 0.5);
     }
 
     #text {
@@ -26,10 +63,19 @@
     .cursor {
       display: inline-block;
       width: 3px;
-      height: 38px;
+      height: 46px;
+
       background: #00ff88;
+
       vertical-align: bottom;
-      animation: blink 0.8s infinite;
+
+      box-shadow:
+        0 0 8px #00ff88,
+        0 0 18px #00ff88;
+
+      animation:
+        blink 0.8s infinite,
+        pulse 1.4s ease-in-out infinite;
     }
 
     @keyframes blink {
@@ -41,19 +87,76 @@
         opacity: 0;
       }
     }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scaleY(1);
+      }
+
+      50% {
+        transform: scaleY(1.15);
+      }
+    }
+
+    .end {
+      animation: fadeOut 3s ease forwards;
+    }
+
+    @keyframes fadeOut {
+
+      0% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+
+    }
   </style>
 </head>
+
 <body>
 
-  <span class="typing-container">
+  <div class="typing-container" id="container">
     <span id="text"></span><span class="cursor"></span>
-  </span>
+  </div>
 
   <script>
     const textElement = document.getElementById("text");
+    const container = document.getElementById("container");
 
     let currentHTML = "";
     let isBusy = false;
+
+    async function enterFullscreen() {
+
+      try {
+
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        }
+
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    document.addEventListener("keydown", async (e) => {
+
+      if (e.key.toLowerCase() === "f") {
+
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+        } else {
+          await enterFullscreen();
+        }
+      }
+    });
+
+    function s(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     async function t(html) {
 
@@ -67,7 +170,6 @@
         if (html[i] === "<") {
 
           const closeIndex = html.indexOf(">", i);
-
           const tag = html.substring(i, closeIndex + 1);
 
           currentHTML += tag;
@@ -84,9 +186,7 @@
 
           i++;
 
-          const speed = Math.random() * 120 + 50;
-
-          await s(speed);
+          await s(Math.random() * 90 + 35);
         }
       }
 
@@ -100,60 +200,89 @@
 
       for (let i = 0; i < amount; i++) {
 
-        currentHTML = currentHTML.slice(0, -1);
+        if (currentHTML.endsWith(">")) {
+
+          let j = currentHTML.length - 1;
+
+          while (j >= 0 && currentHTML[j] !== "<") {
+            j--;
+          }
+
+          currentHTML = currentHTML.slice(0, j);
+
+        } else {
+
+          currentHTML = currentHTML.slice(0, -1);
+        }
 
         textElement.innerHTML = currentHTML;
 
-        const speed = Math.random() * 60 + 40;
-
-        await s(speed);
+        await s(Math.random() * 50 + 25);
       }
 
       isBusy = false;
     }
 
-    function s(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
+    function e() {
+
+      document.body.classList.add("fade-bg");
+      container.classList.add("end");
     }
 
     async function demo() {
-      await t("If ");
-      await s(100)
-      await t("you can't fly");
-      await s(400)
-      await t(",");
-      await s(600)
-      await t(" then run;");
-      await s(2000)
-      await d(27)
-      await t("if");
-      await s(500)
-      await t(" you can't run");
-      await s(400)
-      await t(",");
-      await s(400)
-      await t(" then walk;");
-      await s(2000)
-      await d(31)
-      await t("if");
-      await s(500)
-      await t(" you can't walk");
-      await s(200)
-      await t(",");
-      await s(400)
-      await t(" then crawl.");
-      await s(1500)
-      await d(30)
-      await s(3000)
-      await t("Whatever you do,")
-      await s(500)
-      await t(" you have to")
       await s(1000)
-      await t(" <b>keep moving forward.</b>")
+      await t("Hi~");
+      await s(1000);
+      await t("<br>How are you today?")
+      await s(3000);
+      await t("<br>Ha.")
+      await s(1000)
+      await t(" I think you are fine right?")
+      await s(2000)
+      await t("<br>Same here.")
       await s(3000)
-      await d(100)
-
+      await d(70)
+      await s(1000)
+      await t("But")
+      await s(300)
+      await t(".")
+      await s(300)
+      await t(".")
+      await s(300)
+      await t(" There is something to tell you")
+      await s(500)
+      await t(".")
+      await s(500)
+      await t(".")
+      await s(500)
+      await t(".")
+      await s(3000)
+      await d(41)
+      await s(1000)
+      await t("That thing is: ")
+      await s(1000)
+      await d(17)
+      await s(500)
+      await t("'")
+      await s(500)
+      await t("<b>Be happy all day!!!</b>")
+      await s(500)
+      await t("'")
+      await s(3000)
+      await d(30)
+      await t("Nothing can stop you, right?")
+      await s(2000)
+      await t("<br><b>RIGHT!</b>")
+      await s(2000)
+      await d(40)
+      await s(2000)
+      await t("Wish you have a good day.")
+      await s(1000)
+      await t("<br><b>BYE~</b>")
+      await s(2000)
+      e()
     }
+
     demo();
   </script>
 

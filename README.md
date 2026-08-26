@@ -14,6 +14,7 @@ https://hcc-sso-edu-tw.github.io/useful_website/
 * [...](https://hcc-sso-edu-tw.github.io/useful_website/animation.html)
   
 # Games
+* [stock](https://hcc-sso-edu-tw.github.io/useful_website/stock.html)
 * [meccha-chameleon](https://hcc-sso-edu-tw.github.io/useful_website/meccha-chameleon/meccha-chameleon.html)
 * [billiards-3d](https://hcc-sso-edu-tw.github.io/useful_website/billiards-3d/billiards-3d.html)
 * [Tempo](https://hcc-sso-edu-tw.github.io/useful_website/130.html)

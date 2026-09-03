@@ -12,6 +12,7 @@ https://hcc-sso-edu-tw.github.io/useful_website/
 * [Graph](https://hcc-sso-edu-tw.github.io/useful_website/graph.html)
 * [Smpte](https://hcc-sso-edu-tw.github.io/useful_website/smpte.html)
 * [...](https://hcc-sso-edu-tw.github.io/useful_website/animation.html)
+* [chat site](https://hcc-sso-edu-tw.github.io/chat-site)
   
 # Games
 * [stock](https://hcc-sso-edu-tw.github.io/useful_website/stock.html)

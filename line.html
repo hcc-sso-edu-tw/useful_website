@@ -9,6 +9,7 @@
     --bg:#191b1f; --panel:#212328; --cell-line:#2f3238; --pill:#2b2d33;
     --ink-0:#f1f2f4; --ink-1:#9a9da3; --ink-2:#6b6e74;
     --accent:#4aa8c8; --gold:#e8b23a;
+    --danger:#e05a5a;
     --sans:-apple-system,'Segoe UI','PingFang TC','Noto Sans TC',sans-serif;
     --shadow:rgba(0,0,0,.7);
     --toast-bg:#1c1e24;
@@ -25,6 +26,7 @@
     --bg:#f2f4f7; --panel:#ffffff; --cell-line:#e0e3e8; --pill:#e8ebef;
     --ink-0:#1a1c20; --ink-1:#5a5e66; --ink-2:#9a9ea6;
     --accent:#3d8fac; --gold:#d99b1f;
+    --danger:#cc4444;
     --shadow:rgba(0,0,0,.12);
     --toast-bg:#ffffff;
     --locked-bg:#eceef2;
@@ -37,12 +39,13 @@
     --portal:#7a4fc6;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink-0);font-family:var(--sans);overscroll-behavior:none;transition:background .25s ease,color .25s ease;}
+  html,body{margin:0;padding:0;min-height:100%;background:var(--bg);color:var(--ink-0);font-family:var(--sans);overscroll-behavior:none;touch-action:manipulation;transition:background .25s ease,color .25s ease;}
+  button, .btn-play, .btn-secondary, .btn-start, .tool-btn, .size-opt, .diff-opt, .level, .ach, .top-back, .game-back, .theme-toggle, .sound-toggle, .tut-card button, .win-banner button, .pause-overlay button{touch-action:manipulation;}
   button{font-family:var(--sans);}
 
-  .screen{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .28s ease;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-  .screen.active{opacity:1;pointer-events:auto;}
-  .screen-inner{max-width:420px;width:100%;margin:0 auto;padding:18px 16px 28px;display:flex;flex-direction:column;min-height:100%;}
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;visibility:hidden;z-index:0;transition:opacity .28s ease,visibility 0s linear .28s;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:manipulation;}
+  .screen.active{opacity:1;pointer-events:auto;visibility:visible;z-index:1;transition:opacity .28s ease,visibility 0s linear 0s;}
+  .screen-inner{max-width:420px;width:100%;margin:0 auto;padding:18px 16px 40px;display:flex;flex-direction:column;}
 
   .theme-toggle, .sound-toggle{
     position:fixed;top:14px;z-index:200;width:44px;height:44px;border-radius:50%;
@@ -64,7 +67,7 @@
   .sound-toggle.muted .icon-sound-on{display:none;}
   .sound-toggle.muted .icon-sound-off{display:block;}
 
-  #homeScreen .screen-inner{justify-content:center;align-items:center;gap:8px;padding-bottom:40px;}
+  #homeScreen .screen-inner{justify-content:center;align-items:center;gap:8px;min-height:100vh;padding-bottom:40px;}
   .logo-badge{width:96px;height:96px;border-radius:22px;background:linear-gradient(145deg,#57b6d6,#3d8fac);display:flex;align-items:center;justify-content:center;box-shadow:0 18px 40px -14px rgba(74,168,200,.55);margin-bottom:10px;}
   .logo-badge svg{width:52px;height:52px;color:#fff;}
   .brand{font-size:44px;font-weight:800;letter-spacing:-.02em;margin:0;line-height:1;}
@@ -175,7 +178,7 @@
   .progress-bar{height:8px;border-radius:4px;background:var(--pill);overflow:hidden;}
   .progress-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#57b6d6,#4aa8c8);transition:width .4s ease;}
 
-  .levels-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .levels-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding-bottom:20px;}
   .level{aspect-ratio:1/1;border-radius:16px;background:var(--panel);border:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;position:relative;transition:transform .12s ease,border-color .15s ease,background .25s ease;padding:6px;}
   .level:active{transform:scale(.95);}
   .level.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 10px 26px -14px rgba(74,168,200,.8);}
@@ -195,18 +198,39 @@
   .stat-value{font-size:32px;font-weight:800;line-height:1;margin-bottom:6px;}
   .stat-label{font-size:12.5px;color:var(--ink-1);font-weight:600;}
 
-  .achievements-card{background:var(--panel);border-radius:16px;padding:18px 16px;box-shadow:0 12px 30px -18px var(--shadow);transition:background .25s ease;overflow:hidden;}
+  .stats-wide{background:var(--panel);border-radius:16px;padding:18px 16px;box-shadow:0 12px 30px -18px var(--shadow);margin-bottom:16px;}
+  .stats-wide h3{margin:0 0 14px;font-size:16px;font-weight:700;}
+  .stats-line{display:flex;align-items:center;justify-content:space-between;padding:7px 0;font-size:13.5px;color:var(--ink-1);}
+  .stats-line .v{font-weight:700;color:var(--ink-0);font-variant-numeric:tabular-nums;}
+
+  .perf-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .perf-row:last-child{margin-bottom:0;}
+  .perf-name{width:62px;font-size:12.5px;font-weight:700;color:var(--ink-0);}
+  .perf-bar{flex:1;height:10px;border-radius:5px;background:var(--pill);overflow:hidden;}
+  .perf-bar .fill{height:100%;border-radius:5px;background:linear-gradient(90deg,#57b6d6,#4aa8c8);transition:width .4s ease;}
+  .perf-val{width:44px;text-align:right;font-size:12.5px;font-weight:700;color:var(--ink-0);font-variant-numeric:tabular-nums;}
+
+  .achievements-card{background:var(--panel);border-radius:16px;padding:18px 16px;box-shadow:0 12px 30px -18px var(--shadow);transition:background .25s ease;overflow:hidden;margin-bottom:20px;}
   .achievements-card h3{margin:0 0 14px;font-size:16px;font-weight:700;}
 
   .ach-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(58px, 1fr));gap:14px 6px;width:100%;}
   .ach{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;cursor:pointer;border-radius:12px;padding:4px 2px;transition:background .15s ease;min-width:0;width:100%;}
-  .ach:active{background:var(--pill);}
-  .ach.selected{background:var(--pill);box-shadow:0 0 0 1px var(--accent);}
+  .ach:active{background:transparent;}
+  .ach.unlocked:active{background:var(--pill);}
+  .ach.selected{background:transparent;}
+  .ach.unlocked.selected{background:var(--pill);box-shadow:0 0 0 1px var(--accent);}
   .ach-icon{width:48px;height:48px;flex:0 0 48px;border-radius:50%;background:var(--ach-locked-bg);display:flex;align-items:center;justify-content:center;border:2px solid var(--ach-locked-border);position:relative;overflow:hidden;transition:background .25s ease,border-color .25s ease;}
   .ach-icon svg{width:26px;height:26px;color:var(--ink-2);display:block;max-width:100%;max-height:100%;}
   .ach.unlocked .ach-icon{background:linear-gradient(145deg,#7ec9e0,#4aa8c8);border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,178,58,.4);}
   .ach.unlocked .ach-icon svg{color:#fff;}
+  .ach.unlocked.cat-speed .ach-icon{background:linear-gradient(145deg,#f5d76e,#e8b23a);border-color:#fff3c4;}
+  .ach.unlocked.cat-progress .ach-icon{background:linear-gradient(145deg,#7ec9e0,#4aa8c8);border-color:#c7f0ff;}
+  .ach.unlocked.cat-streak .ach-icon{background:linear-gradient(145deg,#b48ce8,#8a5fd6);border-color:#e0ccff;}
+  .ach.unlocked.cat-size .ach-icon{background:linear-gradient(145deg,#7ee0a8,#3fae6b);border-color:#c9ffdd;}
+  .ach.unlocked.cat-perfect .ach-icon{background:linear-gradient(145deg,#f0a0d0,#d65fa0);border-color:#ffd6ec;}
+  .ach.unlocked.cat-misc .ach-icon{background:linear-gradient(145deg,#9aa4b0,#5f6a78);border-color:#dde3ea;}
   .ach-label{font-size:9.5px;font-weight:600;color:var(--ink-1);line-height:1.15;word-break:break-word;overflow-wrap:anywhere;max-width:100%;}
+  .ach.unlocked .ach-label{color:var(--ink-0);}
 
   @media (max-width:380px){
     .achievements-card{padding:16px 12px;}
@@ -222,24 +246,28 @@
     .ach-label{font-size:8px;}
   }
 
-  .game-inner{max-width:420px;width:100%;margin:0 auto;padding:18px 16px 22px;display:flex;flex-direction:column;min-height:100vh;}
-  .game-top{display:flex;align-items:center;justify-content:space-between;padding:4px 2px 14px;position:relative;}
-  .game-back{background:none;border:none;color:var(--ink-0);font-size:18px;font-weight:600;display:flex;align-items:center;gap:4px;padding:4px 2px;cursor:pointer;}
+  .game-inner{max-width:420px;width:100%;margin:0 auto;padding:14px 14px 18px;display:flex;flex-direction:column;min-height:100vh;}
+  .game-top{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 10px;position:relative;}
+  .game-back{background:none;border:none;color:var(--ink-0);font-size:17px;font-weight:600;display:flex;align-items:center;gap:4px;padding:4px 2px;cursor:pointer;}
   .game-back svg{width:20px;height:20px;}
   .game-level{position:absolute;left:50%;transform:translateX(-50%);text-align:center;}
-  .game-level .n{font-size:17px;font-weight:700;}
-  .game-level .s{font-size:12px;color:var(--ink-1);font-weight:600;}
-  .game-meta{display:flex;flex-direction:column;align-items:center;gap:10px;padding-bottom:16px;}
-  .timer{display:flex;align-items:center;gap:8px;font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .game-level .n{font-size:16px;font-weight:700;}
+  .game-level .s{font-size:11.5px;color:var(--ink-1);font-weight:600;}
+  .game-meta{display:flex;flex-direction:column;align-items:center;gap:8px;padding-bottom:12px;}
+  .timer{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;}
   .timer button{background:none;border:none;padding:4px;color:var(--ink-0);display:flex;align-items:center;cursor:pointer;}
   .timer svg{width:15px;height:15px;}
 
-  .board-shell{flex:1;display:flex;flex-direction:column;justify-content:center;gap:20px;}
-  .board-wrap{position:relative;width:100%;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:var(--panel);box-shadow:0 20px 45px -22px var(--shadow);transition:background .25s ease;}
+  .board-shell{flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;}
+  .board-wrap{position:relative;width:100%;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:var(--panel);box-shadow:0 20px 45px -22px var(--shadow);transition:background .25s ease,box-shadow .15s ease;}
+  .board-wrap.invalid{animation:shake-board .3s ease;}
+  @keyframes shake-board{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
   .board-inner{position:absolute;inset:0;}
   .grid-bg{position:absolute;inset:0;display:grid;pointer-events:none;}
   .grid-bg .cell{border-right:1px solid var(--grid-line);border-bottom:1px solid var(--grid-line);}
   .grid-bg .cell.obstacle{background:var(--obstacle);border-right-color:var(--obstacle);border-bottom-color:var(--obstacle);}
+  .grid-bg .cell.flash{animation:cell-flash .4s ease;}
+  @keyframes cell-flash{0%{background:rgba(224,90,90,.5);}100%{background:transparent;}}
   .portal-cell{
     position:absolute;pointer-events:none;z-index:4;
     display:flex;align-items:center;justify-content:center;border-radius:50%;
@@ -265,13 +293,15 @@
   .win-banner .win-stars svg.filled{color:var(--gold);filter:drop-shadow(0 0 10px rgba(232,178,58,.8));}
   .win-banner .win-stars svg.pop{animation:star-pop .5s cubic-bezier(.2,1.5,.4,1) forwards;}
   @keyframes star-pop{0%{transform:scale(0) rotate(-45deg);}70%{transform:scale(1.25) rotate(8deg);}100%{transform:scale(1) rotate(0);}}
+  .win-banner .win-time{font-size:15px;font-weight:700;color:var(--accent);opacity:0;transform:translateY(6px);font-variant-numeric:tabular-nums;}
   .win-banner .sub{font-size:14px;color:var(--ink-1);opacity:0;transform:translateY(6px);}
   .win-banner .actions{display:flex;gap:10px;margin-top:8px;opacity:0;transform:translateY(6px);}
   .win-banner.show .badge{animation:rise-in .4s ease .05s forwards;}
   .win-banner.show h2{animation:rise-in-pop .45s cubic-bezier(.2,1.5,.4,1) .12s forwards;}
   .win-banner.show .win-stars{animation:rise-in .4s ease .22s forwards;}
-  .win-banner.show .sub{animation:rise-in .4s ease .34s forwards;}
-  .win-banner.show .actions{animation:rise-in .4s ease .42s forwards;}
+  .win-banner.show .win-time{animation:rise-in .4s ease .32s forwards;}
+  .win-banner.show .sub{animation:rise-in .4s ease .38s forwards;}
+  .win-banner.show .actions{animation:rise-in .4s ease .46s forwards;}
   @keyframes rise-in{to{opacity:1;transform:translateY(0);}}
   @keyframes rise-in-pop{to{opacity:1;transform:translateY(0) scale(1);}}
   .win-banner button{font-weight:600;font-size:14.5px;color:#15171a;background:#fff;border:none;padding:11px 20px;border-radius:12px;cursor:pointer;}
@@ -288,18 +318,19 @@
   .pause-overlay button{background:#fff;color:#15171a;border:none;padding:12px 28px;border-radius:12px;font-weight:600;font-size:15px;cursor:pointer;}
 
   .toolbar{display:flex;justify-content:center;gap:10px;}
-  .tool-btn{flex:1;max-width:120px;background:var(--pill);border:none;border-radius:999px;height:52px;display:flex;align-items:center;justify-content:center;color:var(--ink-0);cursor:pointer;transition:background .25s ease,color .25s ease;}
+  .tool-btn{flex:1;max-width:160px;background:var(--pill);border:none;border-radius:999px;height:52px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink-0);cursor:pointer;transition:background .25s ease,color .25s ease;font-size:14px;font-weight:700;}
   .tool-btn svg{width:20px;height:20px;}
   .tool-btn:active{filter:brightness(1.15);}
 
   @media (prefers-reduced-motion:reduce){
     .endpoint{animation:none;opacity:1;transform:none;}
     .endpoint.connect-pulse::before{animation:none;}
-    .win-banner .badge,.win-banner h2,.win-banner .win-stars,.win-banner .sub,.win-banner .actions{animation:none;opacity:1;transform:none;}
+    .win-banner .badge,.win-banner h2,.win-banner .win-stars,.win-banner .win-time,.win-banner .sub,.win-banner .actions{animation:none;opacity:1;transform:none;}
     .confetti-piece{display:none;}
     .screen{transition:none;}
     .ach-toast{transition:opacity .2s ease;transform:translateX(-50%) translateY(0);}
     .portal-cell::after{animation:none;}
+    .board-wrap.invalid{animation:none;}
   }
 </style>
 </head>
@@ -455,20 +486,57 @@
 
     <div class="stats-grid">
       <div class="stat-card">
+        <div class="stat-value" id="statPlayed">0</div>
+        <div class="stat-label">Total played</div>
+      </div>
+      <div class="stat-card">
         <div class="stat-value" id="statSolved">0</div>
-        <div class="stat-label">Puzzles solved</div>
+        <div class="stat-label">Solved</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="statBestTime">—</div>
-        <div class="stat-label">Best 6×6 time</div>
+        <div class="stat-value" id="statRate">—</div>
+        <div class="stat-label">Success rate</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="statLevels">0</div>
-        <div class="stat-label">Journey levels</div>
+        <div class="stat-value" id="statAvg">—</div>
+        <div class="stat-label">Average time</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-value" id="statStreak">0</div>
-        <div class="stat-label">Day streak</div>
+    </div>
+
+    <div class="stats-wide">
+      <h3>Best time</h3>
+      <div class="stats-line"><span>5 × 5</span><span class="v" id="best5">—</span></div>
+      <div class="stats-line"><span>6 × 6</span><span class="v" id="best6">—</span></div>
+      <div class="stats-line"><span>7 × 7</span><span class="v" id="best7">—</span></div>
+      <div class="stats-line"><span>8 × 8</span><span class="v" id="best8">—</span></div>
+      <div class="stats-line"><span>9 × 9</span><span class="v" id="best9">—</span></div>
+      <div class="stats-line"><span>10 × 10</span><span class="v" id="best10">—</span></div>
+    </div>
+
+    <div class="stats-wide">
+      <h3>Streaks</h3>
+      <div class="stats-line"><span>Current day streak</span><span class="v" id="statStreak">0</span></div>
+      <div class="stats-line"><span>Best day streak</span><span class="v" id="statBestStreak">0</span></div>
+      <div class="stats-line"><span>Journey levels</span><span class="v" id="statLevels">0</span></div>
+      <div class="stats-line"><span>3-star levels</span><span class="v" id="statPerfect">0</span></div>
+    </div>
+
+    <div class="stats-wide">
+      <h3>Performance</h3>
+      <div class="perf-row">
+        <span class="perf-name">Easy</span>
+        <div class="perf-bar"><div class="fill" id="perfEasy" style="width:0%"></div></div>
+        <span class="perf-val" id="perfEasyVal">0%</span>
+      </div>
+      <div class="perf-row">
+        <span class="perf-name">Medium</span>
+        <div class="perf-bar"><div class="fill" id="perfMedium" style="width:0%"></div></div>
+        <span class="perf-val" id="perfMediumVal">0%</span>
+      </div>
+      <div class="perf-row">
+        <span class="perf-name">Hard</span>
+        <div class="perf-bar"><div class="fill" id="perfHard" style="width:0%"></div></div>
+        <span class="perf-val" id="perfHardVal">0%</span>
       </div>
     </div>
 
@@ -542,6 +610,7 @@
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.9 7.5.6-5.7 5 1.7 7.4L12 18l-6.5 3.9L7.2 14.5 1.5 9.5 9 8.9z"/></svg>
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6.9 7.5.6-5.7 5 1.7 7.4L12 18l-6.5 3.9L7.2 14.5 1.5 9.5 9 8.9z"/></svg>
           </div>
+          <div class="win-time" id="winTime">0:00</div>
           <div class="sub" id="winSub">Tap next to continue</div>
           <div class="actions">
             <button class="ghost" id="winResetBtn">Replay</button>
@@ -552,11 +621,12 @@
       </div>
 
       <div class="toolbar">
-        <button class="tool-btn" id="eraserBtn" aria-label="Eraser">
+        <button class="tool-btn" id="eraserBtn" aria-label="Reset">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 20H8.5L3 14.5a1.5 1.5 0 0 1 0-2.1L13.4 2.5a1.5 1.5 0 0 1 2.1 0l6 6a1.5 1.5 0 0 1 0 2.1L11 21"></path>
             <path d="m6 11 7 7"></path>
           </svg>
+          Reset
         </button>
       </div>
     </div>
@@ -606,7 +676,7 @@
   function sfxWin(){
     const ctx = getCtx(); if(!ctx) return; const now = ctx.currentTime;
     const notes = [523.25, 659.25, 783.99, 1046.5];
-    notes.forEach((n, i) => playTone(n, 0.22, 'sine', 0.12, now + i * 0.1));
+    notes.forEach(function(n, i){ playTone(n, 0.22, 'sine', 0.12, now + i * 0.1); });
     playTone(1318.5, 0.5, 'sine', 0.1, now + 0.4);
   }
   function sfxStar(i){
@@ -627,7 +697,7 @@
   const soundToggle = document.getElementById('soundToggle');
   function applySoundUI(){ soundToggle.classList.toggle('muted', !soundEnabled); }
   applySoundUI();
-  soundToggle.addEventListener('click', ()=>{
+  soundToggle.addEventListener('click', function(){
     soundEnabled = !soundEnabled;
     try{ localStorage.setItem(SOUND_KEY, soundEnabled ? 'on' : 'off'); }catch(e){}
     applySoundUI();
@@ -641,7 +711,7 @@
     else { document.documentElement.removeAttribute('data-theme'); }
   }
   applyTheme(loadTheme());
-  document.getElementById('themeToggle').addEventListener('click', ()=>{
+  document.getElementById('themeToggle').addEventListener('click', function(){
     const current = loadTheme();
     const next = current === 'light' ? 'dark' : 'light';
     try{ localStorage.setItem(THEME_KEY, next); }catch(e){}
@@ -663,15 +733,15 @@
     let difficulty = 'easy';
     if(withinSize >= 10) difficulty = 'medium';
     if(withinSize >= 20) difficulty = 'hard';
-    return { size, withinSize, difficulty, sizeIdx };
+    return { size: size, withinSize: withinSize, difficulty: difficulty, sizeIdx: sizeIdx };
   }
 
   function hslToHex(h,s,l){
     s/=100;l/=100;
-    const k=n=>(n+h/30)%12;
+    const k=function(n){ return (n+h/30)%12; };
     const a=s*Math.min(l,1-l);
-    const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));
-    const toHex=x=>Math.round(255*x).toString(16).padStart(2,'0');
+    const f=function(n){ return l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1))); };
+    const toHex=function(x){ return Math.round(255*x).toString(16).padStart(2,'0'); };
     return '#'+toHex(f(0))+toHex(f(8))+toHex(f(4));
   }
   function generatePalette(k,rnd){
@@ -698,8 +768,8 @@
   }
   function randomHamiltonianPath(rows,cols,rnd,blocked){
     const N=rows*cols;
-    const isBlocked = (r,c)=>blocked && blocked.has(r*cols+c);
-    const key=(r,c)=>r*cols+c;
+    const isBlocked = function(r,c){ return blocked && blocked.has(r*cols+c); };
+    const key=function(r,c){ return r*cols+c; };
     let steps=0;const stepBudget=45000;
     for(let attempt=0;attempt<8;attempt++){
       const visited=new Uint8Array(N);const path=[];
@@ -709,7 +779,8 @@
       visited[key(sr,sc)]=1;path.push([sr,sc]);
       function neighbors(r,c){
         const out=[];const deltas=[[1,0],[-1,0],[0,1],[0,-1]];
-        for(const d of deltas){
+        for(let di=0;di<deltas.length;di++){
+          const d=deltas[di];
           const nr=r+d[0],nc=c+d[1];
           if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&!visited[key(nr,nc)]&&!isBlocked(nr,nc))out.push([nr,nc]);
         }
@@ -721,10 +792,10 @@
         if(path.length===N-blocked.size)return true;
         let nbrs=neighbors(r,c);
         if(!nbrs.length)return false;
-        nbrs=nbrs.map(nb=>({nb:nb,deg:neighbors(nb[0],nb[1]).length,rnd:rnd()}));
-        nbrs.sort((a,b)=>(a.deg-b.deg)||(a.rnd-b.rnd));
-        for(const item of nbrs){
-          const nb=item.nb;
+        nbrs=nbrs.map(function(nb){ return {nb:nb,deg:neighbors(nb[0],nb[1]).length,rnd:rnd()}; });
+        nbrs.sort(function(a,b){ return (a.deg-b.deg)||(a.rnd-b.rnd); });
+        for(let i=0;i<nbrs.length;i++){
+          const nb=nbrs[i].nb;
           visited[key(nb[0],nb[1])]=1;path.push(nb);
           if(dfs(nb[0],nb[1]))return true;
           path.pop();visited[key(nb[0],nb[1])]=0;
@@ -758,7 +829,7 @@
       chunks.push(path.slice(idx,idx+len));
       idx+=len;
     }
-    const endpoints=chunks.map(ch=>[ch[0],ch[ch.length-1]]);
+    const endpoints=chunks.map(function(ch){ return [ch[0],ch[ch.length-1]]; });
     shuffleArr(endpoints,rnd);
     return endpoints;
   }
@@ -845,17 +916,21 @@
     }
 
     return {
-      rows:size, cols:size, endpoints, colors,
+      rows:size, cols:size, endpoints:endpoints, colors:colors,
       blocked: Array.from(blocked),
-      portals, variations
+      portals: portals, variations: variations
     };
   }
 
-  const STORAGE_KEY='lumenflow_progress_v2';
+  const STORAGE_KEY='lumenflow_progress_v3';
   function defaultProgress(){
     return {
-      unlocked:1, stars:{}, solved:0, best6x6:null,
-      streak:0, lastPlayedDay:null, achievements:{}, tutorialDone:false
+      unlocked:1, stars:{}, solved:0, played:0, best6x6:null,
+      bestTimes:{}, totalTime:0, solvedTime:0,
+      streak:0, bestStreak:0, lastPlayedDay:null,
+      achievements:{}, tutorialDone:false,
+      diffPlayed:{easy:0,medium:0,hard:0},
+      diffSolved:{easy:0,medium:0,hard:0}
     };
   }
   function loadProgress(){
@@ -879,6 +954,7 @@
     const yStr=y.getFullYear()+'-'+(y.getMonth()+1)+'-'+y.getDate();
     if(progress.lastPlayedDay===yStr){ progress.streak=(progress.streak||0)+1; }
     else { progress.streak=1; }
+    if((progress.streak||0) > (progress.bestStreak||0)) progress.bestStreak = progress.streak;
     progress.lastPlayedDay=today;
     saveProgress(progress);
   }
@@ -888,6 +964,22 @@
     let c=0;
     for(const k in progress.stars){ if(progress.stars[k]>=3) c++; }
     return c;
+  }
+
+  const ACH_CATS = {
+    speed:{ids:['lightning','speed_demon','rapid_flow','speed_runner'],cls:'cat-speed'},
+    progress:{ids:['first_flow','in_the_flow','pipe_master','plumber','centurion','eternal_flow','two_hundred_club','five_hundred_club','thousand_club','rising_star','journeyman','halfway_hero','almost_there','century_club','one_fifty','nearly_perfect','two_hundred','completionist','journey_100','journey_150','journey_200','star_collector','star_hoarder','star_millionaire'],cls:'cat-progress'},
+    streak:{ids:['triple_flow','streak_ten','streak_thirty','week_of_flow','month_of_flow','year_of_flow','loyal_fan','flow_state'],cls:'cat-streak'},
+    size:{ids:['tiny_dancer','six_by_six','seven_heaven','eight_is_great','big_board','giant_slayer','equal_opportunity'],cls:'cat-size'},
+    perfect:{ids:['perfect_run','perfectionist','flawless_fifty','flawless','purist','untouchable','no_undo','one_take','eraser_hater','the_legend','perfectionist_2'],cls:'cat-perfect'},
+    misc:{ids:['snail_pace','marathon_flow','early_bird','night_owl','touch_grass','pipe_dream','one_more_try','color_blind','backtrack_king','the_architect','impossible','zen_master','oops','double_oops','triple_oops','the_thinker','accidental_win','button_masher','stuck_in_a_rut','deja_vu','why_though','the_collector','flowy_addict','just_one_more'],cls:'cat-misc'}
+  };
+
+  function achCategory(id){
+    for(const key in ACH_CATS){
+      if(ACH_CATS[key].ids.indexOf(id) !== -1) return ACH_CATS[key].cls;
+    }
+    return 'cat-progress';
   }
 
   const ACHIEVEMENTS=[
@@ -931,12 +1023,12 @@
     {id:'week_of_flow',    label:'Week of Flow',     icon:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/><path d="M9 14l2 2 4-4"/>', desc:'Play 7 days in a row.'},
     {id:'month_of_flow',   label:'Month of Flow',    icon:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/><path d="M9 14l2 2 4-4"/><path d="M12 18v2"/>', desc:'Play 30 days in a row.'},
     {id:'year_of_flow',    label:'Year of Flow',     icon:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8 3v4M16 3v4"/><path d="M9 14l2 2 4-4"/><path d="M12 18v2M12 2v2"/>', desc:'Play 365 days in a row.'},
-    {id:'flawless',        label:'Flawless',         icon:'<path d="M12 3l2.5 6 6.5.5-5 4.5 1.5 6.5L12 17l-5.5 3.5L8 14 3 9.5 9.5 9z"/><path d="M9 13l2 2 4-4"/>', desc:'Complete a puzzle without using the eraser.'},
-    {id:'purist',          label:'Purist',           icon:'<circle cx="12" cy="12" r="9"/><path d="m5 5 14 14"/>', desc:'Solve 10 puzzles in a row without erasing.'},
+    {id:'flawless',        label:'Flawless',         icon:'<path d="M12 3l2.5 6 6.5.5-5 4.5 1.5 6.5L12 17l-5.5 3.5L8 14 3 9.5 9.5 9z"/><path d="M9 13l2 2 4-4"/>', desc:'Complete a puzzle without using reset.'},
+    {id:'purist',          label:'Purist',           icon:'<circle cx="12" cy="12" r="9"/><path d="m5 5 14 14"/>', desc:'Solve 10 puzzles in a row without resetting.'},
     {id:'untouchable',     label:'Untouchable',      icon:'<path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6z"/><path d="m9 12 2 2 4-4"/>', desc:'Complete a level without backtracking.'},
-    {id:'no_undo',         label:'No Undo',          icon:'<path d="M4 7v6h6"/><path d="M4 13a8 8 0 1 0 3-6.5L4 8"/><path d="m9 9 6 6"/>', desc:'Complete a level without erasing or backtracking.'},
-    {id:'eraser_hater',    label:'Eraser Hater',     icon:'<circle cx="12" cy="12" r="9"/><path d="m5 5 14 14"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/>', desc:'Solve 50 puzzles without ever using the eraser.'},
-    {id:'one_take',        label:'One Take',         icon:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/>', desc:'Solve 10 puzzles on the first try without erasing.'},
+    {id:'no_undo',         label:'No Undo',          icon:'<path d="M4 7v6h6"/><path d="M4 13a8 8 0 1 0 3-6.5L4 8"/><path d="m9 9 6 6"/>', desc:'Complete a level without resetting or backtracking.'},
+    {id:'eraser_hater',    label:'Reset Hater',      icon:'<circle cx="12" cy="12" r="9"/><path d="m5 5 14 14"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/>', desc:'Solve 50 puzzles without ever using reset.'},
+    {id:'one_take',        label:'One Take',         icon:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/>', desc:'Solve 10 puzzles on the first try without resetting.'},
     {id:'giant_slayer',    label:'Giant Slayer',     icon:'<path d="M14 4l6 6-9 9H5v-6z"/><path d="M3 21h8"/><path d="M13 7l4 4"/>', desc:'Solve a 10×10 puzzle.'},
     {id:'big_board',       label:'Big Board',        icon:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 12h16M12 4v16"/>', desc:'Solve a 9×9 puzzle.'},
     {id:'tiny_dancer',     label:'Tiny Dancer',      icon:'<rect x="7" y="7" width="10" height="10" rx="2"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>', desc:'Solve a 5×5 puzzle.'},
@@ -944,7 +1036,7 @@
     {id:'seven_heaven',    label:'Seven Heaven',     icon:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M4 14h16M9 4v16M14 4v16"/>', desc:'Solve a 7×7 puzzle.'},
     {id:'eight_is_great',  label:'Eight is Great',   icon:'<circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>', desc:'Solve an 8×8 puzzle.'},
     {id:'accidental_win',  label:'Accidental Win',   icon:'<circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/>', desc:'Solve a puzzle while trying to lose.'},
-    {id:'button_masher',   label:'Button Masher',    icon:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3"/>', desc:'Press the eraser button 100 times in one puzzle.'},
+    {id:'button_masher',   label:'Button Masher',    icon:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/><path d="M12 3v3M21 12h-3M12 21v-3M3 12h3"/>', desc:'Press reset 100 times in one puzzle.'},
     {id:'stuck_in_a_rut',  label:'Stuck in a Rut',   icon:'<path d="M4 12h4a4 4 0 0 1 4 4v0a4 4 0 0 0 4 4h4"/><path d="M4 12h4a4 4 0 0 0 4-4v0a4 4 0 0 1 4-4h4"/>', desc:'Restart the same puzzle 10 times.'},
     {id:'deja_vu',         label:'Deja Vu',          icon:'<circle cx="12" cy="12" r="9"/><path d="m5 5 14 14"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/>', desc:'Solve the exact same puzzle twice in a row.'},
     {id:'why_though',      label:'Why Though',       icon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/><path d="M12 3v2M21 12h-2M12 21v-2M3 12h2"/>', desc:'Play 100 puzzles in one day.'},
@@ -1069,10 +1161,26 @@
   const totalStarsEl=document.getElementById('totalStars');
   const progressFill=document.getElementById('progressFill');
   const levelsGrid=document.getElementById('levelsGrid');
+  const statPlayed=document.getElementById('statPlayed');
   const statSolved=document.getElementById('statSolved');
-  const statBestTime=document.getElementById('statBestTime');
-  const statLevels=document.getElementById('statLevels');
+  const statRate=document.getElementById('statRate');
+  const statAvg=document.getElementById('statAvg');
   const statStreak=document.getElementById('statStreak');
+  const statBestStreak=document.getElementById('statBestStreak');
+  const statLevels=document.getElementById('statLevels');
+  const statPerfect=document.getElementById('statPerfect');
+  const best5=document.getElementById('best5');
+  const best6=document.getElementById('best6');
+  const best7=document.getElementById('best7');
+  const best8=document.getElementById('best8');
+  const best9=document.getElementById('best9');
+  const best10=document.getElementById('best10');
+  const perfEasy=document.getElementById('perfEasy');
+  const perfMedium=document.getElementById('perfMedium');
+  const perfHard=document.getElementById('perfHard');
+  const perfEasyVal=document.getElementById('perfEasyVal');
+  const perfMediumVal=document.getElementById('perfMediumVal');
+  const perfHardVal=document.getElementById('perfHardVal');
   const achGrid=document.getElementById('achGrid');
   const gameLevelNum=document.getElementById('gameLevelNum');
   const gameLevelSize=document.getElementById('gameLevelSize');
@@ -1086,6 +1194,7 @@
   const winBanner=document.getElementById('winBanner');
   const winHeading=document.getElementById('winHeading');
   const winSub=document.getElementById('winSub');
+  const winTime=document.getElementById('winTime');
   const winStars=document.getElementById('winStars');
   const confettiLayer=document.getElementById('confettiLayer');
   const timeLabel=document.getElementById('timeLabel');
@@ -1101,8 +1210,12 @@
   const tutHand=document.getElementById('tutHand');
 
   function showScreen(el){
-    [homeScreen,playScreen,journeyScreen,statsScreen,gameScreen].forEach(function(s){ s.classList.remove('active'); });
+    [homeScreen,playScreen,journeyScreen,statsScreen,gameScreen].forEach(function(s){
+      s.classList.remove('active');
+      s.style.pointerEvents = 'none';
+    });
     el.classList.add('active');
+    el.style.pointerEvents = 'auto';
     window.scrollTo(0,0);
   }
 
@@ -1150,6 +1263,8 @@
   let elapsedBeforePause=0;
   let isCustomMode=false;
   let usingPortals=false;
+  let resetCount=0;
+  let puzzleKey='';
 
   let tutStep=0;
   const TUT_STEPS = [
@@ -1227,6 +1342,16 @@
       el.classList.remove('connect-pulse');void el.offsetWidth;el.classList.add('connect-pulse');
     });
   }
+  function flashInvalid(cell){
+    if(reduceMotion) return;
+    const idx = cell[0]*COLS + cell[1];
+    const cells = gridBg.querySelectorAll('.cell');
+    if(cells[idx]){
+      cells[idx].classList.remove('flash');void cells[idx].offsetWidth;cells[idx].classList.add('flash');
+    }
+    wrap.classList.remove('invalid');void wrap.offsetWidth;wrap.classList.add('invalid');
+    if(navigator.vibrate) navigator.vibrate(20);
+  }
   function spawnConfetti(){
     if(reduceMotion)return;
     confettiLayer.innerHTML='';
@@ -1274,6 +1399,7 @@
       stopTimer();
       winHeading.textContent='Board cleared';
       winSub.textContent = isCustomMode ? 'Tap "Change settings" to play again' : 'Tap next to continue';
+      winTime.textContent = formatTime(finalMs);
       spawnConfetti();
       sfxWin();
 
@@ -1289,7 +1415,16 @@
         }
       });
 
-      progress.solved=(progress.solved||0)+1;
+      progress.played = (progress.played||0) + 1;
+      progress.solved = (progress.solved||0) + 1;
+      progress.totalTime = (progress.totalTime||0) + finalMs;
+      progress.solvedTime = (progress.solvedTime||0) + finalMs;
+      if(!progress.diffSolved) progress.diffSolved = {easy:0,medium:0,hard:0};
+      progress.diffSolved[DIFFICULTY] = (progress.diffSolved[DIFFICULTY]||0) + 1;
+      if(!progress.bestTimes) progress.bestTimes = {};
+      if(!progress.bestTimes[SIZE] || finalMs < progress.bestTimes[SIZE]){
+        progress.bestTimes[SIZE] = finalMs;
+      }
       if(SIZE===6){
         if(progress.best6x6===null || finalMs<progress.best6x6){
           progress.best6x6=finalMs;
@@ -1408,7 +1543,7 @@
       if(p.length<2)return;
       ctx.beginPath();
       ctx.lineJoin='round';ctx.lineCap='round';
-      ctx.lineWidth=cellSize*0.5;
+      ctx.lineWidth=cellSize*0.3;
       ctx.strokeStyle=COLORS[color%COLORS.length];
       const c0=cellCenter(p[0]);
       ctx.moveTo(c0[0],c0[1]);
@@ -1446,9 +1581,17 @@
       return true;
     }
     const otherEndpointColor=endpointColorAt(cell);
-    if(otherEndpointColor!==null&&otherEndpointColor!==color)return false;
+    if(otherEndpointColor!==null&&otherEndpointColor!==color){
+      flashInvalid(cell);
+      sfxError();
+      return false;
+    }
     const occ=ownerAt(cell);
-    if(occ!==null&&occ!==color)return false;
+    if(occ!==null&&occ!==color){
+      flashInvalid(cell);
+      sfxError();
+      return false;
+    }
     p.push(cell);
     render();
     sfxConnect();
@@ -1505,7 +1648,7 @@
     if(activeColor!==null) stepPath(activeColor,cell);
   }
 
-  const SNAP_RADIUS = 0.55;
+  const SNAP_RADIUS = 0.62;
 
   canvas.addEventListener('pointerdown',function(e){
     if(isPaused)return;
@@ -1536,6 +1679,13 @@
     const m=Math.floor(total/60);
     const s=total%60;
     return m+':'+String(s).padStart(2,'0');
+  }
+  function formatPrecise(ms){
+    const total=ms/1000;
+    if(total < 60) return total.toFixed(2)+'s';
+    const m=Math.floor(total/60);
+    const s=(total%60).toFixed(1);
+    return m+':'+String(s).padStart(4,'0');
   }
   function startTimer(){
     if(startedAt!==null||pausedAt!==null||isPaused)return;
@@ -1592,6 +1742,7 @@
     PORTALS=puzzle.portals||[];
     clearPaths();
     solvedFlag=false;
+    resetCount=0;
     winBanner.classList.remove('show');confettiLayer.innerHTML='';
     pauseOverlay.classList.remove('show');isPaused=false;
     buildGridBg();buildEndpoints();buildPortals();
@@ -1603,6 +1754,7 @@
     const cfg = levelConfig(currentLevel);
     SIZE = cfg.size;
     DIFFICULTY = cfg.difficulty;
+    puzzleKey = 'journey-'+currentLevel;
     gameLevelNum.textContent='Level '+currentLevel;
     gameLevelSize.textContent=SIZE+' × '+SIZE+' · '+DIFFICULTY;
     resetTimer();
@@ -1632,6 +1784,7 @@
     currentLevel=0;
     SIZE=size;
     DIFFICULTY=diff;
+    puzzleKey = 'custom-'+Date.now();
     gameLevelNum.textContent='Custom';
     gameLevelSize.textContent=SIZE+' × '+SIZE+' · '+diff;
     resetTimer();
@@ -1646,6 +1799,13 @@
     loadLevel(currentLevel+1);
   }
   function replayLevel(){
+    if(!solvedFlag){
+      resetCount++;
+      progress.played = (progress.played||0) + 1;
+      if(!progress.diffPlayed) progress.diffPlayed = {easy:0,medium:0,hard:0};
+      progress.diffPlayed[DIFFICULTY] = (progress.diffPlayed[DIFFICULTY]||0) + 1;
+      saveProgress(progress);
+    }
     resetTimer();clearPaths();solvedFlag=false;
     winBanner.classList.remove('show');confettiLayer.innerHTML='';
     pauseOverlay.classList.remove('show');isPaused=false;
@@ -1717,16 +1877,42 @@
   }
 
   function renderStats(){
+    statPlayed.textContent = progress.played||0;
     statSolved.textContent = progress.solved||0;
-    statBestTime.textContent = progress.best6x6!=null ? formatTime(progress.best6x6) : '—';
-    statLevels.textContent = Math.min(progress.unlocked,TOTAL_LEVELS);
+    const rate = progress.played>0 ? Math.round((progress.solved/progress.played)*100) : 0;
+    statRate.textContent = progress.played>0 ? rate+'%' : '—';
+    const avg = progress.solved>0 ? Math.round(progress.solvedTime/progress.solved) : 0;
+    statAvg.textContent = avg>0 ? formatTime(avg) : '—';
     statStreak.textContent = progress.streak||0;
+    statBestStreak.textContent = progress.bestStreak||0;
+    statLevels.textContent = Math.min(progress.unlocked,TOTAL_LEVELS);
+    statPerfect.textContent = count3StarLevels();
+
+    const bt = progress.bestTimes||{};
+    best5.textContent = bt[5] ? formatPrecise(bt[5]) : '—';
+    best6.textContent = bt[6] ? formatPrecise(bt[6]) : (progress.best6x6 ? formatPrecise(progress.best6x6) : '—');
+    best7.textContent = bt[7] ? formatPrecise(bt[7]) : '—';
+    best8.textContent = bt[8] ? formatPrecise(bt[8]) : '—';
+    best9.textContent = bt[9] ? formatPrecise(bt[9]) : '—';
+    best10.textContent = bt[10] ? formatPrecise(bt[10]) : '—';
+
+    const dp = progress.diffPlayed||{easy:0,medium:0,hard:0};
+    const ds = progress.diffSolved||{easy:0,medium:0,hard:0};
+    const eRate = dp.easy>0 ? Math.round((ds.easy/dp.easy)*100) : 0;
+    const mRate = dp.medium>0 ? Math.round((ds.medium/dp.medium)*100) : 0;
+    const hRate = dp.hard>0 ? Math.round((ds.hard/dp.hard)*100) : 0;
+    perfEasy.style.width = eRate+'%';
+    perfMedium.style.width = mRate+'%';
+    perfHard.style.width = hRate+'%';
+    perfEasyVal.textContent = eRate+'%';
+    perfMediumVal.textContent = mRate+'%';
+    perfHardVal.textContent = hRate+'%';
 
     achGrid.innerHTML='';
     ACHIEVEMENTS.forEach(function(a){
       const unlocked = !!progress.achievements[a.id];
       const el=document.createElement('div');
-      el.className='ach'+(unlocked?' unlocked':'');
+      el.className='ach'+(unlocked?' unlocked':'')+(unlocked?' '+achCategory(a.id):'');
       el.dataset.achId = a.id;
       el.innerHTML =
         '<div class="ach-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+a.icon+'</svg></div>'+
@@ -1758,8 +1944,15 @@
     progress.stars = {};
     for(let i=1;i<=TOTAL_LEVELS;i++) progress.stars[i] = 3;
     progress.solved = Math.max(progress.solved||0, 1000);
+    progress.played = Math.max(progress.played||0, 1200);
     progress.best6x6 = 5000;
+    progress.bestTimes = {5:4200,6:5000,7:9800,8:22000,9:41000,10:72000};
     progress.streak = Math.max(progress.streak||0, 365);
+    progress.bestStreak = Math.max(progress.bestStreak||0, 365);
+    progress.totalTime = 360000000;
+    progress.solvedTime = 300000000;
+    progress.diffPlayed = {easy:400,medium:400,hard:400};
+    progress.diffSolved = {easy:380,medium:300,hard:180};
     progress.lastPlayedDay = todayStr();
     progress.tutorialDone = true;
     ACHIEVEMENTS.forEach(function(a){ progress.achievements[a.id] = true; });

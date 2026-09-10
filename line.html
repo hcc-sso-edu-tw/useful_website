@@ -44,9 +44,11 @@
   button{font-family:var(--sans);}
 
   .screen{position:fixed;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;visibility:hidden;z-index:0;transition:opacity .28s ease,visibility 0s linear .28s;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:manipulation;}
-  #homeScreen{overflow-y:hidden;overscroll-behavior:none;}
   .screen.active{opacity:1;pointer-events:auto;visibility:visible;z-index:1;transition:opacity .28s ease,visibility 0s linear 0s;}
   .screen-inner{max-width:420px;width:100%;margin:0 auto;padding:18px 16px 40px;display:flex;flex-direction:column;}
+
+  /* 首頁禁止捲動 */
+  #homeScreen{overflow-y:hidden;overscroll-behavior:none;}
 
   .theme-toggle, .sound-toggle{
     position:fixed;top:14px;z-index:200;width:44px;height:44px;border-radius:50%;
@@ -68,7 +70,6 @@
   .sound-toggle.muted .icon-sound-on{display:none;}
   .sound-toggle.muted .icon-sound-off{display:block;}
 
-  /* 完全隱藏的全破按鈕 */
   .hidden-cheat{
     position:fixed;top:14px;right:112px;z-index:201;
     width:44px;height:44px;border-radius:50%;
@@ -198,7 +199,6 @@
   .progress-bar{height:8px;border-radius:4px;background:var(--pill);overflow:hidden;}
   .progress-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#57b6d6,#4aa8c8);transition:width .4s ease;}
 
-  /* Journey worlds */
   .world-card{
     background:var(--panel);border-radius:16px;padding:16px;margin-bottom:16px;
     box-shadow:0 12px 30px -18px var(--shadow);
@@ -219,12 +219,12 @@
     line-height:1;
   }
   .world-dot svg{display:block;}
-  .world-dot.done svg{color:#fff;}
-  .world-dot.locked svg{color:var(--ink-2);}
   .world-dot:active{transform:scale(.9);}
   .world-dot.done{background:linear-gradient(145deg,#57b6d6,#3d8fac);color:#fff;}
+  .world-dot.done svg{color:#fff;}
   .world-dot.current{box-shadow:0 0 0 2px var(--accent);}
   .world-dot.locked{opacity:.45;cursor:default;}
+  .world-dot.locked svg{color:var(--ink-2);}
   .world-dot.locked:active{transform:none;}
 
   .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
@@ -281,6 +281,7 @@
   .game-level .s{font-size:11.5px;color:var(--ink-1);font-weight:600;}
   .game-meta{display:flex;flex-direction:column;align-items:center;gap:8px;padding-bottom:12px;}
   .timer{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .timer .limit{font-size:12px;color:var(--ink-1);font-weight:600;margin-left:2px;}
   .timer button{background:none;border:none;padding:4px;color:var(--ink-0);display:flex;align-items:center;cursor:pointer;}
   .timer svg{width:15px;height:15px;}
 
@@ -598,6 +599,7 @@
     <div class="game-meta">
       <div class="timer">
         <span id="timeLabel">0:00</span>
+        <span class="limit" id="timeLimitLabel"></span>
         <button id="pauseBtn" aria-label="Pause">
           <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg>
         </button>
@@ -769,12 +771,20 @@
 
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ============ 關卡配置：真正 200 關 ============
+  // ============ 關卡配置 ============
   const SIZES = [5, 6, 7, 8, 9, 10];
   const LEVELS_PER_SIZE_MAP = { 5:30, 6:30, 7:30, 8:30, 9:40, 10:40 };
   const TOTAL_LEVELS = 200;
 
-  // 每個關卡的起始 index（用於快速查找）
+  const TIME_LIMIT_MS = {
+    5: 60 * 1000,
+    6: 90 * 1000,
+    7: 120 * 1000,
+    8: 150 * 1000,
+    9: 180 * 1000,
+    10: 210 * 1000
+  };
+
   const SIZE_START = {};
   (function(){
     let acc = 1;
@@ -914,10 +924,19 @@
     };
   }
 
+  // ============ 固定 seed 產生謎題 ============
   function generatePuzzle(size,difficulty,seedExtra,levelNum){
-    const seed=(Date.now()^(size*2654435761)^(difficulty.length*97)^((seedExtra||0)*1000003))>>>0||1;
-    const rnd=mulberry32(seed);
-    const k=colorCountFor(size,difficulty);
+    // 固定 seed：同一關卡永遠一樣
+    let seed;
+    if(levelNum && levelNum > 0){
+      seed = (levelNum * 2654435761) >>> 0;
+      seed = (seed ^ (size * 40503) ^ (difficulty.length * 97)) >>> 0;
+    } else {
+      seed = ((seedExtra || Date.now()) * 2654435761) >>> 0;
+    }
+    if(seed === 0) seed = 1;
+    const rnd = mulberry32(seed);
+    const k = colorCountFor(size, difficulty);
 
     const variations = { obstacles:false, portals:false };
     if(levelNum && levelNum > 3){
@@ -1266,6 +1285,7 @@
   const winStars=document.getElementById('winStars');
   const confettiLayer=document.getElementById('confettiLayer');
   const timeLabel=document.getElementById('timeLabel');
+  const timeLimitLabel=document.getElementById('timeLimitLabel');
   const pauseBtn=document.getElementById('pauseBtn');
   const pauseOverlay=document.getElementById('pauseOverlay');
   const resumeBtn=document.getElementById('resumeBtn');
@@ -1438,7 +1458,6 @@
     document.querySelectorAll('.endpoint[data-color="'+color+'"]').forEach(function(el){
       el.classList.remove('connect-pulse');void el.offsetWidth;el.classList.add('connect-pulse');
     });
-    // 路徑白光 micro-animation
     const path = paths[color];
     if(path && path.length > 1){
       ctx.save();
@@ -1489,10 +1508,14 @@
     }
     setTimeout(function(){confettiLayer.innerHTML='';},3000);
   }
-  function computeStars(ms){
-    if(ms <= 30000) return 3;
-    if(ms <= 60000) return 2;
-    return 1;
+
+  // 新星星規則：連完=1，填滿=2，時間內=3
+  function computeStars(ms, size){
+    let stars = 1;
+    if(allCellsFilled()) stars = 2;
+    const limit = TIME_LIMIT_MS[size] || 60 * 1000;
+    if(ms <= limit) stars = 3;
+    return stars;
   }
 
   function checkWin(){
@@ -1520,7 +1543,7 @@
       spawnConfetti();
       sfxWin();
 
-      const stars = computeStars(finalMs);
+      const stars = computeStars(finalMs, SIZE);
       const starEls = winStars.querySelectorAll('svg');
       starEls.forEach(function(el,i){
         el.classList.remove('filled','pop');
@@ -1877,6 +1900,8 @@
     DIFFICULTY = cfg.difficulty;
     gameLevelNum.textContent='Level '+currentLevel;
     gameLevelSize.textContent=SIZE+' × '+SIZE+' · '+DIFFICULTY;
+    const limit = TIME_LIMIT_MS[SIZE];
+    timeLimitLabel.textContent = limit ? '/ ' + formatTime(limit) : '';
     resetTimer();
     applyPuzzle(generatePuzzle(SIZE,DIFFICULTY,currentLevel,currentLevel));
 
@@ -1906,6 +1931,8 @@
     DIFFICULTY=diff;
     gameLevelNum.textContent='Custom';
     gameLevelSize.textContent=SIZE+' × '+SIZE+' · '+diff;
+    const limit = TIME_LIMIT_MS[SIZE];
+    timeLimitLabel.textContent = limit ? '/ ' + formatTime(limit) : '';
     resetTimer();
     applyPuzzle(generatePuzzle(SIZE,DIFFICULTY,Date.now()%100000,0));
     tutOverlay.classList.remove('show');
@@ -1945,7 +1972,6 @@
     }
   });
 
-  // Undo / Redo 按鈕
   document.getElementById('undoBtn').addEventListener('click', function(){
     if(!undoStack.length) return;
     redoStack.push(snapshot());
@@ -1975,7 +2001,7 @@
     requestAnimationFrame(function(){ layout(); checkWin(); });
   });
 
-  // ============ Journey World 渲染 ============
+  // ============ Journey World ============
   function renderJourney(){
     progressCount.textContent=Math.min(progress.unlocked,TOTAL_LEVELS);
     progressTotal.textContent=TOTAL_LEVELS;
@@ -1989,10 +2015,8 @@
       const worldStart = globalIndex;
       const worldEnd = globalIndex + count - 1;
       let solvedInWorld = 0;
-      let unlockedInWorld = 0;
       for(let n = worldStart; n <= worldEnd; n++){
         if(progress.stars[n] > 0) solvedInWorld++;
-        if(n <= progress.unlocked) unlockedInWorld++;
       }
       const worldLocked = progress.unlocked < worldStart;
       const pct = Math.round((solvedInWorld / count) * 100);
@@ -2063,7 +2087,6 @@
     best9.textContent = bt[9] ? formatPrecise(bt[9]) : '—';
     best10.textContent = bt[10] ? formatPrecise(bt[10]) : '—';
 
-    // Performance：改成看關卡完成度
     function totalLevelsForDiff(diff){
       let count = 0;
       for(let n=1;n<=TOTAL_LEVELS;n++){

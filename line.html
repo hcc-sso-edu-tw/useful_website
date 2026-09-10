@@ -67,19 +67,16 @@
   .sound-toggle.muted .icon-sound-on{display:none;}
   .sound-toggle.muted .icon-sound-off{display:block;}
 
-  /* 隱藏的全破按鈕（位於聲音圖示左側） */
+  /* 完全隱藏的全破按鈕 */
   .hidden-cheat{
     position:fixed;top:14px;right:112px;z-index:201;
     width:44px;height:44px;border-radius:50%;
     background:transparent;border:none;color:transparent;
     display:flex;align-items:center;justify-content:center;cursor:pointer;
-    box-shadow:none;
-    opacity:0; /* 完全透明，但還能點 */
+    box-shadow:none;opacity:0;
   }
-  .hidden-cheat:active{transform:scale(.92);}
   .hidden-cheat svg{width:20px;height:20px;opacity:0;}
 
-  /* 刪除紀錄按鈕 */
   .danger-btn{
     background:var(--danger);color:#fff;border:none;border-radius:14px;
     padding:14px 18px;font-weight:700;font-size:15px;cursor:pointer;
@@ -200,20 +197,34 @@
   .progress-bar{height:8px;border-radius:4px;background:var(--pill);overflow:hidden;}
   .progress-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#57b6d6,#4aa8c8);transition:width .4s ease;}
 
-  .levels-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding-bottom:20px;}
-  .level{aspect-ratio:1/1;border-radius:16px;background:var(--panel);border:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;position:relative;transition:transform .12s ease,border-color .15s ease,background .25s ease;padding:6px;}
-  .level:active{transform:scale(.95);}
-  .level.current{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 10px 26px -14px rgba(74,168,200,.8);}
-  .level.locked{background:var(--locked-bg);cursor:default;}
-  .level.locked:active{transform:none;}
-  .level .num{font-size:20px;font-weight:800;line-height:1;color:var(--ink-0);}
-  .level.locked .num{color:var(--ink-2);}
-  .level .size{font-size:10.5px;font-weight:600;color:var(--ink-1);}
-  .level.locked .size{color:var(--ink-2);}
-  .level .stars{display:flex;gap:2px;margin-top:1px;}
-  .level .stars svg{width:11px;height:11px;color:var(--ach-locked-border);}
-  .level .stars svg.filled{color:var(--gold);}
-  .level .lock{width:22px;height:22px;color:var(--ink-2);}
+  /* Journey worlds */
+  .world-card{
+    background:var(--panel);border-radius:16px;padding:16px;margin-bottom:16px;
+    box-shadow:0 12px 30px -18px var(--shadow);
+  }
+  .world-card.locked{opacity:.6;}
+  .world-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .world-title{font-size:16px;font-weight:800;}
+  .world-progress{font-size:12.5px;color:var(--ink-1);font-weight:600;}
+  .world-bar{height:8px;border-radius:4px;background:var(--pill);overflow:hidden;margin-bottom:12px;}
+  .world-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#57b6d6,#4aa8c8);transition:width .4s ease;}
+  .world-dots{display:flex;flex-wrap:wrap;gap:6px;}
+  .world-dot{
+    width:24px;height:24px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;
+    background:var(--pill);color:var(--ink-1);
+    cursor:pointer;transition:transform .12s ease,background .25s ease;
+    line-height:1;
+  }
+  .world-dot svg{display:block;}
+  .world-dot.done svg{color:#fff;}
+  .world-dot.locked svg{color:var(--ink-2);}
+  .world-dot:active{transform:scale(.9);}
+  .world-dot.done{background:linear-gradient(145deg,#57b6d6,#3d8fac);color:#fff;}
+  .world-dot.current{box-shadow:0 0 0 2px var(--accent);}
+  .world-dot.locked{opacity:.45;cursor:default;}
+  .world-dot.locked:active{transform:none;}
 
   .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
   .stat-card{background:var(--panel);border-radius:16px;padding:20px 12px;text-align:center;box-shadow:0 12px 30px -18px var(--shadow);transition:background .25s ease;}
@@ -237,9 +248,7 @@
 
   .ach-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(58px, 1fr));gap:14px 6px;width:100%;}
   .ach{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;cursor:pointer;border-radius:12px;padding:4px 2px;transition:background .15s ease;min-width:0;width:100%;}
-  .ach:active{background:transparent;}
   .ach.unlocked:active{background:var(--pill);}
-  .ach.selected{background:transparent;}
   .ach.unlocked.selected{background:var(--pill);box-shadow:0 0 0 1px var(--accent);}
   .ach-icon{width:48px;height:48px;flex:0 0 48px;border-radius:50%;background:var(--ach-locked-bg);display:flex;align-items:center;justify-content:center;border:2px solid var(--ach-locked-border);position:relative;overflow:hidden;transition:background .25s ease,border-color .25s ease;}
   .ach-icon svg{width:26px;height:26px;color:var(--ink-2);display:block;max-width:100%;max-height:100%;}
@@ -260,12 +269,6 @@
     .ach-icon{width:42px;height:42px;flex:0 0 42px;border-width:1.5px;}
     .ach-icon svg{width:22px;height:22px;}
     .ach-label{font-size:8.5px;}
-  }
-  @media (max-width:320px){
-    .ach-grid{grid-template-columns:repeat(auto-fill, minmax(46px, 1fr));gap:10px 4px;}
-    .ach-icon{width:38px;height:38px;flex:0 0 38px;}
-    .ach-icon svg{width:20px;height:20px;}
-    .ach-label{font-size:8px;}
   }
 
   .game-inner{max-width:420px;width:100%;margin:0 auto;padding:14px 14px 18px;display:flex;flex-direction:column;min-height:100vh;}
@@ -339,9 +342,9 @@
   .pause-overlay p{margin:0;font-size:17px;font-weight:600;color:var(--ink-0);}
   .pause-overlay button{background:#fff;color:#15171a;border:none;padding:12px 28px;border-radius:12px;font-weight:600;font-size:15px;cursor:pointer;}
 
-  .toolbar{display:flex;justify-content:center;gap:10px;}
-  .tool-btn{flex:1;max-width:160px;background:var(--pill);border:none;border-radius:999px;height:52px;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink-0);cursor:pointer;transition:background .25s ease,color .25s ease;font-size:14px;font-weight:700;}
-  .tool-btn svg{width:20px;height:20px;}
+  .toolbar{display:flex;justify-content:center;gap:8px;}
+  .tool-btn{flex:1;max-width:120px;background:var(--pill);border:none;border-radius:999px;height:52px;display:flex;align-items:center;justify-content:center;gap:6px;color:var(--ink-0);cursor:pointer;transition:background .25s ease,color .25s ease,opacity .2s ease;font-size:13px;font-weight:700;}
+  .tool-btn svg{width:18px;height:18px;}
   .tool-btn:active{filter:brightness(1.15);}
 
   @media (prefers-reduced-motion:reduce){
@@ -358,7 +361,6 @@
 </head>
 <body>
 
-<!-- 隱藏的全破按鈕（位於聲音圖示左側） -->
 <button class="hidden-cheat" id="cheatUnlockAll" aria-label="Unlock all (hidden)" title="Unlock all">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.5 6 6.5.5-5 4.5 1.5 6.5L12 17l-5.5 3.5L8 14 3 9.5 9.5 9z"/></svg>
 </button>
@@ -497,7 +499,7 @@
       <div class="progress-bar"><div class="fill" id="progressFill" style="width:0%"></div></div>
     </div>
 
-    <div class="levels-grid" id="levelsGrid"></div>
+    <div id="journeyWorlds"></div>
   </div>
 </div>
 
@@ -572,7 +574,6 @@
       <div class="ach-grid" id="achGrid"></div>
     </div>
 
-    <!-- 刪除所有紀錄按鈕 -->
     <button class="danger-btn" id="deleteAllBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
       Delete all records
@@ -654,6 +655,18 @@
       </div>
 
       <div class="toolbar">
+        <button class="tool-btn" id="undoBtn" aria-label="Undo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>
+          </svg>
+          Undo
+        </button>
+        <button class="tool-btn" id="redoBtn" aria-label="Redo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>
+          </svg>
+          Redo
+        </button>
         <button class="tool-btn" id="eraserBtn" aria-label="Reset">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 20H8.5L3 14.5a1.5 1.5 0 0 1 0-2.1L13.4 2.5a1.5 1.5 0 0 1 2.1 0l6 6a1.5 1.5 0 0 1 0 2.1L11 21"></path>
@@ -670,7 +683,7 @@
 (function(){
   'use strict';
 
-  // ----- 音效管理 -----
+  // ============ 音效 ============
   const SOUND_KEY = 'lumenflow_sound';
   let soundEnabled = true;
   try{ soundEnabled = localStorage.getItem(SOUND_KEY) !== 'off'; }catch(e){}
@@ -755,20 +768,36 @@
 
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ----- 遊戲核心資料 -----
+  // ============ 關卡配置：真正 200 關 ============
   const SIZES = [5, 6, 7, 8, 9, 10];
-  const LEVELS_PER_SIZE = 30;
-  const TOTAL_LEVELS = SIZES.length * LEVELS_PER_SIZE;
+  const LEVELS_PER_SIZE_MAP = { 5:30, 6:30, 7:30, 8:30, 9:40, 10:40 };
+  const TOTAL_LEVELS = 200;
+
+  // 每個關卡的起始 index（用於快速查找）
+  const SIZE_START = {};
+  (function(){
+    let acc = 1;
+    SIZES.forEach(function(s){
+      SIZE_START[s] = acc;
+      acc += LEVELS_PER_SIZE_MAP[s];
+    });
+  })();
 
   function levelConfig(n){
     const idx = Math.max(0, Math.min(n - 1, TOTAL_LEVELS - 1));
-    const sizeIdx = Math.floor(idx / LEVELS_PER_SIZE);
-    const withinSize = idx % LEVELS_PER_SIZE;
-    const size = SIZES[sizeIdx];
-    let difficulty = 'easy';
-    if(withinSize >= 10) difficulty = 'medium';
-    if(withinSize >= 20) difficulty = 'hard';
-    return { size: size, withinSize: withinSize, difficulty: difficulty, sizeIdx: sizeIdx };
+    for(let i=0;i<SIZES.length;i++){
+      const size = SIZES[i];
+      const count = LEVELS_PER_SIZE_MAP[size];
+      const startIdx = SIZE_START[size] - 1;
+      if(idx >= startIdx && idx < startIdx + count){
+        const withinSize = idx - startIdx;
+        let difficulty = 'easy';
+        if(withinSize >= 10) difficulty = 'medium';
+        if(withinSize >= 20) difficulty = 'hard';
+        return { size: size, withinSize: withinSize, difficulty: difficulty, sizeIdx: i };
+      }
+    }
+    return { size: 10, withinSize: 0, difficulty: 'easy', sizeIdx: 5 };
   }
 
   function hslToHex(h,s,l){
@@ -957,7 +986,7 @@
     };
   }
 
-  // ----- 進度存檔 -----
+  // ============ 進度 ============
   const STORAGE_KEY='lumenflow_progress_v3';
   function defaultProgress(){
     return {
@@ -1002,7 +1031,7 @@
     return c;
   }
 
-  // ----- 成就定義 -----
+  // ============ 成就 ============
   const ACH_CATS = {
     speed:{ids:['lightning','speed_demon','rapid_flow','speed_runner'],cls:'cat-speed'},
     progress:{ids:['first_flow','in_the_flow','pipe_master','plumber','centurion','eternal_flow','two_hundred_club','five_hundred_club','thousand_club','rising_star','journeyman','halfway_hero','almost_there','century_club','one_fifty','nearly_perfect','two_hundred','completionist','journey_100','journey_150','journey_200','star_collector','star_hoarder','star_millionaire'],cls:'cat-progress'},
@@ -1159,7 +1188,7 @@
     return newlyUnlocked;
   }
 
-  // ----- DOM 元素 -----
+  // ============ DOM ============
   const achToast = document.getElementById('achToast');
   const achToastIcon = document.getElementById('achToastIcon');
   const achToastTag = document.getElementById('achToastTag');
@@ -1198,7 +1227,7 @@
   const progressTotal=document.getElementById('progressTotal');
   const totalStarsEl=document.getElementById('totalStars');
   const progressFill=document.getElementById('progressFill');
-  const levelsGrid=document.getElementById('levelsGrid');
+  const journeyWorlds=document.getElementById('journeyWorlds');
   const statPlayed=document.getElementById('statPlayed');
   const statSolved=document.getElementById('statSolved');
   const statRate=document.getElementById('statRate');
@@ -1257,7 +1286,7 @@
     window.scrollTo(0,0);
   }
 
-  // ----- 設定 -----
+  // ============ Setup ============
   let setupSize=6;
   let setupDiff='easy';
 
@@ -1291,7 +1320,7 @@
   renderSizeOptions();
   renderDiffOptions();
 
-  // ----- 遊戲狀態 -----
+  // ============ 遊戲狀態 ============
   let currentLevel=1;
   let SIZE=5, DIFFICULTY='easy';
   let ROWS=0,COLS=0,ENDPOINTS=[],COLORS=[];
@@ -1302,9 +1331,36 @@
   let solvedFlag=false;
   let elapsedBeforePause=0;
   let isCustomMode=false;
-  let usingPortals=false;
   let resetCount=0;
-  let puzzleKey='';
+
+  let undoStack = [];
+  let redoStack = [];
+  const MAX_UNDO = 80;
+
+  function snapshot(){
+    return {
+      paths: paths.map(function(p){ return p.map(function(c){ return [c[0],c[1]]; }); }),
+      activeColor: activeColor
+    };
+  }
+  function pushUndo(){
+    undoStack.push(snapshot());
+    if(undoStack.length > MAX_UNDO) undoStack.shift();
+    redoStack = [];
+    updateUndoButtons();
+  }
+  function restoreSnapshot(snap){
+    paths = snap.paths.map(function(p){ return p.map(function(c){ return [c[0],c[1]]; }); });
+    activeColor = snap.activeColor;
+    wasComplete = ENDPOINTS.map(function(){ return false; });
+    render(); checkWin();
+  }
+  function updateUndoButtons(){
+    const u = document.getElementById('undoBtn');
+    const r = document.getElementById('redoBtn');
+    if(u) u.style.opacity = undoStack.length ? '1' : '0.4';
+    if(r) r.style.opacity = redoStack.length ? '1' : '0.4';
+  }
 
   let tutStep=0;
   const TUT_STEPS = [
@@ -1381,6 +1437,26 @@
     document.querySelectorAll('.endpoint[data-color="'+color+'"]').forEach(function(el){
       el.classList.remove('connect-pulse');void el.offsetWidth;el.classList.add('connect-pulse');
     });
+    // 路徑白光 micro-animation
+    const path = paths[color];
+    if(path && path.length > 1){
+      ctx.save();
+      ctx.globalAlpha = 0.65;
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = cellSize * 0.34;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      const c0 = cellCenter(path[0]);
+      ctx.moveTo(c0[0], c0[1]);
+      for(let i=1;i<path.length;i++){
+        const c = cellCenter(path[i]);
+        ctx.lineTo(c[0], c[1]);
+      }
+      ctx.stroke();
+      ctx.restore();
+      setTimeout(function(){ render(); }, 130);
+    }
   }
   function flashInvalid(cell){
     if(reduceMotion) return;
@@ -1694,6 +1770,7 @@
     if(isPaused)return;
     const cell=pointToCell(e.clientX,e.clientY);
     if(!cell)return;
+    pushUndo();
     canvas.setPointerCapture(e.pointerId);
     pointerHeld=true;
     handlePress(cell);
@@ -1774,6 +1851,9 @@
     paths=ENDPOINTS.map(function(){ return []; });
     wasComplete=ENDPOINTS.map(function(){ return false; });
     activeColor=null;pointerHeld=false;
+    undoStack = [];
+    redoStack = [];
+    updateUndoButtons();
   }
   function applyPuzzle(puzzle){
     ROWS=puzzle.rows;COLS=puzzle.cols;
@@ -1794,7 +1874,6 @@
     const cfg = levelConfig(currentLevel);
     SIZE = cfg.size;
     DIFFICULTY = cfg.difficulty;
-    puzzleKey = 'journey-'+currentLevel;
     gameLevelNum.textContent='Level '+currentLevel;
     gameLevelSize.textContent=SIZE+' × '+SIZE+' · '+DIFFICULTY;
     resetTimer();
@@ -1824,7 +1903,6 @@
     currentLevel=0;
     SIZE=size;
     DIFFICULTY=diff;
-    puzzleKey = 'custom-'+Date.now();
     gameLevelNum.textContent='Custom';
     gameLevelSize.textContent=SIZE+' × '+SIZE+' · '+diff;
     resetTimer();
@@ -1866,6 +1944,22 @@
     }
   });
 
+  // Undo / Redo 按鈕
+  document.getElementById('undoBtn').addEventListener('click', function(){
+    if(!undoStack.length) return;
+    redoStack.push(snapshot());
+    restoreSnapshot(undoStack.pop());
+    updateUndoButtons();
+    sfxButton();
+  });
+  document.getElementById('redoBtn').addEventListener('click', function(){
+    if(!redoStack.length) return;
+    undoStack.push(snapshot());
+    restoreSnapshot(redoStack.pop());
+    updateUndoButtons();
+    sfxButton();
+  });
+
   playBtn.addEventListener('click',function(){renderSizeOptions();renderDiffOptions();showScreen(playScreen);sfxButton();});
   journeyBtn.addEventListener('click',function(){renderJourney();showScreen(journeyScreen);sfxButton();});
   statsBtn.addEventListener('click',function(){renderStats();showScreen(statsScreen);sfxButton();});
@@ -1880,42 +1974,74 @@
     requestAnimationFrame(function(){ layout(); checkWin(); });
   });
 
+  // ============ Journey World 渲染 ============
   function renderJourney(){
     progressCount.textContent=Math.min(progress.unlocked,TOTAL_LEVELS);
     progressTotal.textContent=TOTAL_LEVELS;
     totalStarsEl.textContent=totalStars();
     progressFill.style.width=(Math.min(progress.unlocked,TOTAL_LEVELS)/TOTAL_LEVELS*100)+'%';
 
-    levelsGrid.innerHTML='';
-    for(let n=1;n<=TOTAL_LEVELS;n++){
-      const locked=n>progress.unlocked;
-      const isCurrent=n===progress.unlocked;
-      const cfg = levelConfig(n);
-      const size = cfg.size;
-      const stars=progress.stars[n]||0;
+    journeyWorlds.innerHTML='';
+    let globalIndex = 1;
+    SIZES.forEach(function(size, si){
+      const count = LEVELS_PER_SIZE_MAP[size];
+      const worldStart = globalIndex;
+      const worldEnd = globalIndex + count - 1;
+      let solvedInWorld = 0;
+      let unlockedInWorld = 0;
+      for(let n = worldStart; n <= worldEnd; n++){
+        if(progress.stars[n] > 0) solvedInWorld++;
+        if(n <= progress.unlocked) unlockedInWorld++;
+      }
+      const worldLocked = progress.unlocked < worldStart;
+      const pct = Math.round((solvedInWorld / count) * 100);
 
-      const div=document.createElement('div');
-      div.className='level'+(locked?' locked':'')+(isCurrent?' current':'');
-      div.dataset.level=n;
-
-      if(locked){
-        div.innerHTML='<svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>';
-      }else{
-        let starsHtml='';
-        for(let i=0;i<3;i++){
-          starsHtml+='<svg viewBox="0 0 24 24" fill="currentColor" class="'+(i<stars?'filled':'')+'"><path d="M12 2l3 6.9 7.5.6-5.7 5 1.7 7.4L12 18l-6.5 3.9L7.2 14.5 1.5 9.5 9 8.9z"/></svg>';
+      const card = document.createElement('div');
+      card.className = 'world-card' + (worldLocked ? ' locked' : '');
+      let dotsHtml = '';
+      for(let i=0;i<count;i++){
+        const n = worldStart + i;
+        const done = progress.stars[n] > 0;
+        const isCurrent = n === progress.unlocked;
+        const locked = n > progress.unlocked;
+        let cls = 'world-dot';
+        if(done) cls += ' done';
+        if(isCurrent) cls += ' current';
+        if(locked) cls += ' locked';
+        let inner = '';
+        if(locked){
+          inner = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>';
+        } else if(done){
+          inner = '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2l3 6.9 7.5.6-5.7 5 1.7 7.4L12 18l-6.5 3.9L7.2 14.5 1.5 9.5 9 8.9z"/></svg>';
+        } else {
+          inner = String(i+1);
         }
-        div.innerHTML='<span class="num">'+n+'</span><span class="size">'+size+'×'+size+'</span><span class="stars">'+starsHtml+'</span>';
-        div.addEventListener('click',function(){
+        dotsHtml += '<div class="' + cls + '" data-level="' + n + '">' + inner + '</div>';
+      }
+      card.innerHTML =
+        '<div class="world-head">' +
+          '<span class="world-title">' + size + ' × ' + size + '</span>' +
+          '<span class="world-progress">' + solvedInWorld + ' / ' + count + '</span>' +
+        '</div>' +
+        '<div class="world-bar"><div class="fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="world-dots">' + dotsHtml + '</div>';
+
+      card.querySelectorAll('.world-dot').forEach(function(dot){
+        dot.addEventListener('click', function(){
+          const n = +dot.dataset.level;
+          if(n > progress.unlocked) { sfxError(); return; }
           loadLevel(n);
           showScreen(gameScreen);
           requestAnimationFrame(function(){ layout(); checkWin(); });
         });
-      }
-      levelsGrid.appendChild(div);
-    }
+      });
+
+      journeyWorlds.appendChild(card);
+      globalIndex += count;
+    });
   }
 
+  // ============ Stats ============
   function renderStats(){
     statPlayed.textContent = progress.played||0;
     statSolved.textContent = progress.solved||0;
@@ -1936,11 +2062,30 @@
     best9.textContent = bt[9] ? formatPrecise(bt[9]) : '—';
     best10.textContent = bt[10] ? formatPrecise(bt[10]) : '—';
 
-    const dp = progress.diffPlayed||{easy:0,medium:0,hard:0};
-    const ds = progress.diffSolved||{easy:0,medium:0,hard:0};
-    const eRate = dp.easy>0 ? Math.round((ds.easy/dp.easy)*100) : 0;
-    const mRate = dp.medium>0 ? Math.round((ds.medium/dp.medium)*100) : 0;
-    const hRate = dp.hard>0 ? Math.round((ds.hard/dp.hard)*100) : 0;
+    // Performance：改成看關卡完成度
+    function totalLevelsForDiff(diff){
+      let count = 0;
+      for(let n=1;n<=TOTAL_LEVELS;n++){
+        if(levelConfig(n).difficulty === diff) count++;
+      }
+      return count;
+    }
+    function solvedLevelsForDiff(diff){
+      let count = 0;
+      for(let n=1;n<=TOTAL_LEVELS;n++){
+        if(levelConfig(n).difficulty === diff && progress.stars[n] > 0) count++;
+      }
+      return count;
+    }
+    const eTotal = totalLevelsForDiff('easy');
+    const mTotal = totalLevelsForDiff('medium');
+    const hTotal = totalLevelsForDiff('hard');
+    const eSolved = solvedLevelsForDiff('easy');
+    const mSolved = solvedLevelsForDiff('medium');
+    const hSolved = solvedLevelsForDiff('hard');
+    const eRate = eTotal>0 ? Math.round((eSolved/eTotal)*100) : 0;
+    const mRate = mTotal>0 ? Math.round((mSolved/mTotal)*100) : 0;
+    const hRate = hTotal>0 ? Math.round((hSolved/hTotal)*100) : 0;
     perfEasy.style.width = eRate+'%';
     perfMedium.style.width = mRate+'%';
     perfHard.style.width = hRate+'%';
@@ -1967,15 +2112,14 @@
     });
   }
 
-  // ----- 全破 & 刪除紀錄 -----
+  // ============ 隱藏全破 & 刪除紀錄 ============
   document.getElementById('cheatUnlockAll').addEventListener('click', function(e){
     e.stopPropagation();
-    // 全破所有關卡，全部三星，解鎖所有成就
     progress.unlocked = TOTAL_LEVELS;
     progress.stars = {};
     for(let i=1;i<=TOTAL_LEVELS;i++) progress.stars[i] = 3;
-    progress.solved = Math.max(progress.solved||0, 1200);
-    progress.played = Math.max(progress.played||0, 1200);
+    progress.solved = 1200;
+    progress.played = 1200;
     progress.best6x6 = 5000;
     progress.bestTimes = {5:4200,6:5000,7:9800,8:22000,9:41000,10:72000};
     progress.streak = Math.max(progress.streak||0, 365);
@@ -2006,7 +2150,7 @@
     }
   });
 
-  // ----- 初始化 -----
+  // ============ 初始化 ============
   checkAchievements();
   renderJourney();
   renderStats();
@@ -2019,7 +2163,6 @@
     setTimeout(function(){ if(gameScreen.classList.contains('active')) layout(); },300);
   });
 
-  // 保留原本的 window.ctg 和 window.resetGame 但改用內部函數
   window.ctg = function(){
     document.getElementById('cheatUnlockAll').click();
     return 'Lumenflow: all progress unlocked.';

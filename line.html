@@ -411,6 +411,94 @@
   }
   .world-label .accent{color:var(--accent);}
 
+  /* ====== Lock chain: sits at the TOP of the locked region ====== */
+  .region-lock-line{
+    position:absolute;
+    left:-8%;right:-8%;
+    z-index:14;
+    height:0;
+    pointer-events:none;
+  }
+  .region-lock-line .line-bar{
+    position:absolute;
+    left:0;right:0;
+    top:0;
+    height:5px;
+    transform:translateY(-50%);
+    background:repeating-linear-gradient(
+      45deg,
+      #e8b23a 0px, #e8b23a 9px,
+      #12161d 9px, #12161d 18px
+    );
+    border-top:1px solid rgba(232,178,58,.7);
+    border-bottom:1px solid rgba(232,178,58,.7);
+    box-shadow:0 0 14px rgba(232,178,58,.4);
+    border-radius:2px;
+  }
+  html[data-theme="light"] .region-lock-line .line-bar{
+    background:repeating-linear-gradient(
+      45deg,
+      #c8912a 0px, #c8912a 9px,
+      #ffffff 9px, #ffffff 18px
+    );
+  }
+  .region-lock-line .lock-badge{
+    position:absolute;
+    top:0;left:50%;
+    transform:translate(-50%,-50%);
+    background:linear-gradient(145deg,#1a232e,#0f1620);
+    border:1.5px solid var(--gold);
+    color:var(--gold);
+    border-radius:999px;
+    padding:7px 16px 7px 12px;
+    font-size:11.5px;
+    font-weight:800;
+    letter-spacing:.02em;
+    display:flex;align-items:center;gap:7px;
+    box-shadow:0 6px 20px -6px rgba(0,0,0,.7),0 0 0 5px rgba(232,178,58,.12);
+    white-space:nowrap;
+    font-family:inherit;
+    text-transform:uppercase;
+  }
+  html[data-theme="light"] .region-lock-line .lock-badge{
+    background:linear-gradient(145deg,#ffffff,#eef3f8);
+    color:#8a6410;
+    border-color:#c8912a;
+  }
+  .region-lock-line .lock-badge svg{
+    width:13px;height:13px;
+    color:var(--gold);
+    flex:0 0 13px;
+  }
+  html[data-theme="light"] .region-lock-line .lock-badge svg{color:#c8912a;}
+  .region-lock-line .lock-badge .need{
+    color:var(--ink-0);
+    font-weight:800;
+  }
+  html[data-theme="light"] .region-lock-line .lock-badge .need{color:#0f1922;}
+
+  .region-lock-line .lock-chain{
+    position:absolute;
+    top:0;
+    width:22px;height:30px;
+    transform:translateY(-50%);
+    color:var(--gold);
+    opacity:.95;
+  }
+  .region-lock-line .lock-chain.left{left:10%;}
+  .region-lock-line .lock-chain.right{right:10%;}
+
+  .region-shade{
+    position:absolute;
+    left:0;right:0;
+    z-index:13;
+    background:rgba(8,10,14,.5);
+    pointer-events:none;
+  }
+  html[data-theme="light"] .region-shade{
+    background:rgba(240,244,248,.5);
+  }
+
   .map-finish{
     position:absolute;
     transform:translate(-50%,-50%);
@@ -556,7 +644,8 @@
   .grid-bg .cell{
     border-right:1px solid var(--grid-line);
     border-bottom:1px solid var(--grid-line);
-    transition:background .15s ease,box-shadow .25s ease;
+    transition:background-color .18s cubic-bezier(.4,0,.2,1),box-shadow .25s ease;
+    position:relative;
   }
   .grid-bg .cell.obstacle{
     background:var(--obstacle);
@@ -720,7 +809,7 @@
 
   .toolbar{display:flex;justify-content:center;gap:8px;padding:0 4px;}
   .tool-btn{
-    flex:1;max-width:130px;
+    flex:1;max-width:160px;
     background:var(--panel);border:1px solid var(--line);border-radius:12px;
     height:48px;display:flex;align-items:center;justify-content:center;gap:6px;
     color:var(--ink-1);cursor:pointer;
@@ -885,6 +974,7 @@
     .map-node.current{animation:none;}
     .win-particles .particle{animation:none;opacity:0;}
     .grid-bg .cell.hover-hint{background:transparent;box-shadow:none;}
+    .grid-bg .cell{transition:none;}
   }
   html[data-reduce-motion="true"] .endpoint{animation:none;opacity:1;transform:none;}
   html[data-reduce-motion="true"] .endpoint.connect-pulse::before{animation:none;}
@@ -900,6 +990,7 @@
   html[data-reduce-motion="true"] .map-node.current{animation:none;}
   html[data-reduce-motion="true"] .win-particles .particle{animation:none;opacity:0;}
   html[data-reduce-motion="true"] .grid-bg .cell.hover-hint{background:transparent;box-shadow:none;}
+  html[data-reduce-motion="true"] .grid-bg .cell{transition:none;}
 
   .visually-hidden{
     position:absolute;width:1px;height:1px;padding:0;margin:-1px;
@@ -1239,14 +1330,6 @@
       </div>
 
       <div class="toolbar">
-        <button class="tool-btn" data-action="undo" id="undoBtn" aria-label="Undo (Z)" title="Undo (Z)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>
-          Undo
-        </button>
-        <button class="tool-btn" data-action="redo" id="redoBtn" aria-label="Redo (Y)" title="Redo (Y)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>
-          Redo
-        </button>
         <button class="tool-btn" data-action="replay" aria-label="Reset (R)" title="Reset (R)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
           Reset
@@ -1269,6 +1352,40 @@
   var TIME_LIMIT_MS = { 5:60000, 6:90000, 7:120000, 8:150000, 9:180000, 10:210000 };
   var SIZE_START = {};
   (function(){ var acc = 1; SIZES.forEach(function(s){ SIZE_START[s] = acc; acc += LEVELS_PER_SIZE_MAP[s]; }); })();
+
+  var REGIONS = [
+    { size:5,  name:'First Steps',   from:1,   to:30,  unlockStars:0   },
+    { size:6,  name:'Six by Six',    from:31,  to:60,  unlockStars:20  },
+    { size:7,  name:'Seven Heaven',  from:61,  to:90,  unlockStars:50  },
+    { size:8,  name:'Eight is Great',from:91,  to:120, unlockStars:85  },
+    { size:9,  name:'Big Board',     from:121, to:160, unlockStars:125 },
+    { size:10, name:'Master Flow',   from:161, to:200, unlockStars:170 }
+  ];
+
+  function regionIndexForLevel(n){
+    for(var i=0;i<REGIONS.length;i++){
+      if(n >= REGIONS[i].from && n <= REGIONS[i].to) return i;
+    }
+    return REGIONS.length-1;
+  }
+  function regionStarsEarned(region){
+    var sum = 0;
+    for(var n=region.from; n<=region.to; n++){
+      sum += (progress.stars[n] || 0);
+    }
+    return sum;
+  }
+  function starsEarnedBeforeRegion(idx){
+    var sum = 0;
+    for(var i=0;i<idx;i++){
+      sum += regionStarsEarned(REGIONS[i]);
+    }
+    return sum;
+  }
+  function isRegionUnlocked(idx){
+    if(idx === 0) return true;
+    return starsEarnedBeforeRegion(idx) >= REGIONS[idx].unlockStars;
+  }
 
   var STORAGE_KEY = 'lumenflow_progress_v11';
   var THEME_KEY = 'lumenflow_theme';
@@ -1484,7 +1601,6 @@
     var portals = [];
     var pathLen = path.length;
     if(pathLen < 8) return portals;
-
     var attempts = 0;
     var used = new Set();
     while(portals.length < maxPortals && attempts < 40){
@@ -1492,20 +1608,16 @@
       var midStart = 3;
       var midEnd = pathLen - 3;
       if(midEnd - midStart < 4) break;
-
       var aIdx = midStart + Math.floor(rnd() * (midEnd - midStart - 3));
       var bOffset = 2 + Math.floor(rnd() * 4);
       var bIdx = aIdx + bOffset;
       if(bIdx >= midEnd) continue;
-
       var aCell = path[aIdx];
       var bCell = path[bIdx];
       var aKey = aCell[0] * 1000 + aCell[1];
       var bKey = bCell[0] * 1000 + bCell[1];
-
       if(used.has(aKey) || used.has(bKey)) continue;
       used.add(aKey); used.add(bKey);
-
       portals.push({ a: aCell, b: bCell });
     }
     return portals;
@@ -1812,7 +1924,6 @@
   var timeLabel=$('timeLabel'), timeLimitLabel=$('timeLimitLabel');
   var pauseOverlay=$('pauseOverlay');
   var tutOverlay=$('tutOverlay'), tutTitle=$('tutTitle'), tutText=$('tutText');
-  var undoBtn=$('undoBtn'), redoBtn=$('redoBtn');
   var journeyProgressLabel = $('journeyProgressLabel');
 
   /* ============================================================
@@ -1979,34 +2090,18 @@
   var elapsedBeforePause = 0;
   var isCustomMode = false;
   var resetCount = 0, backtrackCount = 0, oopsInPuzzle = 0, replayCount = 0;
-  var pauseStartTime = null;
   var puzzleKey = '';
   var moveCount = 0;
-  var undoStack = [], redoStack = [];
-  var MAX_UNDO = 80;
 
-  function snapshot(){
-    return {
-      paths: paths.map(function(p){ return p.map(function(c){ return [c[0],c[1]]; }); }),
-      activeColor: activeColor
-    };
-  }
-  function pushUndo(){
-    undoStack.push(snapshot());
-    if(undoStack.length > MAX_UNDO) undoStack.shift();
-    redoStack = [];
-    updateUndoButtons();
-  }
-  function restoreSnapshot(snap){
-    paths = snap.paths.map(function(p){ return p.map(function(c){ return [c[0],c[1]]; }); });
-    activeColor = snap.activeColor;
-    wasComplete = ENDPOINTS.map(function(){ return false; });
-    render(); checkWin();
-  }
-  function updateUndoButtons(){
-    if(undoBtn) undoBtn.disabled = !undoStack.length;
-    if(redoBtn) redoBtn.disabled = !redoStack.length;
-  }
+  var drawState = {
+    animating: false,
+    color: -1,
+    fromIndex: 0,
+    toIndex: 0,
+    startTime: 0,
+    duration: 170
+  };
+  var animRaf = null;
 
   var tutStep = 0;
   var TUT_STEPS = [
@@ -2305,41 +2400,163 @@
       el.style.width = (cellSize - pad * 2) + 'px';
       el.style.height = (cellSize - pad * 2) + 'px';
     });
+    syncPathFillToPaths();
     render();
   }
   function cellCenter(p){ return [p[1]*cellSize + cellSize/2, p[0]*cellSize + cellSize/2]; }
 
-  function render(){
+  /* ============================================================
+     PATH DRAWING — right-angle corners, round caps
+     ============================================================ */
+  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+  function animateSegment(color, fromIdx, toIdx){
+    if(reduceMotion){
+      render(); syncPathFillToPaths();
+      return;
+    }
+    drawState.animating = true;
+    drawState.color = color;
+    drawState.fromIndex = fromIdx;
+    drawState.toIndex = toIdx;
+    drawState.startTime = performance.now();
+    drawState.duration = 170;
+    if(!animRaf){
+      animRaf = requestAnimationFrame(animTick);
+    }
+  }
+
+  function animTick(now){
+    animRaf = null;
+    if(!drawState.animating) return;
+    var elapsed = now - drawState.startTime;
+    var t = Math.min(1, elapsed / drawState.duration);
+    var eased = easeOutCubic(t);
+    renderWithProgress(drawState.color, drawState.fromIndex, drawState.toIndex, eased);
+    syncPathFillToPaths();
+    if(t < 1){
+      animRaf = requestAnimationFrame(animTick);
+    } else {
+      drawState.animating = false;
+      render();
+      syncPathFillToPaths();
+      checkWin();
+    }
+  }
+
+  function strokePath(p, color){
+    ctx.beginPath();
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = cellSize * 0.3;
+    ctx.strokeStyle = COLORS[color % COLORS.length];
+    var c0 = cellCenter(p[0]);
+    ctx.moveTo(c0[0], c0[1]);
+    for(var i=1;i<p.length;i++){
+      var c = cellCenter(p[i]);
+      ctx.lineTo(c[0], c[1]);
+    }
+    ctx.stroke();
+  }
+
+  function renderWithProgress(color, fromIdx, toIdx, progress){
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    paths.forEach(function(p,color){
+    paths.forEach(function(p,ci){
       if(p.length < 2) return;
+      var segProgress = 1;
+      var segEnd = p.length - 1;
+      if(ci === color){
+        if(toIdx > fromIdx){
+          segEnd = toIdx;
+          segProgress = progress;
+        }
+      }
       ctx.beginPath();
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       ctx.lineWidth = cellSize * 0.3;
-      ctx.strokeStyle = COLORS[color % COLORS.length];
+      ctx.strokeStyle = COLORS[ci % COLORS.length];
       var c0 = cellCenter(p[0]);
       ctx.moveTo(c0[0], c0[1]);
-      for(var i=1;i<p.length;i++){
-        var c = cellCenter(p[i]);
-        var prev = cellCenter(p[i-1]);
-        var midX = (prev[0] + c[0]) / 2;
-        var midY = (prev[1] + c[1]) / 2;
-        if(i === 1){
-          ctx.lineTo(midX, midY);
+      for(var i=1;i<=segEnd;i++){
+        if(i < segEnd){
+          var cFull = cellCenter(p[i]);
+          ctx.lineTo(cFull[0], cFull[1]);
         } else {
-          ctx.quadraticCurveTo(prev[0], prev[1], midX, midY);
-        }
-        if(i === p.length - 1){
-          ctx.lineTo(c[0], c[1]);
+          var prevC = cellCenter(p[i-1]);
+          var curC = cellCenter(p[i]);
+          var midX = prevC[0] + (curC[0] - prevC[0]) * segProgress;
+          var midY = prevC[1] + (curC[1] - prevC[1]) * segProgress;
+          ctx.lineTo(midX, midY);
         }
       }
       ctx.stroke();
     });
     document.querySelectorAll('.endpoint').forEach(function(el){
+      var color2 = +el.dataset.color;
+      el.classList.toggle('done', isComplete(color2));
+    });
+  }
+
+  function render(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    paths.forEach(function(p,color){
+      if(p.length < 2) return;
+      strokePath(p, color);
+    });
+    document.querySelectorAll('.endpoint').forEach(function(el){
       var color = +el.dataset.color;
       el.classList.toggle('done', isComplete(color));
     });
+  }
+
+  function hexToRgba(hex, alpha){
+    var h = hex.replace('#','');
+    if(h.length === 3){ h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2]; }
+    var r = parseInt(h.substring(0,2),16);
+    var g = parseInt(h.substring(2,4),16);
+    var b = parseInt(h.substring(4,6),16);
+    return 'rgba('+r+','+g+','+b+','+alpha+')';
+  }
+
+  function syncPathFillToPaths(){
+    var cells = gridBg.querySelectorAll('.cell');
+    for(var r=0;r<ROWS;r++){
+      for(var c=0;c<COLS;c++){
+        var idx = r*COLS + c;
+        var el = cells[idx];
+        if(!el) continue;
+        if(isBlockedCell(r,c)) continue;
+        var owner = ownerAt([r,c]);
+        if(owner === null){
+          if(el.dataset.pathColor !== undefined){
+            el.style.backgroundColor = '';
+            delete el.dataset.pathColor;
+          }
+        } else {
+          var hex = COLORS[owner % COLORS.length];
+          if(el.dataset.pathColor !== String(owner)){
+            el.dataset.pathColor = String(owner);
+            el.style.backgroundColor = hexToRgba(hex, 0.18);
+          }
+        }
+      }
+    }
+  }
+
+  function syncCellFill(r, c, color){
+    var idx = r*COLS + c;
+    var cells = gridBg.querySelectorAll('.cell');
+    var el = cells[idx];
+    if(!el) return;
+    if(color === null){
+      el.style.backgroundColor = '';
+      delete el.dataset.pathColor;
+    } else {
+      var hex = COLORS[color % COLORS.length];
+      el.dataset.pathColor = String(color);
+      el.style.backgroundColor = hexToRgba(hex, 0.18);
+    }
   }
 
   function updateHoverHint(cell){
@@ -2365,16 +2582,29 @@
     if(isBlockedCell(r,c)) return null;
     return [r,c];
   }
+
+  /* Completed color cannot be extended */
   function stepPath(color, cell){
     var p = paths[color];
     if(!p.length) return false;
+
+    if(isComplete(color)){
+      sfxError();
+      return false;
+    }
+
     var last = p[p.length - 1];
     if(samePos(last, cell)) return false;
     if(!isAdjacent(last, cell)) return false;
     var backIdx = p.findIndex(function(pt){ return samePos(pt, cell); });
     if(backIdx !== -1){
       backtrackCount++;
+      var removed = p.slice(backIdx + 1);
       paths[color] = p.slice(0, backIdx + 1);
+      removed.forEach(function(rc){
+        if(ownerAt(rc) === null) syncCellFill(rc[0], rc[1], null);
+      });
+      syncPathFillToPaths();
       render(); checkWin();
       return true;
     }
@@ -2386,10 +2616,12 @@
     if(occ !== null && occ !== color){
       flashInvalid(cell, isBlockedCell(cell[0], cell[1])); sfxError(); return false;
     }
+    var fromIdx = p.length - 1;
     p.push(cell);
     moveCount++;
-    render();
     sfxConnect();
+    syncCellFill(cell[0], cell[1], color);
+    animateSegment(color, fromIdx, fromIdx + 1);
     var portal = portalAt(cell);
     if(portal && portal.other){
       var occOther = ownerAt(portal.other);
@@ -2397,17 +2629,19 @@
         var otherCell = portal.other;
         if(!samePos(otherCell, cell)){
           if(!p.some(function(pt){ return samePos(pt, otherCell); })){
+            var fromIdx2 = p.length - 1;
             p.push(otherCell);
             moveCount++;
             sfxPortal();
-            render();
+            syncCellFill(otherCell[0], otherCell[1], color);
+            animateSegment(color, fromIdx2, fromIdx2 + 1);
           }
         }
       }
     }
-    checkWin();
     return true;
   }
+
   function handlePress(cell){
     if(isPaused || solvedFlag) return;
     startTimer();
@@ -2418,22 +2652,36 @@
       var p = paths[epColor];
       if(p.length > 0){
         if(isComplete(epColor)) oopsInPuzzle++;
+        p.forEach(function(rc){
+          if(ownerAt(rc) === null) syncCellFill(rc[0], rc[1], null);
+        });
         paths[epColor] = [];
         activeColor = null;
+        syncPathFillToPaths();
         render(); checkWin();
         return;
       }
       paths[epColor] = [cell];
       activeColor = epColor;
       sfxEndpointPick();
+      syncCellFill(cell[0], cell[1], epColor);
       render();
       return;
     }
     var occ = ownerAt(cell);
     if(occ !== null){
+      if(isComplete(occ)){
+        sfxError();
+        return;
+      }
       var idx = paths[occ].findIndex(function(pt){ return samePos(pt, cell); });
+      var removed = paths[occ].slice(idx + 1);
       paths[occ] = paths[occ].slice(0, idx + 1);
+      removed.forEach(function(rc){
+        if(ownerAt(rc) === null) syncCellFill(rc[0], rc[1], null);
+      });
       activeColor = occ;
+      syncPathFillToPaths();
       render(); checkWin();
       return;
     }
@@ -2448,7 +2696,6 @@
     var cell = pointToCell(e.clientX, e.clientY);
     if(!cell) return;
     e.preventDefault();
-    pushUndo();
     pointerId = e.pointerId;
     try{ canvas.setPointerCapture(e.pointerId); }catch(err){}
     pointerHeld = true;
@@ -2525,7 +2772,6 @@
     if(startedAt === null && pausedAt === null && elapsedBeforePause === 0) return;
     if(isPaused) return;
     isPaused = true;
-    pauseStartTime = Date.now();
     if(startedAt !== null) pausedAt = Date.now() - startedAt;
     stopTimer();
     setPauseIcon(true);
@@ -2539,7 +2785,6 @@
     if(!isPaused) return;
     isPaused = false;
     pauseOverlay.classList.remove('show');
-    pauseStartTime = null;
     if(pausedAt !== null){
       startedAt = Date.now() - pausedAt;
       pausedAt = null;
@@ -2562,9 +2807,10 @@
     paths = ENDPOINTS.map(function(){ return []; });
     wasComplete = ENDPOINTS.map(function(){ return false; });
     activeColor = null; pointerHeld = false;
-    undoStack = []; redoStack = [];
-    updateUndoButtons();
     backtrackCount = 0; oopsInPuzzle = 0; moveCount = 0;
+    drawState.animating = false;
+    if(animRaf){ cancelAnimationFrame(animRaf); animRaf = null; }
+    syncPathFillToPaths();
   }
   function applyPuzzle(puzzle){
     ROWS = puzzle.rows; COLS = puzzle.cols;
@@ -2641,11 +2887,11 @@
   var SCENE_EXTEND = 400;
 
   var SCENES = [
-    { id:'scene1', name:'Dawn',    levels:[1, 40],  from:{h:'#1a2333', s:'#2a3548', a:'#f5a87a'}, to:{h:'#0f1620', s:'#1a2333', a:'#5bb8d8'}, sun:true,  sunColor:'#ffd9a0', stars:false },
-    { id:'scene2', name:'Forest',  levels:[41, 80], from:{h:'#0f1a24', s:'#1a2a1e', a:'#3fae6b'}, to:{h:'#0a1118', s:'#0f1a24', a:'#4fc08d'}, sun:false, stars:true },
-    { id:'scene3', name:'Twilight',levels:[81, 120],from:{h:'#1a1628', s:'#241d3a', a:'#b48ce8'}, to:{h:'#0f0a1a', s:'#1a1628', a:'#8a5fd6'}, sun:true,  sunColor:'#e0a0d0', stars:true },
-    { id:'scene4', name:'Aurora',  levels:[121, 160],from:{h:'#0a1a28', s:'#0f2840', a:'#5bb8d8'}, to:{h:'#050d16', s:'#0a1a28', a:'#7ec9e0'}, sun:false, stars:true },
-    { id:'scene5', name:'Ember',   levels:[161, 200],from:{h:'#2a1418', s:'#3a1c20', a:'#e05a5a'}, to:{h:'#140a0c', s:'#2a1418', a:'#e8b23a'}, sun:true,  sunColor:'#ffb07a', stars:true }
+    { id:'scene1', name:'Dawn',    levels:[1, 40],  from:{h:'#1a2333', s:'#2a3548'}, to:{h:'#0f1620', s:'#1a2333'}, sun:true,  sunColor:'#ffd9a0', stars:false },
+    { id:'scene2', name:'Forest',  levels:[41, 80], from:{h:'#0f1a24', s:'#1a2a1e'}, to:{h:'#0a1118', s:'#0f1a24'}, sun:false, stars:true },
+    { id:'scene3', name:'Twilight',levels:[81, 120],from:{h:'#1a1628', s:'#241d3a'}, to:{h:'#0f0a1a', s:'#1a1628'}, sun:true,  sunColor:'#e0a0d0', stars:true },
+    { id:'scene4', name:'Aurora',  levels:[121, 160],from:{h:'#0a1a28', s:'#0f2840'}, to:{h:'#050d16', s:'#0a1a28'}, sun:false, stars:true },
+    { id:'scene5', name:'Ember',   levels:[161, 200],from:{h:'#2a1418', s:'#3a1c20'}, to:{h:'#140a0c', s:'#2a1418'}, sun:true,  sunColor:'#ffb07a', stars:true }
   ];
 
   var WORLD_LABELS = {
@@ -2979,7 +3225,8 @@
       var pos = positions[i];
       var done = progress.stars[n] > 0;
       var isCurrent = n === progress.unlocked;
-      var locked = n > progress.unlocked;
+      var regionIdx = regionIndexForLevel(n);
+      var locked = !isRegionUnlocked(regionIdx) || n > progress.unlocked;
       var stars = progress.stars[n] || 0;
 
       var node = document.createElement('button');
@@ -3015,11 +3262,11 @@
       mapNodes.appendChild(node);
     }
 
-    SIZES.forEach(function(size){
-      var startLevel = SIZE_START[size];
-      var idx = startLevel - 1;
-      if(idx >= total) return;
-      var pos = positions[idx];
+    REGIONS.forEach(function(region, idx){
+      var startLevel = region.from;
+      var idx0 = startLevel - 1;
+      if(idx0 >= total) return;
+      var pos = positions[idx0];
       var label = document.createElement('div');
       label.className = 'world-label';
       var lx = pos.x;
@@ -3028,8 +3275,52 @@
       if(lx > maxX) lx = maxX;
       label.style.left = lx + 'px';
       label.style.top = (pos.y - 58) + 'px';
-      label.innerHTML = WORLD_LABELS[size] + ' <span class="accent">' + size + '×' + size + '</span>';
+      label.innerHTML = WORLD_LABELS[region.size] + ' <span class="accent">' + region.size + '×' + region.size + '</span>';
       mapNodes.appendChild(label);
+
+      if(!isRegionUnlocked(idx) && idx > 0){
+        var endIdx = region.to - 1;
+        var endPos = positions[Math.min(endIdx, total - 1)];
+        var topY = pos.y - 90;
+        var bottomY = endPos.y + 90;
+        var height = bottomY - topY;
+
+        var shade = document.createElement('div');
+        shade.className = 'region-shade';
+        shade.style.top = topY + 'px';
+        shade.style.height = height + 'px';
+        mapNodes.appendChild(shade);
+
+        var lockLine = document.createElement('div');
+        lockLine.className = 'region-lock-line';
+        lockLine.style.top = topY + 'px';
+
+        var bar = document.createElement('div');
+        bar.className = 'line-bar';
+        lockLine.appendChild(bar);
+
+        var chainL = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        chainL.setAttribute('class', 'lock-chain left');
+        chainL.setAttribute('viewBox', '0 0 24 24');
+        chainL.innerHTML = '';
+        lockLine.appendChild(chainL);
+
+        var chainR = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        chainR.setAttribute('class', 'lock-chain right');
+        chainR.setAttribute('viewBox', '0 0 24 24');
+        chainR.innerHTML = '';
+        lockLine.appendChild(chainR);
+
+        var badge = document.createElement('div');
+        badge.className = 'lock-badge';
+        var need = Math.max(0, region.unlockStars - starsEarnedBeforeRegion(idx));
+        badge.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>' +
+          '<span>Needs <span class="need">' + need + '</span> stars to unlock</span>';
+        lockLine.appendChild(badge);
+
+        mapNodes.appendChild(lockLine);
+      }
     });
 
     var lastPos = positions[total - 1];
@@ -3224,23 +3515,13 @@
         break;
       case 'level':
         var n = +level;
-        if(n > progress.unlocked) { sfxError(); break; }
+        var regionIdx = regionIndexForLevel(n);
+        if(!isRegionUnlocked(regionIdx)){ sfxError(); break; }
+        if(n > progress.unlocked){ sfxError(); break; }
         loadLevel(n);
         showScreen(gameScreen);
         requestAnimationFrame(function(){ layout(); checkWin(); });
         break;
-      case 'undo':
-        if(!undoStack.length) break;
-        redoStack.push(snapshot());
-        restoreSnapshot(undoStack.pop());
-        updateUndoButtons();
-        sfxButton(); break;
-      case 'redo':
-        if(!redoStack.length) break;
-        undoStack.push(snapshot());
-        restoreSnapshot(redoStack.pop());
-        updateUndoButtons();
-        sfxButton(); break;
       case 'replay':
         replayLevel();
         if(pauseOverlay.classList.contains('show')){
@@ -3316,22 +3597,6 @@
       if(isPaused) exitPause(); else enterPause();
     } else if(key === 'r'){
       if(!isPaused){ e.preventDefault(); replayLevel(); }
-    } else if(key === 'z'){
-      if(!isPaused && undoStack.length){
-        e.preventDefault();
-        redoStack.push(snapshot());
-        restoreSnapshot(undoStack.pop());
-        updateUndoButtons();
-        sfxButton();
-      }
-    } else if(key === 'y'){
-      if(!isPaused && redoStack.length){
-        e.preventDefault();
-        undoStack.push(snapshot());
-        restoreSnapshot(redoStack.pop());
-        updateUndoButtons();
-        sfxButton();
-      }
     } else if(key === 'n'){
       if(!isCustomMode && winBanner.classList.contains('show')){
         e.preventDefault();
@@ -3392,7 +3657,6 @@
     try { showScreen(homeScreen); } catch(e2){}
   }
 
-  /* 主屏幕按钮绑定（确保始终执行） */
   var journeyBtnEl = $('journeyBtn');
   if(journeyBtnEl){
     journeyBtnEl.addEventListener('click', function(e){

@@ -10,7 +10,7 @@
     --bg-0:#0a1118; --bg-1:#0f1620; --bg-2:#141d28;
     --panel:#1a232e; --panel-2:#202b38; --panel-3:#283545;
     --line:#2a3543; --line-soft:#1f2935;
-    --ink-0:#f0f4f7; --ink-1:#9aa5b1; --ink-2:#66717e; --ink-3:#3f4854;
+    --ink-0:#f0f4f7; --ink-1:#9aa5b1; --ink-2:#8a97a6; --ink-3:#3f4854;
     --accent:#5bb8d8; --accent-2:#3d8fac; --accent-glow:rgba(91,184,216,.35);
     --gold:#e8b23a;
     --danger:#e05a5a;
@@ -32,7 +32,7 @@
     --bg-0:#eef3f7; --bg-1:#f4f8fb; --bg-2:#ffffff;
     --panel:#ffffff; --panel-2:#eef3f8; --panel-3:#e2eaf1;
     --line:#d6dfe8; --line-soft:#e5ecf2;
-    --ink-0:#0f1922; --ink-1:#4f5b68; --ink-2:#7f8c99; --ink-3:#b0bcc8;
+    --ink-0:#0f1922; --ink-1:#4f5b68; --ink-2:#5d6a78; --ink-3:#b0bcc8;
     --accent:#2f8baa; --accent-2:#1f6b86; --accent-glow:rgba(47,139,170,.25);
     --gold:#c8912a;
     --danger:#cc4444;
@@ -94,13 +94,53 @@
       0 0 0 1px rgba(255,255,255,.06) inset,
       0 2px 0 rgba(255,255,255,.14) inset;
     position:relative;overflow:hidden;
+    animation:logo-breathe 4.2s ease-in-out infinite;
   }
   .logo-mark::before{
     content:"";position:absolute;inset:0;
     background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.35),transparent 55%);
     pointer-events:none;
+    animation:logo-shine 5s ease-in-out infinite;
   }
-  .logo-mark svg{width:50px;height:50px;color:#fff;position:relative;z-index:1;}
+  .logo-mark svg{width:50px;height:50px;color:#fff;position:relative;z-index:1;overflow:visible;}
+  @keyframes logo-breathe{
+    0%,100%{box-shadow:0 20px 44px -16px rgba(91,184,216,.55),0 0 0 1px rgba(255,255,255,.06) inset,0 2px 0 rgba(255,255,255,.14) inset;}
+    50%{box-shadow:0 24px 54px -14px rgba(91,184,216,.85),0 0 0 1px rgba(255,255,255,.12) inset,0 2px 0 rgba(255,255,255,.18) inset;}
+  }
+  @keyframes logo-shine{
+    0%,100%{opacity:.35;transform:translate(-6%,-4%);}
+    50%{opacity:.75;transform:translate(6%,4%);}
+  }
+  .logo-mark .flow-dot{
+    fill:#fff;
+    filter:drop-shadow(0 0 4px rgba(255,255,255,.9));
+    offset-rotate:0deg;
+  }
+  .logo-mark .flow-dot-1{
+    offset-path:path("M4 8h4a4 4 0 0 1 4 4v0a4 4 0 0 0 4 4h4");
+    animation:flow-run 2.6s linear infinite;
+  }
+  .logo-mark .flow-dot-2{
+    offset-path:path("M4 16h4a4 4 0 0 0 4-4v0a4 4 0 0 1 4-4h4");
+    animation:flow-run 2.6s linear infinite;
+    animation-delay:1.3s;
+  }
+  @keyframes flow-run{
+    0%{offset-distance:0%;opacity:0;}
+    12%{opacity:1;}
+    88%{opacity:1;}
+    100%{offset-distance:100%;opacity:0;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .logo-mark{animation:none;}
+    .logo-mark::before{animation:none;}
+    .logo-mark .flow-dot-1,.logo-mark .flow-dot-2{animation:none;opacity:0;}
+  }
+  html[data-reduce-motion="true"] .logo-mark{animation:none;}
+  html[data-reduce-motion="true"] .logo-mark::before{animation:none;}
+  html[data-reduce-motion="true"] .logo-mark .flow-dot-1,
+  html[data-reduce-motion="true"] .logo-mark .flow-dot-2{animation:none;opacity:0;}
+
   .brand{
     font-size:42px;font-weight:800;letter-spacing:-.035em;margin:0;line-height:1;
     font-feature-settings:"ss01","cv01";
@@ -109,8 +149,14 @@
   .brand .flow{
     font-style:italic;
     background:linear-gradient(120deg,#5bb8d8 0%,#7ec9e0 45%,#5bb8d8 100%);
+    background-size:200% 100%;
     -webkit-background-clip:text;background-clip:text;
     -webkit-text-fill-color:transparent;color:transparent;
+    animation:brand-flow 5s ease-in-out infinite;
+  }
+  @keyframes brand-flow{
+    0%,100%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
   }
   .tagline{
     max-width:320px;text-align:center;color:var(--ink-1);
@@ -233,9 +279,6 @@
     box-shadow:var(--shadow-sm);
   }
 
-  /* ==========================================================
-     JOURNEY — Parallax Scene Map
-     ========================================================== */
   #journeyScreen{
     background:var(--bg-0);
     overflow-x:hidden;
@@ -411,7 +454,6 @@
   }
   .world-label .accent{color:var(--accent);}
 
-  /* ====== Lock chain: sits at the TOP of the locked region ====== */
   .region-lock-line{
     position:absolute;
     left:-8%;right:-8%;
@@ -477,17 +519,6 @@
   }
   html[data-theme="light"] .region-lock-line .lock-badge .need{color:#0f1922;}
 
-  .region-lock-line .lock-chain{
-    position:absolute;
-    top:0;
-    width:22px;height:30px;
-    transform:translateY(-50%);
-    color:var(--gold);
-    opacity:.95;
-  }
-  .region-lock-line .lock-chain.left{left:10%;}
-  .region-lock-line .lock-chain.right{right:10%;}
-
   .region-shade{
     position:absolute;
     left:0;right:0;
@@ -513,9 +544,6 @@
     text-shadow:0 2px 4px rgba(0,0,0,.5);
   }
 
-  /* ==========================================================
-     STATS
-     ========================================================== */
   .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
   .stat-card{
     background:var(--panel);border-radius:var(--radius-md);padding:18px 14px;
@@ -537,13 +565,6 @@
   }
   .stats-row:last-child{border-bottom:none;padding-bottom:0;}
   .stats-row .v{font-weight:700;color:var(--ink-0);font-variant-numeric:tabular-nums;}
-
-  .perf-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-  .perf-row:last-child{margin-bottom:0;}
-  .perf-name{width:60px;font-size:12.5px;font-weight:700;color:var(--ink-0);}
-  .perf-bar{flex:1;height:8px;border-radius:4px;background:var(--panel-2);overflow:hidden;}
-  .perf-bar .fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#5bb8d8,#3d8fac);transition:width .45s ease;}
-  .perf-val{width:42px;text-align:right;font-size:12px;font-weight:700;color:var(--ink-0);font-variant-numeric:tabular-nums;}
 
   .ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:14px 8px;width:100%;}
   .ach{
@@ -596,14 +617,6 @@
     letter-spacing:-.02em;
   }
   .timer .limit{font-size:11.5px;color:var(--ink-2);font-weight:600;letter-spacing:.02em;}
-  .timer button{
-    background:none;border:none;padding:6px;color:var(--ink-1);
-    display:flex;align-items:center;cursor:pointer;
-    border-radius:8px;transition:color .2s ease,background .2s ease;
-  }
-  .timer button:hover{color:var(--ink-0);background:var(--panel-2);}
-  .timer button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
-  .timer button svg{width:15px;height:15px;pointer-events:none;}
 
   .board-shell{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;min-height:0;}
   .board-wrap{
@@ -975,6 +988,7 @@
     .win-particles .particle{animation:none;opacity:0;}
     .grid-bg .cell.hover-hint{background:transparent;box-shadow:none;}
     .grid-bg .cell{transition:none;}
+    .brand .flow{animation:none;}
   }
   html[data-reduce-motion="true"] .endpoint{animation:none;opacity:1;transform:none;}
   html[data-reduce-motion="true"] .endpoint.connect-pulse::before{animation:none;}
@@ -991,6 +1005,7 @@
   html[data-reduce-motion="true"] .win-particles .particle{animation:none;opacity:0;}
   html[data-reduce-motion="true"] .grid-bg .cell.hover-hint{background:transparent;box-shadow:none;}
   html[data-reduce-motion="true"] .grid-bg .cell{transition:none;}
+  html[data-reduce-motion="true"] .brand .flow{animation:none;}
 
   .visually-hidden{
     position:absolute;width:1px;height:1px;padding:0;margin:-1px;
@@ -1001,10 +1016,76 @@
     background-size:6px 6px;
   }
 
+  /* Loading overlay for puzzle generation */
+  .loading-overlay{
+    position:absolute;inset:0;z-index:60;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+    background:var(--pause-overlay);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-radius:var(--radius-lg);
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .loading-overlay.show{opacity:1;pointer-events:auto;}
+  .loading-spinner{
+    width:38px;height:38px;border-radius:50%;
+    border:3px solid var(--line);
+    border-top-color:var(--accent);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-text{font-size:13px;font-weight:600;color:var(--ink-1);letter-spacing:.02em;}
+  html[data-reduce-motion="true"] .loading-spinner{animation-duration:1.6s;}
+  @media (prefers-reduced-motion:reduce){.loading-spinner{animation-duration:1.6s;}}
+
   @media (max-width:380px){
     .map-node{width:54px;height:54px;}
     .node-num{font-size:16px;}
     .world-label{font-size:10px;padding:5px 11px;}
+  }
+
+  html[data-desktop="true"] .game-shell{
+    max-width:1200px;
+    flex-direction:row;
+    align-items:center;
+    justify-content:center;
+    gap:36px;
+    padding:80px 32px 32px;
+    min-height:100vh;
+    min-height:100dvh;
+  }
+  html[data-desktop="true"] .game-top{
+    position:absolute;
+    top:18px;left:32px;right:32px;
+    padding:0;
+  }
+  html[data-desktop="true"] .game-meta{
+    position:absolute;
+    top:14px;right:32px;
+    padding-bottom:0;
+  }
+  html[data-desktop="true"] .board-shell{
+    flex:0 0 auto;
+    width:min(78vh, 680px);
+    max-width:680px;
+    gap:0;
+  }
+  html[data-desktop="true"] .board-wrap{
+    max-width:100%;
+    max-height:78vh;
+    width:auto;
+    height:78vh;
+    margin:0;
+  }
+  html[data-desktop="true"] .toolbar{
+    flex-direction:column;
+    gap:12px;
+    padding:0;
+    flex:0 0 auto;
+  }
+  html[data-desktop="true"] .tool-btn{
+    max-width:none;
+    width:130px;
+    height:54px;
   }
 </style>
 </head>
@@ -1028,11 +1109,13 @@
       <div class="logo-mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 8h4a4 4 0 0 1 4 4v0a4 4 0 0 0 4 4h4"/>
+          <path d="M4 16h4a4 4 0 0 0 4-4v0a4 4 0 0 1 4-4h4"/>
           <circle cx="4" cy="8" r="2" fill="currentColor" stroke="none"/>
           <circle cx="20" cy="16" r="2" fill="currentColor" stroke="none"/>
-          <path d="M4 16h4a4 4 0 0 0 4-4v0a4 4 0 0 1 4-4h4"/>
           <circle cx="4" cy="16" r="2" fill="currentColor" stroke="none"/>
           <circle cx="20" cy="8" r="2" fill="currentColor" stroke="none"/>
+          <circle class="flow-dot flow-dot-1" r="1.4" cx="0" cy="0"/>
+          <circle class="flow-dot flow-dot-2" r="1.4" cx="0" cy="0"/>
         </svg>
       </div>
     </div>
@@ -1189,13 +1272,6 @@
     </div>
 
     <div class="stats-section">
-      <h3>Performance by Difficulty</h3>
-      <div class="perf-row"><span class="perf-name">Easy</span><div class="perf-bar"><div class="fill" id="perfEasy" style="width:0%"></div></div><span class="perf-val" id="perfEasyVal">0%</span></div>
-      <div class="perf-row"><span class="perf-name">Medium</span><div class="perf-bar"><div class="fill" id="perfMedium" style="width:0%"></div></div><span class="perf-val" id="perfMediumVal">0%</span></div>
-      <div class="perf-row"><span class="perf-name">Hard</span><div class="perf-bar"><div class="fill" id="perfHard" style="width:0%"></div></div><span class="perf-val" id="perfHardVal">0%</span></div>
-    </div>
-
-    <div class="stats-section">
       <h3>Achievements <span style="color:var(--ink-2);font-weight:600;font-size:12px;" id="achCount"></span></h3>
       <div class="ach-grid" id="achGrid"></div>
     </div>
@@ -1263,9 +1339,6 @@
       <div class="timer" role="timer" aria-label="Elapsed time">
         <span id="timeLabel">0:00</span>
         <span class="limit" id="timeLimitLabel"></span>
-        <button id="pauseBtn" data-action="pause" aria-label="Pause game" title="Pause (Esc)">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
-        </button>
       </div>
     </div>
 
@@ -1276,6 +1349,11 @@
           <canvas class="path-layer" id="pathLayer" aria-hidden="true"></canvas>
           <div id="endpointsLayer" aria-hidden="true"></div>
           <div id="portalsLayer" aria-hidden="true"></div>
+        </div>
+
+        <div class="loading-overlay" id="loadingOverlay" aria-live="polite">
+          <div class="loading-spinner" aria-hidden="true"></div>
+          <div class="loading-text">Generating puzzle…</div>
         </div>
 
         <div class="tut-overlay" id="tutOverlay" role="dialog" aria-modal="true">
@@ -1328,13 +1406,13 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="toolbar">
-        <button class="tool-btn" data-action="replay" aria-label="Reset (R)" title="Reset (R)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
-          Reset
-        </button>
-      </div>
+    <div class="toolbar">
+      <button class="tool-btn" data-action="replay" aria-label="Reset (R)" title="Reset (R)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset
+      </button>
     </div>
   </div>
 </div>
@@ -1430,14 +1508,13 @@
     osc.connect(gain); gain.connect(ctx.destination);
     osc.start(t); osc.stop(t + duration + 0.03);
   }
-  function sfxConnect(){ playTone(560, 0.06, 'sine', 0.06); }
-  function sfxEndpointPick(){ playTone(440, 0.05, 'triangle', 0.06); }
-  function sfxPathComplete(){
-    var ctx = getCtx(); if(!ctx) return; var now = ctx.currentTime;
-    playTone(523.25, 0.1, 'sine', 0.08, now);
-    playTone(659.25, 0.1, 'sine', 0.08, now + 0.07);
-    playTone(783.99, 0.14, 'sine', 0.08, now + 0.14);
+  function sfxConnect(pathLen){
+    var base = 440;
+    var step = Math.min(pathLen || 0, 12) * 28;
+    var freq = base + step;
+    playTone(freq, 0.055, 'sine', 0.055);
   }
+  function sfxEndpointPick(){ playTone(440, 0.05, 'triangle', 0.06); }
   function sfxWin(){
     var ctx = getCtx(); if(!ctx) return; var now = ctx.currentTime;
     [523.25, 659.25, 783.99, 1046.5].forEach(function(n, i){ playTone(n, 0.18, 'sine', 0.1, now + i * 0.09); });
@@ -1454,7 +1531,6 @@
     playTone(1567.98, 0.24, 'triangle', 0.1, now + 0.16);
   }
   function sfxButton(){ playTone(320, 0.04, 'square', 0.04); }
-  function sfxError(){ playTone(180, 0.1, 'sawtooth', 0.05); }
   function sfxPortal(){ playTone(1200, 0.12, 'sine', 0.07); playTone(1600, 0.16, 'sine', 0.05, getCtx() ? getCtx().currentTime + 0.06 : 0); }
 
   /* ============================================================
@@ -1911,8 +1987,6 @@
       statJourneyPct=$('statJourneyPct'), statMoves=$('statMoves');
   var best5=$('best5'), best6=$('best6'), best7=$('best7'),
       best8=$('best8'), best9=$('best9'), best10=$('best10');
-  var perfEasy=$('perfEasy'), perfMedium=$('perfMedium'), perfHard=$('perfHard'),
-      perfEasyVal=$('perfEasyVal'), perfMediumVal=$('perfMediumVal'), perfHardVal=$('perfHardVal');
   var achGrid=$('achGrid'), achCount=$('achCount');
   var gameLevelNum=$('gameLevelNum'), gameLevelSize=$('gameLevelSize');
   var wrap=$('boardWrap'), boardInner=$('boardInner'), gridBg=$('gridBg');
@@ -1925,6 +1999,7 @@
   var pauseOverlay=$('pauseOverlay');
   var tutOverlay=$('tutOverlay'), tutTitle=$('tutTitle'), tutText=$('tutText');
   var journeyProgressLabel = $('journeyProgressLabel');
+  var loadingOverlay=$('loadingOverlay');
 
   /* ============================================================
      MODAL FOCUS
@@ -2184,7 +2259,6 @@
     void wrap.offsetWidth;
     if(isObstacle) wrap.classList.add('invalid-obstacle');
     else wrap.classList.add('invalid');
-    if(navigator.vibrate) navigator.vibrate(isObstacle ? 22 : 15);
   }
 
   function computeStars(ms, size, moves, optimalMoves){
@@ -2234,7 +2308,6 @@
       var done = isComplete(i);
       if(done && !wasComplete[i]){
         fireConnectPulse(i);
-        sfxPathComplete();
       }
       wasComplete[i] = done;
       if(done) linked++;
@@ -2316,10 +2389,8 @@
       var newlyUnlocked = checkAchievements();
       saveProgress(progress);
       if(newlyUnlocked.length){
-        var lastId = newlyUnlocked[newlyUnlocked.length-1];
         setTimeout(function(){
-          showAchievementToast(ACH_BY_ID[lastId], false);
-          sfxAchievement();
+          queueAchievementToasts(newlyUnlocked);
         }, 1100);
       }
     }
@@ -2583,13 +2654,11 @@
     return [r,c];
   }
 
-  /* Completed color cannot be extended */
   function stepPath(color, cell){
     var p = paths[color];
     if(!p.length) return false;
 
     if(isComplete(color)){
-      sfxError();
       return false;
     }
 
@@ -2610,16 +2679,16 @@
     }
     var otherEndpointColor = endpointColorAt(cell);
     if(otherEndpointColor !== null && otherEndpointColor !== color){
-      flashInvalid(cell, false); sfxError(); return false;
+      flashInvalid(cell, false); return false;
     }
     var occ = ownerAt(cell);
     if(occ !== null && occ !== color){
-      flashInvalid(cell, isBlockedCell(cell[0], cell[1])); sfxError(); return false;
+      flashInvalid(cell, isBlockedCell(cell[0], cell[1])); return false;
     }
     var fromIdx = p.length - 1;
     p.push(cell);
     moveCount++;
-    sfxConnect();
+    sfxConnect(p.length);
     syncCellFill(cell[0], cell[1], color);
     animateSegment(color, fromIdx, fromIdx + 1);
     var portal = portalAt(cell);
@@ -2671,7 +2740,6 @@
     var occ = ownerAt(cell);
     if(occ !== null){
       if(isComplete(occ)){
-        sfxError();
         return;
       }
       var idx = paths[occ].findIndex(function(pt){ return samePos(pt, cell); });
@@ -2758,15 +2826,7 @@
     stopTimer();
     startedAt = null; pausedAt = null; isPaused = false; elapsedBeforePause = 0;
     timeLabel.textContent = '0:00';
-    setPauseIcon(false);
     pauseOverlay.classList.remove('show');
-  }
-  function setPauseIcon(pausedState){
-    var btn = $('pauseBtn');
-    if(!btn) return;
-    btn.innerHTML = pausedState
-      ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="7 5 19 12 7 19"/></svg>'
-      : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
   }
   function enterPause(){
     if(startedAt === null && pausedAt === null && elapsedBeforePause === 0) return;
@@ -2774,7 +2834,6 @@
     isPaused = true;
     if(startedAt !== null) pausedAt = Date.now() - startedAt;
     stopTimer();
-    setPauseIcon(true);
     pauseOverlay.classList.add('show');
     pointerHeld = false;
     activeColor = null;
@@ -2797,9 +2856,19 @@
         timeLabel.textContent = formatTime(Date.now() - startedAt);
       }, 250);
     }
-    setPauseIcon(false);
     releaseModalFocus();
   }
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.hidden && gameScreen.classList.contains('active') && !isPaused && !solvedFlag){
+      enterPause();
+    }
+  });
+  window.addEventListener('blur', function(){
+    if(gameScreen.classList.contains('active') && !isPaused && !solvedFlag){
+      enterPause();
+    }
+  });
 
   var puzzleOptimalMoves = 0;
 
@@ -2827,6 +2896,41 @@
     buildGridBg(); buildEndpoints(); buildPortals();
     requestAnimationFrame(function(){ layout(); checkWin(); });
   }
+
+  /* ---------- Async puzzle loading ---------- */
+  function showLoading(){
+    if(loadingOverlay) loadingOverlay.classList.add('show');
+  }
+  function hideLoading(){
+    if(loadingOverlay) loadingOverlay.classList.remove('show');
+  }
+  function loadLevelAsync(n){
+    showLoading();
+    setTimeout(function(){
+      try{
+        loadLevel(n);
+      } catch(err){
+        console.error('loadLevel error:', err);
+      } finally {
+        hideLoading();
+        requestAnimationFrame(function(){ layout(); checkWin(); });
+      }
+    }, 0);
+  }
+  function loadCustomAsync(size, diff){
+    showLoading();
+    setTimeout(function(){
+      try{
+        loadCustom(size, diff);
+      } catch(err){
+        console.error('loadCustom error:', err);
+      } finally {
+        hideLoading();
+        requestAnimationFrame(function(){ layout(); checkWin(); });
+      }
+    }, 0);
+  }
+
   function loadLevel(n){
     isCustomMode = false;
     currentLevel = Math.max(1, Math.min(n, TOTAL_LEVELS));
@@ -2860,7 +2964,7 @@
   function goToNextLevel(){
     if(isCustomMode) return;
     if(currentLevel >= TOTAL_LEVELS) return;
-    loadLevel(currentLevel + 1);
+    loadLevelAsync(currentLevel + 1);
   }
   function replayLevel(){
     if(!solvedFlag){
@@ -2892,6 +2996,14 @@
     { id:'scene3', name:'Twilight',levels:[81, 120],from:{h:'#1a1628', s:'#241d3a'}, to:{h:'#0f0a1a', s:'#1a1628'}, sun:true,  sunColor:'#e0a0d0', stars:true },
     { id:'scene4', name:'Aurora',  levels:[121, 160],from:{h:'#0a1a28', s:'#0f2840'}, to:{h:'#050d16', s:'#0a1a28'}, sun:false, stars:true },
     { id:'scene5', name:'Ember',   levels:[161, 200],from:{h:'#2a1418', s:'#3a1c20'}, to:{h:'#140a0c', s:'#2a1418'}, sun:true,  sunColor:'#ffb07a', stars:true }
+  ];
+
+  var LIGHT_SCENES = [
+    { id:'lscene1', name:'Morning', levels:[1, 40],  from:{h:'#e8f0f8', s:'#dce8f4'}, to:{h:'#f4f8fb', s:'#eef3f7'}, sun:true,  sunColor:'#ffe0b0', stars:false },
+    { id:'lscene2', name:'Meadow',  levels:[41, 80], from:{h:'#eef7ee', s:'#e0f0e0'}, to:{h:'#f4faf4', s:'#eef6ee'}, sun:false, stars:false },
+    { id:'lscene3', name:'Lilac',   levels:[81, 120],from:{h:'#f0ecf8', s:'#e8e0f4'}, to:{h:'#f8f4fc', s:'#f0ecf8'}, sun:true,  sunColor:'#f0d0e8', stars:false },
+    { id:'lscene4', name:'Breeze',  levels:[121, 160],from:{h:'#e8f4fc', s:'#dcecf8'}, to:{h:'#f0f8fc', s:'#e8f2f8'}, sun:false, stars:false },
+    { id:'lscene5', name:'Peach',   levels:[161, 200],from:{h:'#fcf0e8', s:'#f8e4d8'}, to:{h:'#fcf6f0', s:'#f8ece4'}, sun:true,  sunColor:'#ffd0a8', stars:false }
   ];
 
   var WORLD_LABELS = {
@@ -3074,9 +3186,11 @@
     sceneContainer.innerHTML = '';
 
     var theme = document.documentElement.getAttribute('data-theme');
-    var fadeColor = theme === 'light' ? '#eef3f7' : '#0a1118';
+    var isLight = theme === 'light';
+    var fadeColor = isLight ? '#eef3f7' : '#0a1118';
+    var scenesToUse = isLight ? LIGHT_SCENES : SCENES;
 
-    var sceneRanges = SCENES.map(function(sc){
+    var sceneRanges = scenesToUse.map(function(sc){
       var startIdx = sc.levels[0] - 1;
       var endIdx = sc.levels[1] - 1;
       var startY = positions[Math.max(0, startIdx)].y - 120;
@@ -3299,18 +3413,6 @@
         bar.className = 'line-bar';
         lockLine.appendChild(bar);
 
-        var chainL = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        chainL.setAttribute('class', 'lock-chain left');
-        chainL.setAttribute('viewBox', '0 0 24 24');
-        chainL.innerHTML = '';
-        lockLine.appendChild(chainL);
-
-        var chainR = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        chainR.setAttribute('class', 'lock-chain right');
-        chainR.setAttribute('viewBox', '0 0 24 24');
-        chainR.innerHTML = '';
-        lockLine.appendChild(chainR);
-
         var badge = document.createElement('div');
         badge.className = 'lock-badge';
         var need = Math.max(0, region.unlockStars - starsEarnedBeforeRegion(idx));
@@ -3395,26 +3497,6 @@
     best9.textContent = bt[9] ? formatPrecise(bt[9]) : '—';
     best10.textContent = bt[10] ? formatPrecise(bt[10]) : '—';
 
-    function totalLevelsForDiff(diff){
-      var c = 0;
-      for(var n=1;n<=TOTAL_LEVELS;n++){ if(levelConfig(n).difficulty === diff) c++; }
-      return c;
-    }
-    function solvedLevelsForDiff(diff){
-      var c = 0;
-      for(var n=1;n<=TOTAL_LEVELS;n++){
-        if(levelConfig(n).difficulty === diff && progress.stars[n] > 0) c++;
-      }
-      return c;
-    }
-    var eTotal = totalLevelsForDiff('easy'), mTotal = totalLevelsForDiff('medium'), hTotal = totalLevelsForDiff('hard');
-    var eSolved = solvedLevelsForDiff('easy'), mSolved = solvedLevelsForDiff('medium'), hSolved = solvedLevelsForDiff('hard');
-    var eRate = eTotal > 0 ? Math.round((eSolved / eTotal) * 100) : 0;
-    var mRate = mTotal > 0 ? Math.round((mSolved / mTotal) * 100) : 0;
-    var hRate = hTotal > 0 ? Math.round((hSolved / hTotal) * 100) : 0;
-    perfEasy.style.width = eRate + '%'; perfMedium.style.width = mRate + '%'; perfHard.style.width = hRate + '%';
-    perfEasyVal.textContent = eRate + '%'; perfMediumVal.textContent = mRate + '%'; perfHardVal.textContent = hRate + '%';
-
     achGrid.innerHTML = '';
     ACHIEVEMENTS.forEach(function(a){
       var unlocked = !!progress.achievements[a.id];
@@ -3435,9 +3517,12 @@
   }
 
   /* ============================================================
-     TOAST
+     TOAST + QUEUE
      ============================================================ */
   var toastTimer = null;
+  var toastQueue = [];
+  var toastShowing = false;
+
   function showAchievementToast(ach, locked){
     if(!ach) return;
     achToast.classList.remove('cat-progress','cat-size','cat-speed','cat-perfect','cat-collect','cat-misc');
@@ -3454,9 +3539,33 @@
     toastTimer = setTimeout(function(){ achToast.classList.remove('show'); }, 3400);
   }
 
+  function queueAchievementToasts(ids){
+    if(!ids || !ids.length) return;
+    ids.forEach(function(id){
+      var a = ACH_BY_ID[id];
+      if(a) toastQueue.push({ ach: a, locked: false });
+    });
+    if(!toastShowing) processToastQueue();
+  }
+  function processToastQueue(){
+    if(!toastQueue.length){ toastShowing = false; return; }
+    toastShowing = true;
+    var item = toastQueue.shift();
+    showAchievementToast(item.ach, item.locked);
+    sfxAchievement();
+    setTimeout(function(){
+      achToast.classList.remove('show');
+      setTimeout(function(){
+        processToastQueue();
+      }, 350);
+    }, 3400);
+  }
+
   achToast.addEventListener('click', function(){
     if(toastTimer) clearTimeout(toastTimer);
     achToast.classList.remove('show');
+    toastQueue = [];
+    toastShowing = false;
   });
 
   /* ============================================================
@@ -3509,25 +3618,22 @@
         renderDiffOptions();
         sfxButton(); break;
       case 'start-puzzle':
-        loadCustom(setupSize, setupDiff);
         showScreen(gameScreen);
-        requestAnimationFrame(function(){ layout(); checkWin(); });
+        loadCustomAsync(setupSize, setupDiff);
         break;
       case 'level':
         var n = +level;
         var regionIdx = regionIndexForLevel(n);
-        if(!isRegionUnlocked(regionIdx)){ sfxError(); break; }
-        if(n > progress.unlocked){ sfxError(); break; }
-        loadLevel(n);
+        if(!isRegionUnlocked(regionIdx)){ break; }
+        if(n > progress.unlocked){ break; }
         showScreen(gameScreen);
-        requestAnimationFrame(function(){ layout(); checkWin(); });
+        loadLevelAsync(n);
         break;
       case 'replay':
         replayLevel();
         if(pauseOverlay.classList.contains('show')){
           pauseOverlay.classList.remove('show');
           isPaused = false;
-          setPauseIcon(false);
           releaseModalFocus();
         }
         break;
@@ -3558,7 +3664,7 @@
           actionEl.classList.add('selected');
           var unlocked = !!progress.achievements[achId];
           showAchievementToast(a, !unlocked);
-          if(!unlocked) sfxError(); else sfxButton();
+          if(unlocked) sfxButton();
         }
         break;
       case 'set-theme':
@@ -3643,6 +3749,16 @@
   }
 
   /* ============================================================
+     DESKTOP DETECTION
+     ============================================================ */
+  function updateDesktopMode(){
+    var isDesktop = window.matchMedia('(min-width: 900px) and (pointer: fine)').matches;
+    if(isDesktop) document.documentElement.setAttribute('data-desktop', 'true');
+    else document.documentElement.removeAttribute('data-desktop');
+  }
+  updateDesktopMode();
+
+  /* ============================================================
      INIT
      ============================================================ */
   try {
@@ -3696,6 +3812,7 @@
 
   var resizeTimer = null;
   window.addEventListener('resize', function(){
+    updateDesktopMode();
     if(gameScreen.classList.contains('active')) layout();
     if(journeyScreen.classList.contains('active')){
       clearTimeout(resizeTimer);
@@ -3704,6 +3821,7 @@
   });
   window.addEventListener('orientationchange', function(){
     setTimeout(function(){
+      updateDesktopMode();
       if(gameScreen.classList.contains('active')) layout();
       if(journeyScreen.classList.contains('active')) renderMap();
     }, 300);

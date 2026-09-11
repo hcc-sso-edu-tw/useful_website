@@ -15,7 +15,8 @@ https://hcc-sso-edu-tw.github.io/useful_website/
 * [chat site](https://hcc-sso-edu-tw.github.io/chat-site)
   
 # Games
-* [line](https://hcc-sso-edu-tw.github.io/useful_website/Lumenflow.html)
+* [line2](https://hcc-sso-edu-tw.github.io/useful_website/line2.html)
+* [line](https://hcc-sso-edu-tw.github.io/useful_website/line.html)
 * [stock](https://hcc-sso-edu-tw.github.io/useful_website/stock.html)
 * [meccha-chameleon](https://hcc-sso-edu-tw.github.io/useful_website/meccha-chameleon/meccha-chameleon.html)
 * [billiards-3d](https://hcc-sso-edu-tw.github.io/useful_website/billiards-3d/billiards-3d.html)

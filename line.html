@@ -86,20 +86,19 @@
   }
   .cheat-hit{
     position:absolute;
-    left:-56px;              /* 移到 logo 左邊 */
+    left:-56px;
     top:50%;
     transform:translateY(-50%);
-    width:48px;height:48px;   /* 保留可點範圍 */
+    width:48px;height:48px;
     padding:0;margin:0;border:0;
     background:transparent;
-    opacity:0;                /* 完全看不到 */
-    pointer-events:auto;      /* 仍可點擊 */
+    opacity:0;
+    pointer-events:auto;
     cursor:default;
     outline:none;
     -webkit-tap-highlight-color:transparent;
   }
   .cheat-hit:focus{outline:none;}
-  /* 手機窄屏時，左邊空間不足就往內縮一點，避免超出畫面 */
   @media (max-width:380px){
     .cheat-hit{left:-40px;width:40px;height:40px;}
   }
@@ -703,7 +702,8 @@
     100%{background:transparent;}
   }
   .portal-cell{
-    position:absolute;pointer-events:none;z-index:4;
+    position:absolute;pointer-events:none;
+    z-index:1;
     display:flex;align-items:center;justify-content:center;border-radius:50%;
     background:radial-gradient(circle at 30% 30%,rgba(138,95,214,.55),rgba(138,95,214,.1));
     border:2px solid var(--portal);
@@ -1692,93 +1692,348 @@
     };
   }
 
-  function generatePortalsFromPath(path, blocked, rnd, maxPortals){
-    var portals = [];
-    var pathLen = path.length;
-    if(pathLen < 8) return portals;
-    var attempts = 0;
-    var used = new Set();
-    while(portals.length < maxPortals && attempts < 40){
-      attempts++;
-      var midStart = 3;
-      var midEnd = pathLen - 3;
-      if(midEnd - midStart < 4) break;
-      var aIdx = midStart + Math.floor(rnd() * (midEnd - midStart - 3));
-      var bOffset = 2 + Math.floor(rnd() * 4);
-      var bIdx = aIdx + bOffset;
-      if(bIdx >= midEnd) continue;
-      var aCell = path[aIdx];
-      var bCell = path[bIdx];
-      var aKey = aCell[0] * 1000 + aCell[1];
-      var bKey = bCell[0] * 1000 + bCell[1];
-      if(used.has(aKey) || used.has(bKey)) continue;
-      used.add(aKey); used.add(bKey);
-      portals.push({ a: aCell, b: bCell });
+  /* ============================================================
+     PORTAL-AWARE PUZZLE GENERATOR (FIXED)
+     ------------------------------------------------------------
+     流程：
+       1. 生成 Hamiltonian path（可含障礙）
+       2. 挑選合法的 A-M-B 三連格，把 M 從 path 移除、A-B 直接相連
+       3. 對「修改後」的 path 切色 → 得到 endpoints
+       4. 用 solver 驗證：
+          a. 關卡可解，且所有非障礙格被填滿
+          b. 把傳送門關掉後「無解」（傳送門是必要的）
+       5. 驗證失敗 → 換 seed 重試；最終失敗 → 回傳無傳送門版本
+     ============================================================ */
+
+  /**
+   * 輕量 solver：驗證「在給定 endpoints 與 blocked 下，是否能填滿所有非障礙格」。
+   * 支援傳送門瞬移。時間預算內若無法確定可解，回傳 false（保守）。
+   */
+  function solvePuzzle(endpoints, blocked, rows, cols, portals, usePortals, timeBudgetMs){
+    timeBudgetMs = timeBudgetMs || 80;
+    var startTime = Date.now();
+    var N = rows * cols;
+    var totalEndpoints = endpoints.length;
+
+    var portalMap = {};
+    if(usePortals && portals && portals.length){
+      for(var pi = 0; pi < portals.length; pi++){
+        var p = portals[pi];
+        var ak = p.a[0] * cols + p.a[1];
+        var bk = p.b[0] * cols + p.b[1];
+        portalMap[ak] = bk;
+        portalMap[bk] = ak;
+      }
     }
-    return portals;
+
+    var owner = new Int16Array(N);
+    for(var i = 0; i < N; i++) owner[i] = -1;
+    blocked.forEach(function(k){ owner[k] = -2; });
+
+    for(var c = 0; c < totalEndpoints; c++){
+      var e0 = endpoints[c][0], e1 = endpoints[c][1];
+      owner[e0[0] * cols + e0[1]] = c;
+      owner[e1[0] * cols + e1[1]] = c;
+    }
+
+    var dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+    function timeout(){ return (Date.now() - startTime) > timeBudgetMs; }
+
+    function neighborsOf(r, c, color){
+      var out = [];
+      for(var d = 0; d < dirs.length; d++){
+        var nr = r + dirs[d][0];
+        var nc = c + dirs[d][1];
+        if(nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+        var nk = nr * cols + nc;
+        var o = owner[nk];
+        if(o === -2) continue;
+        if(o === color) continue;
+        if(o >= 0) continue;
+        out.push([nr, nc]);
+      }
+      return out;
+    }
+
+    function solveColor(colorIdx){
+      if(timeout()) return false;
+      if(colorIdx >= totalEndpoints){
+        for(var i = 0; i < N; i++){
+          if(owner[i] === -1) return false;
+        }
+        return true;
+      }
+
+      var start = endpoints[colorIdx][0];
+      var target = endpoints[colorIdx][1];
+      var startKey = start[0] * cols + start[1];
+      var targetKey = target[0] * cols + target[1];
+      var path = [startKey];
+
+      function dfs(r, c){
+        if(timeout()) return false;
+        var curKey = r * cols + c;
+        if(curKey === targetKey){
+          for(var i = 0; i < path.length; i++){
+            var pk = path[i];
+            if(owner[pk] === -1) owner[pk] = colorIdx;
+          }
+          if(solveColor(colorIdx + 1)) return true;
+          for(var j = 0; j < path.length; j++){
+            var pk2 = path[j];
+            if(pk2 !== startKey && pk2 !== targetKey){
+              owner[pk2] = -1;
+            }
+          }
+          return false;
+        }
+
+        var candidates = [];
+        var nbrs = neighborsOf(r, c, colorIdx);
+        for(var ni = 0; ni < nbrs.length; ni++){
+          candidates.push({ r: nbrs[ni][0], c: nbrs[ni][1] });
+        }
+
+        if(usePortals && portalMap[curKey] !== undefined){
+          var otherKey = portalMap[curKey];
+          var or = Math.floor(otherKey / cols);
+          var oc = otherKey % cols;
+          if(owner[otherKey] === -1 || otherKey === targetKey){
+            candidates.push({ r: or, c: oc });
+          }
+        }
+
+        for(var ci = 0; ci < candidates.length; ci++){
+          var cand = candidates[ci];
+          var nk = cand.r * cols + cand.c;
+          if(owner[nk] !== -1 && nk !== targetKey) continue;
+          if(path.indexOf(nk) !== -1) continue;
+
+          path.push(nk);
+          var oldOwner = owner[nk];
+          if(nk !== targetKey) owner[nk] = colorIdx;
+
+          if(dfs(cand.r, cand.c)) return true;
+
+          if(nk !== targetKey) owner[nk] = oldOwner;
+          path.pop();
+        }
+        return false;
+      }
+
+      if(dfs(start[0], start[1])) return true;
+      return false;
+    }
+
+    return solveColor(0);
   }
 
-  function generatePuzzle(size,difficulty,seedExtra,levelNum){
-    var seed;
-    if(levelNum && levelNum > 0){
-      seed = (levelNum * 2654435761) >>> 0;
-      seed = (seed ^ (size * 40503) ^ (difficulty.length * 97)) >>> 0;
-    } else {
-      seed = ((seedExtra || Date.now()) * 2654435761) >>> 0;
+  /**
+   * 驗證「關卡可解」且「傳送門是必要的」。
+   */
+  function validatePuzzle(endpoints, blocked, rows, cols, portals){
+    var solvableWithPortals = solvePuzzle(endpoints, blocked, rows, cols, portals, true, 100);
+    if(!solvableWithPortals) return false;
+
+    if(portals && portals.length > 0){
+      var solvableWithoutPortals = solvePuzzle(endpoints, blocked, rows, cols, portals, false, 100);
+      if(solvableWithoutPortals) return false;
     }
-    if(seed === 0) seed = 1;
-    var rnd = mulberry32(seed);
+    return true;
+  }
+
+  /**
+   * 在切色前挑選傳送門候選。
+   * 合法性：
+   *   - A、M、B 必須是 path 上連續三格
+   *   - M 至少有一個鄰居不在 {A,M,B} 內（避免 M 變成孤島）
+   *   - 三格不能與既有傳送門重複使用
+   * 回傳 { portals, newPath }，newPath 已把 M 移除、A-B 直接相連。
+   */
+  function pickPortalCandidates(path, blocked, rnd, maxPortals){
+    var portals = [];
+    var used = new Set();
+    var workingPath = path.slice();
+    var attempts = 0;
+    var maxAttempts = 120;
+
+    while(portals.length < maxPortals && attempts < maxAttempts){
+      attempts++;
+      if(workingPath.length < 10) break;
+
+      var start = 2;
+      var end = workingPath.length - 3;
+      if(end - start < 3) break;
+
+      var aIdx = start + Math.floor(rnd() * (end - start - 2));
+      var mIdx = aIdx + 1;
+      var bIdx = aIdx + 2;
+
+      var aCell = workingPath[aIdx];
+      var mCell = workingPath[mIdx];
+      var bCell = workingPath[bIdx];
+
+      var aKey = aCell[0] * 1000 + aCell[1];
+      var bKey = bCell[0] * 1000 + bCell[1];
+      var mKey = mCell[0] * 1000 + mCell[1];
+
+      if(used.has(aKey) || used.has(bKey) || used.has(mKey)) continue;
+
+      var hasExternalNeighbor = false;
+      var dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+      for(var d = 0; d < dirs.length; d++){
+        var nr = mCell[0] + dirs[d][0];
+        var nc = mCell[1] + dirs[d][1];
+        var nKey = nr * 1000 + nc;
+        if(nKey !== aKey && nKey !== bKey && nKey !== mKey){
+          hasExternalNeighbor = true;
+          break;
+        }
+      }
+      if(!hasExternalNeighbor) continue;
+
+      used.add(aKey); used.add(bKey); used.add(mKey);
+      portals.push({ a: aCell, b: bCell, middle: mCell });
+      workingPath.splice(mIdx, 1);
+    }
+
+    return { portals: portals, newPath: workingPath };
+  }
+
+  /**
+   * 生成關卡主函式。回傳格式與原本相同。
+   */
+  function generatePuzzle(size, difficulty, seedExtra, levelNum){
+    var MAX_RETRIES = 8;
+    var baseSeed;
+    if(levelNum && levelNum > 0){
+      baseSeed = (levelNum * 2654435761) >>> 0;
+      baseSeed = (baseSeed ^ (size * 40503) ^ (difficulty.length * 97)) >>> 0;
+    } else {
+      baseSeed = ((seedExtra || Date.now()) * 2654435761) >>> 0;
+    }
+    if(baseSeed === 0) baseSeed = 1;
+
     var k = colorCountFor(size, difficulty);
 
-    var variations = { obstacles:false, portals:false };
+    var wantsPortals = false;
     if(levelNum && levelNum > 3){
-      var lv = levelNum;
-      if(lv >= 5 && lv % 7 === 0) variations.obstacles = true;
-      if(lv >= 8 && lv % 11 === 0) variations.portals = true;
+      if(levelNum >= 8 && levelNum % 11 === 0) wantsPortals = true;
+    }
+
+    var wantsObstacles = false;
+    if(levelNum && levelNum > 3){
+      if(levelNum >= 5 && levelNum % 7 === 0) wantsObstacles = true;
     }
 
     var blocked = new Set();
-    if(variations.obstacles){
-      var numBlocked = 1 + Math.floor(rnd() * 2);
+    if(wantsObstacles){
+      var obsRnd = mulberry32(baseSeed ^ 0x9E3779B9);
+      var numBlocked = 1 + Math.floor(obsRnd() * 2);
       var tries = 0;
       while(blocked.size < numBlocked && tries < 50){
-        var r = Math.floor(rnd()*size), c = Math.floor(rnd()*size);
-        var key = r*size+c;
-        var isCorner = (r===0||r===size-1) && (c===0||c===size-1);
+        var r = Math.floor(obsRnd() * size);
+        var c = Math.floor(obsRnd() * size);
+        var key = r * size + c;
+        var isCorner = (r === 0 || r === size - 1) && (c === 0 || c === size - 1);
         if(!blocked.has(key) && !isCorner) blocked.add(key);
         tries++;
       }
     }
 
-    var path = null;
-    for(var attempt=0;attempt<12&&!path;attempt++){
-      path = randomHamiltonianPath(size,size,rnd,blocked);
-    }
-    if(!path){
-      blocked.clear();
-      variations.obstacles = false;
-      for(var attempt=0;attempt<12&&!path;attempt++){
-        path = randomHamiltonianPath(size,size,rnd,blocked);
+    var attempt = 0;
+    var maxAttempts = wantsPortals ? MAX_RETRIES : 1;
+
+    while(attempt < maxAttempts){
+      attempt++;
+      var seed = (baseSeed + attempt * 2654435761) >>> 0;
+      if(seed === 0) seed = 1;
+      var rnd = mulberry32(seed);
+
+      var path = null;
+      for(var a = 0; a < 12 && !path; a++){
+        path = randomHamiltonianPath(size, size, rnd, blocked);
       }
-      if(!path) path = snakePath(size,size);
+      if(!path){
+        blocked.clear();
+        for(var a2 = 0; a2 < 12 && !path; a2++){
+          path = randomHamiltonianPath(size, size, rnd, blocked);
+        }
+        if(!path) path = snakePath(size, size);
+      }
+
+      var portals = [];
+      var workingPath = path;
+
+      if(wantsPortals){
+        var pick = pickPortalCandidates(path, blocked, rnd, 1);
+        if(pick.portals.length > 0){
+          portals = pick.portals;
+          workingPath = pick.newPath;
+        } else {
+          portals = [];
+          workingPath = path;
+        }
+      }
+
+      var endpoints = sliceIntoColors(workingPath, k, rnd);
+      if(!endpoints) continue;
+      var colors = generatePalette(endpoints.length, rnd);
+
+      if(portals.length === 0){
+        var okNoPortal = solvePuzzle(endpoints, blocked, size, size, [], false, 100);
+        if(okNoPortal){
+          return {
+            rows: size, cols: size, endpoints: endpoints, colors: colors,
+            blocked: Array.from(blocked),
+            portals: [], variations: { obstacles: wantsObstacles, portals: false },
+            optimalMoves: workingPath.length
+          };
+        } else {
+          continue;
+        }
+      }
+
+      var valid = validatePuzzle(endpoints, blocked, size, size, portals);
+      if(valid){
+        return {
+          rows: size, cols: size, endpoints: endpoints, colors: colors,
+          blocked: Array.from(blocked),
+          portals: portals,
+          variations: { obstacles: wantsObstacles, portals: true },
+          optimalMoves: workingPath.length
+        };
+      }
     }
 
-    var endpoints = sliceIntoColors(path,k,rnd);
-    if(!endpoints){ endpoints = sliceIntoColors(snakePath(size,size),k,rnd); }
-    var colors = generatePalette(endpoints.length,rnd);
+    var fallbackSeed = (baseSeed + 999 * 2654435761) >>> 0;
+    if(fallbackSeed === 0) fallbackSeed = 1;
+    var fallbackRnd = mulberry32(fallbackSeed);
 
-    var portals = [];
-    if(variations.portals){
-      var portalCount = 1 + Math.floor(rnd() * 2);
-      portals = generatePortalsFromPath(path, blocked, rnd, portalCount);
-      if(portals.length === 0) variations.portals = false;
+    var fallbackPath = null;
+    for(var fa = 0; fa < 12 && !fallbackPath; fa++){
+      fallbackPath = randomHamiltonianPath(size, size, fallbackRnd, blocked);
     }
+    if(!fallbackPath){
+      blocked.clear();
+      for(var fa2 = 0; fa2 < 12 && !fallbackPath; fa2++){
+        fallbackPath = randomHamiltonianPath(size, size, fallbackRnd, blocked);
+      }
+      if(!fallbackPath) fallbackPath = snakePath(size, size);
+    }
+
+    var fallbackEndpoints = sliceIntoColors(fallbackPath, k, fallbackRnd);
+    if(!fallbackEndpoints){
+      fallbackEndpoints = sliceIntoColors(snakePath(size, size), k, fallbackRnd);
+    }
+    var fallbackColors = generatePalette(fallbackEndpoints.length, fallbackRnd);
 
     return {
-      rows:size, cols:size, endpoints:endpoints, colors:colors,
+      rows: size, cols: size, endpoints: fallbackEndpoints, colors: fallbackColors,
       blocked: Array.from(blocked),
-      portals: portals, variations: variations,
-      optimalMoves: path.length
+      portals: [],
+      variations: { obstacles: wantsObstacles, portals: false },
+      optimalMoves: fallbackPath.length
     };
   }
 
@@ -2496,7 +2751,7 @@
   function cellCenter(p){ return [p[1]*cellSize + cellSize/2, p[0]*cellSize + cellSize/2]; }
 
   /* ============================================================
-     PATH DRAWING — right-angle corners, round caps
+     PATH DRAWING
      ============================================================ */
   function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
 
@@ -2916,7 +3171,6 @@
     requestAnimationFrame(function(){ layout(); checkWin(); });
   }
 
-  /* ---------- Async puzzle loading ---------- */
   function showLoading(){
     if(loadingOverlay) loadingOverlay.classList.add('show');
   }
@@ -3786,6 +4040,10 @@
     renderDiffOptions();
     applySettingsUI();
     applySoundUI();
+    if(journeyProgressLabel){
+      journeyProgressLabel.textContent =
+        Math.min(progress.unlocked, TOTAL_LEVELS) + ' / ' + TOTAL_LEVELS;
+    }
     showScreen(homeScreen);
   } catch(err) {
     console.error('Init error:', err);

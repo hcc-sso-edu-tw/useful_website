@@ -268,13 +268,16 @@
   .stat-card{background:var(--panel);border-radius:var(--radius-md);padding:18px 14px;border:1px solid var(--line-soft);box-shadow:var(--shadow-sm);}
   .stat-value{font-size:28px;font-weight:800;line-height:1;margin-bottom:6px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
   .stat-label{font-size:12px;color:var(--ink-1);font-weight:600;letter-spacing:.01em;}
-    .skip-hit{
+  .game-meta{
+    position:relative;   /* 讓 skip-hit 相對 game-meta 定位 */
+  }
+  .skip-hit{
     position:absolute;
-    right:-44px;
+    right:0;
     top:50%;
     transform:translateY(-50%);
-    width:40px;
-    height:40px;
+    width:44px;
+    height:44px;
     padding:0;
     margin:0;
     border:0;
@@ -284,19 +287,9 @@
     cursor:default;
     outline:none;
     -webkit-tap-highlight-color:transparent;
-    z-index:50;
+    z-index:10;
   }
   .skip-hit:focus{outline:none;}
-
-  /* 手機：放在棋盤下方偏右 */
-  @media (max-width:600px){
-    .skip-hit{
-      right:8px;
-      bottom:-48px;
-      top:auto;
-      transform:none;
-    }
-  }
   .stats-section{background:var(--panel);border-radius:var(--radius-lg);padding:18px;border:1px solid var(--line-soft);box-shadow:var(--shadow-sm);margin-bottom:14px;}
   .stats-section h3{margin:0 0 14px;font-size:14px;font-weight:700;letter-spacing:-.005em;}
   .stats-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:13.5px;color:var(--ink-1);border-bottom:1px solid var(--line-soft);}
@@ -795,12 +788,12 @@
       </div>
       <div style="width:60px;"></div>
     </div>
-
     <div class="game-meta">
       <div class="timer" role="timer" aria-label="Elapsed time">
         <span id="timeLabel">0:00</span>
         <span class="limit" id="timeLimitLabel"></span>
       </div>
+      <button class="skip-hit" id="skipHit" data-action="skip-level" aria-label="Skip level" tabindex="-1"></button>
     </div>
 
     <div class="board-shell">

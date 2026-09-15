@@ -1164,7 +1164,7 @@
   'use strict';
 
   var SIZES = [5, 6, 7, 8, 9, 10];
-  var TOTAL_LEVELS = 200;
+  var TOTAL_LEVELS = 240;
   var MAP_DATA = null;
   var TIME_LIMIT_MS = { 5:60000, 6:90000, 7:120000, 8:150000, 9:180000, 10:210000 };
 
@@ -1176,35 +1176,18 @@
   var REGIONS = [];
 
   function buildRegions(){
-    REGIONS = [];
-    if(!MAP_DATA || !MAP_DATA.length){
-      REGIONS = [
-        { size:5, name:'First Steps', from:1, to:40, unlockStars:0 },
-        { size:6, name:'Six by Six', from:41, to:80, unlockStars:20 },
-        { size:7, name:'Seven Heaven', from:81, to:120, unlockStars:50 },
-        { size:8, name:'Eight is Great', from:121, to:150, unlockStars:85 },
-        { size:9, name:'Big Board', from:151, to:175, unlockStars:125 },
-        { size:10, name:'Master Flow', from:176, to:200, unlockStars:170 }
-      ];
-      return;
-    }
-    var groups = [];
-    var cur = null;
-    for(var i=0;i<MAP_DATA.length;i++){
-      var sz = MAP_DATA[i].size || 5;
-      if(!cur || cur.size !== sz){
-        cur = { size: sz, from: i+1, to: i+1, count: 1 };
-        groups.push(cur);
-      } else { cur.to = i+1; cur.count++; }
-    }
-    var names = { 5:'First Steps', 6:'Six by Six', 7:'Seven Heaven', 8:'Eight is Great', 9:'Big Board', 10:'Master Flow' };
-    var cumulativeStars = 0;
-    groups.forEach(function(g, i){
-      g.name = names[g.size] || (g.size + 'x' + g.size);
-      g.unlockStars = (i === 0) ? 0 : Math.floor(cumulativeStars * 0.5);
-      cumulativeStars += g.count * 3;
-    });
-    REGIONS = groups;
+    REGIONS = [
+      { size:5, name:'Meadow',     from:1,   to:24,  unlockStars:0,   requireFullClear:false },
+      { size:5, name:'Desert',     from:25,  to:48,  unlockStars:8,   requireFullClear:false },
+      { size:6, name:'Ocean',      from:49,  to:72,  unlockStars:24,  requireFullClear:false },
+      { size:6, name:'Forest',     from:73,  to:96,  unlockStars:48,  requireFullClear:false },
+      { size:7, name:'Volcano',    from:97,  to:120, unlockStars:80,  requireFullClear:false },
+      { size:7, name:'Sky',        from:121, to:144, unlockStars:120, requireFullClear:false },
+      { size:5, name:'Meadow II',  from:145, to:168, unlockStars:0,   requireFullClear:true  },
+      { size:6, name:'Ocean II',   from:169, to:192, unlockStars:0,   requireFullClear:true  },
+      { size:7, name:'Volcano II', from:193, to:216, unlockStars:0,   requireFullClear:true  },
+      { size:7, name:'Sky II',     from:217, to:240, unlockStars:0,   requireFullClear:true  }
+    ];
   }
 
   function regionIndexForLevel(n){
@@ -1223,10 +1206,23 @@
     for(var i=0;i<idx;i++) sum += regionStarsEarned(REGIONS[i]);
     return sum;
   }
+  function isRegionFullyCleared(idx){
+    var region = REGIONS[idx];
+    if(!region) return false;
+    for(var n = region.from; n <= region.to; n++){
+      if((progress.stars[n] || 0) < 1) return false;
+    }
+    return true;
+  }
+
   function isRegionUnlocked(idx){
     if(idx === 0) return true;
     if(!REGIONS[idx]) return true;
-    return starsEarnedBeforeRegion(idx) >= REGIONS[idx].unlockStars;
+    var region = REGIONS[idx];
+    if(region.requireFullClear){
+      return isRegionFullyCleared(idx - 1);
+    }
+    return starsEarnedBeforeRegion(idx) >= region.unlockStars;
   }
 
   var STORAGE_KEY = 'lumenflow_progress_v15';
@@ -2780,12 +2776,16 @@
   }
 
   var WORLD_THEMES = [
-    { name:'Meadow', sky1:'#1a2e1a', sky2:'#0f1a10', accent:'#7ec97e', decor:'grass' },
-    { name:'Desert', sky1:'#3a2818', sky2:'#1f1408', accent:'#e8b23a', decor:'desert' },
-    { name:'Ocean', sky1:'#0f2233', sky2:'#08131f', accent:'#5bb8d8', decor:'ocean' },
-    { name:'Forest', sky1:'#0f1a14', sky2:'#050d08', accent:'#3fae6b', decor:'forest' },
-    { name:'Volcano', sky1:'#2a0f0a', sky2:'#150705', accent:'#e05a5a', decor:'volcano' },
-    { name:'Sky', sky1:'#1a1030', sky2:'#0a0818', accent:'#c084fc', decor:'sky' }
+    { name:'Meadow',     sky1:'#1a2e1a', sky2:'#0f1a10', accent:'#7ec97e', decor:'grass' },
+    { name:'Desert',     sky1:'#3a2818', sky2:'#1f1408', accent:'#e8b23a', decor:'desert' },
+    { name:'Ocean',      sky1:'#0f2233', sky2:'#08131f', accent:'#5bb8d8', decor:'ocean' },
+    { name:'Forest',     sky1:'#0f1a14', sky2:'#050d08', accent:'#3fae6b', decor:'forest' },
+    { name:'Volcano',    sky1:'#2a0f0a', sky2:'#150705', accent:'#e05a5a', decor:'volcano' },
+    { name:'Sky',        sky1:'#1a1030', sky2:'#0a0818', accent:'#c084fc', decor:'sky' },
+    { name:'Meadow II',  sky1:'#1a2e1a', sky2:'#0f1a10', accent:'#7ec97e', decor:'grass' },
+    { name:'Ocean II',   sky1:'#0f2233', sky2:'#08131f', accent:'#5bb8d8', decor:'ocean' },
+    { name:'Volcano II', sky1:'#2a0f0a', sky2:'#150705', accent:'#e05a5a', decor:'volcano' },
+    { name:'Sky II',     sky1:'#1a1030', sky2:'#0a0818', accent:'#c084fc', decor:'sky' }
   ];
 
   function shadeColor(hex, percent){
@@ -2920,7 +2920,27 @@
     for(var n = start; n <= end; n++){
       var stars = progress.stars[n] || 0;
       var done = stars > 0;
-      var locked = n > progress.unlocked || !isRegionUnlocked(worldIdx);
+      var regionUnlocked = isRegionUnlocked(worldIdx);
+
+      // 世界已解鎖時：該世界內已解過的關卡可玩，下一關（第一個未解鎖的）可玩，
+      // 更後面的關卡才鎖住。若整個世界都還沒開始，則第一關可玩。
+      var locked;
+      if(!regionUnlocked){
+        locked = true;
+      } else {
+        // 找出這個世界內「第一個還沒拿星的關卡」
+        var firstUnsolved = -1;
+        for(var k = region.from; k <= region.to; k++){
+          if((progress.stars[k] || 0) < 1){ firstUnsolved = k; break; }
+        }
+        if(firstUnsolved === -1){
+          // 全破，全部可玩
+          locked = false;
+        } else {
+          // 已解過的關卡可玩，第一個未解的可玩，之後的鎖住
+          locked = (n > firstUnsolved);
+        }
+      }
       var isCurrent = n === progress.unlocked;
       var cell = document.createElement('button');
       cell.type = 'button';
@@ -2976,14 +2996,14 @@
     root.style.setProperty('--world-bg', theme.sky2);
     root.style.setProperty('--world-accent', theme.accent);
     root.style.setProperty('--world-accent-dark', shadeColor(theme.accent, -35));
-    progressCount.textContent = Math.min(progress.unlocked, region.to) - region.from + 1;
+    var doneInRegion = Math.max(0, Math.min(progress.unlocked, region.to) - region.from + 1);
+    progressCount.textContent = doneInRegion;
     progressTotal.textContent = region.to - region.from + 1;
     var starsInRegion = 0;
     for(var n=region.from; n<=region.to; n++) starsInRegion += (progress.stars[n] || 0);
     totalStarsEl.textContent = starsInRegion;
-    var done = Math.min(progress.unlocked, region.to) - region.from + 1;
     var total = region.to - region.from + 1;
-    progressFill.style.width = Math.round((done/total)*100) + '%';
+    progressFill.style.width = Math.round((doneInRegion/total)*100) + '%';
     renderLevelSelect(worldIdx);
   }
 
@@ -3006,6 +3026,9 @@
     REGIONS.forEach(function(region, idx){
       var theme = WORLD_THEMES[idx] || WORLD_THEMES[WORLD_THEMES.length-1];
       var unlocked = isRegionUnlocked(idx);
+      if(!unlocked && region.requireFullClear){
+        return;
+      }
       var totalLevels = region.to - region.from + 1;
       var solvedLevels = 0;
       var starsInRegion = 0;
@@ -3039,10 +3062,16 @@
         '<div class="wc-progress"><div class="fill" style="width:' + pct + '%"></div></div>';
       card.appendChild(info);
       if(!unlocked){
-        var need = Math.max(0, region.unlockStars - starsEarnedBeforeRegion(idx));
+        var lockText = '';
+        if(region.requireFullClear){
+          lockText = 'Clear ' + REGIONS[idx - 1].name;
+        } else {
+          var need = Math.max(0, region.unlockStars - starsEarnedBeforeRegion(idx));
+          lockText = need + ' stars';
+        }
         var lock = document.createElement('div');
         lock.className = 'wc-lock';
-        lock.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>' + need + ' stars';
+        lock.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>' + lockText;
         card.appendChild(lock);
       }
       worldGrid.appendChild(card);
@@ -3056,6 +3085,11 @@
       case 3: return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M12 6L6 10M12 6l6 4M12 12l-6 4M12 12l6 4"/></svg>';
       case 4: return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22V8l4-6 4 6v14"/><path d="M5 22h14"/><path d="M12 8v6"/></svg>';
       case 5: return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+      // 後 4 個世界（II 系列）沿用對應主題圖示
+      case 6: return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 20V10l6-5 6 5v10"/><path d="M10 20v-5h4v5"/></svg>';
+      case 7: return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 18c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><circle cx="12" cy="6" r="2"/></svg>';
+      case 8: return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22V8l4-6 4 6v14"/><path d="M5 22h14"/><path d="M12 8v6"/></svg>';
+      case 9: return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
     }
     return '';
   }
@@ -3167,7 +3201,15 @@
         var wi = +actionEl.getAttribute('data-world');
         if(!isRegionUnlocked(wi)){ break; }
         currentWorldIdx = wi;
-        levelPage = 0;
+        // 自動跳到第一個未解關卡所在的頁
+        var reg = REGIONS[wi];
+        var firstUnsolved = reg.from;
+        for(var k = reg.from; k <= reg.to; k++){
+          if((progress.stars[k] || 0) < 1){ firstUnsolved = k; break; }
+          if(k === reg.to) firstUnsolved = reg.to; // 全破时停在最后一页
+        }
+        var pageOffset = firstUnsolved - reg.from;
+        levelPage = Math.floor(pageOffset / LEVELS_PER_PAGE);
         try { renderJourneyForWorld(wi); } catch(err){ console.error('renderJourneyForWorld error:', err); }
         showScreen(journeyScreen);
         sfxButton(); break;
@@ -3192,7 +3234,15 @@
         var n = +level;
         var regionIdx = regionIndexForLevel(n);
         if(!isRegionUnlocked(regionIdx)){ break; }
-        if(n > progress.unlocked){ break; }
+
+        // 只允许玩到「该世界第一个未解关卡」为止
+        var reg2 = REGIONS[regionIdx];
+        var firstUnsolved2 = -1;
+        for(var k2 = reg2.from; k2 <= reg2.to; k2++){
+          if((progress.stars[k2] || 0) < 1){ firstUnsolved2 = k2; break; }
+        }
+        if(firstUnsolved2 !== -1 && n > firstUnsolved2){ break; }
+
         showScreen(gameScreen); loadLevelAsync(n); break;
       case 'level-page':
         var dir = actionEl.getAttribute('data-dir');
@@ -3262,11 +3312,11 @@
     progress.unlocked = TOTAL_LEVELS;
     progress.stars = {};
     for(var i=1;i<=TOTAL_LEVELS;i++) progress.stars[i] = 3;
-    progress.solved = 1200; progress.played = 1200;
-    progress.bestTimes = {5:4200,6:5000,7:9800,8:22000,9:41000,10:72000};
-    progress.diffSolved = {easy:400,medium:400,hard:400};
-    progress.totalMoves = 50000; progress.solvedTime = 300000000;
-    progress.tutorialDone = true; progress.totalPlayMs = 100*60*60*1000;
+    progress.solved = 240; progress.played = 240;
+    progress.bestTimes = {5:0,6:0,7:0,8:0,9:0,10:0};
+    progress.diffSolved = {easy:80,medium:80,hard:80};
+    progress.totalMoves = 10000; progress.solvedTime = 1000;
+    progress.tutorialDone = true; progress.totalPlayMs = 1000;
     progress.totalNoResetCount = 100;
     progress.lastWinWasNoReset = true; progress.lastWinWasNoBacktrack = true;
     progress.fastestWin = 4000;

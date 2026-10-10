@@ -341,9 +341,9 @@
   </div>
 
   <div class="temp" id="tempRow">
-    <button type="button" class="step" id="minus" data-i18n-aria="down" aria-label="Decrease 1°C">❄️</button>
-    <input type="range" id="slider" min="16" max="32" step="1" value="26" data-i18n-aria="tempAria" aria-label="Temperature">
-    <button type="button" class="step" id="plus" data-i18n-aria="up" aria-label="Increase 1°C">🔥</button>
+    <button type="button" class="step" id="minus" data-i18n-aria="down" aria-label="Decrease 0.125°C">❄️</button>
+    <input type="range" id="slider" min="16" max="32" step="0.125" value="26" data-i18n-aria="tempAria" aria-label="Temperature">
+    <button type="button" class="step" id="plus" data-i18n-aria="up" aria-label="Increase 0.125°C">🔥</button>
   </div>
 
   <div class="mode" id="modeBox" data-state="on" role="group" data-i18n-aria="mode" aria-label="Mode">
@@ -369,10 +369,10 @@
 
   const I18N = {
     en: { title:"AC Remote", on:"On", off:"Off", mode:"Mode",
-          down:"Decrease 1°C", up:"Increase 1°C", tempAria:"Temperature",
+          down:"Decrease 0.125°C", up:"Increase 0.125°C", tempAria:"Temperature",
           sending:"Sending…", sent:"Sent: ", failed:"Failed to send: ", langBtn:"中文" },
     zh: { title:"冷氣遙控", on:"開", off:"關", mode:"模式",
-          down:"降低 1 度", up:"提高 1 度", tempAria:"溫度",
+          down:"降低 0.125 度", up:"提高 0.125 度", tempAria:"溫度",
           sending:"傳送中…", sent:"已發送:", failed:"發送失敗:", langBtn:"EN" }
   };
 
@@ -380,7 +380,7 @@
   const t = k => I18N[lang][k];
 
   let mode = "on";
-  const STEP = 1;
+  const STEP = 0.125;
   const snap = n => Math.round(n / STEP) * STEP;
   let temp = snap(parseFloat(localStorage.getItem("acTemp") || "26"));
   if (!(temp >= 16 && temp <= 32)) temp = 26;
@@ -390,7 +390,7 @@
   const slider = $("slider"), tempRow = $("tempRow"), statusEl = $("status"), sendBtn = $("sendBtn");
   const modeBox = $("modeBox");
 
-  const FRAC = { 1:"⅛", 0.25:"¼", 0.375:"⅜", 0.5:"½", 0.625:"⅝", 0.75:"¾", 0.875:"⅞" };
+  const FRAC = { 0.125:"⅛", 0.25:"¼", 0.375:"⅜", 0.5:"½", 0.625:"⅝", 0.75:"¾", 0.875:"⅞" };
 
   function fmt(n) {
     const whole = Math.floor(n);

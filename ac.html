@@ -98,6 +98,7 @@
   /* ── 設定 ── */
   const ROOM = "ac";            // 要發送到的聊天室名稱
   const COMMAND = "!ac-o";      // 指令前綴
+  const SEND_FRACTIONS = false; // true:指令也用分數(如 !ac-o 26⅛);false:指令用小數(如 !ac-o 26.125)
   const SENDER_FALLBACK = "AC遙控";
 
   firebase.initializeApp({
@@ -132,13 +133,19 @@
   const readout = $("readout"), valueEl = $("value"), cmdEl = $("cmd");
   const slider = $("slider"), tempRow = $("tempRow"), statusEl = $("status"), sendBtn = $("sendBtn");
 
-  function payload() { return COMMAND + " " + (mode === "off" ? "off" : String(temp)); }
+  const FRAC = { 0.125:"⅛", 0.25:"¼", 0.375:"⅜", 0.5:"½", 0.625:"⅝", 0.75:"¾", 0.875:"⅞" };
+  function fmt(n) {
+    const whole = Math.floor(n);
+    return whole + (FRAC[n - whole] || "");
+  }
+
+  function payload() { return COMMAND + " " + (mode === "off" ? "off" : (SEND_FRACTIONS ? fmt(temp) : String(temp))); }
 
   function render() {
     slider.value = temp;
     tempRow.classList.toggle("hidden", mode === "off");
     readout.classList.toggle("is-off", mode === "off");
-    valueEl.innerHTML = mode === "off" ? t("offBig") : temp + "<sup>°C</sup>";
+    valueEl.innerHTML = mode === "off" ? t("offBig") : fmt(temp) + "<sup>°C</sup>";
     cmdEl.textContent = payload();
     document.querySelectorAll(".mode button").forEach(b =>
       b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));

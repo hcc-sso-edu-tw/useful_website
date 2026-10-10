@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Marquee Control Panel</title>
+    <style>
+        @font-face {
+            font-family: 'MyKai';
+            src: url('kaiu.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            overscroll-behavior: none;
+        }
+
+        body {
+            background-color: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 1rem;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        .app {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 1100px;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .preview {
+            width: 100%;
+            height: 240px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .marquee-text {
+            position: absolute;
+            left: 0;
+            white-space: nowrap;
+            line-height: 1;
+            user-select: none;
+            -webkit-user-select: none;
+            will-change: transform;
+        }
+
+        .marquee-text.font-zh {
+            font-family: 'MyKai', 'DFKai-SB', 'BiauKai', '標楷體', serif;
+            font-weight: normal;
+        }
+
+        .marquee-text.font-en {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-weight: bold;
+        }
+
+        .text-input-row {
+            display: flex;
+            gap: 0.75rem;
+            padding: 1rem 2rem 0;
+        }
+
+        .text-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-family: inherit;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+            min-width: 0;
+        }
+
+        .text-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .controls {
+            padding: 1.2rem 2rem 2rem;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1rem 1.5rem;
+            align-items: center;
+        }
+
+        .controls label {
+            font-size: 1rem;
+            color: #333;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .controls .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        input[type="color"] {
+            width: 48px;
+            height: 36px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            background: none;
+            padding: 2px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 4px;
+        }
+
+        .toggle {
+            position: relative;
+            display: inline-block;
+            width: 54px;
+            height: 30px;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #ccc;
+            border-radius: 30px;
+            transition: 0.25s;
+        }
+
+        .toggle .slider::before {
+            content: "";
+            position: absolute;
+            height: 24px;
+            width: 24px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #fff;
+            border-radius: 50%;
+            transition: 0.25s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .toggle input:checked + .slider {
+            background-color: #3b82f6;
+        }
+
+        .toggle input:checked + .slider::before {
+            transform: translateX(24px);
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+            touch-action: pan-y;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border: 2px solid #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border: 2px solid #3b82f6;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+
+        .value-display {
+            min-width: 48px;
+            text-align: right;
+            font-size: 0.85rem;
+            color: #666;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .btn-fullscreen {
+            margin-top: 1rem;
+            grid-column: 1 / -1;
+            justify-self: end;
+            padding: 0.75rem 1.75rem;
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .btn-fullscreen:hover {
+            background: #2563eb;
+        }
+
+        .btn-fullscreen:active {
+            background: #1d4ed8;
+        }
+
+        .app.pseudo-fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            max-width: none;
+            border-radius: 0;
+            box-shadow: none;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .app.pseudo-fullscreen .text-input-row,
+        .app.pseudo-fullscreen .controls {
+            display: none;
+        }
+
+        .app.pseudo-fullscreen .preview {
+            height: 100vh;
+            height: 100dvh;
+            width: 100vw;
+            flex: 1;
+        }
+
+        .exit-fs-btn {
+            display: none;
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 10000;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 20px;
+            line-height: 1;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            -webkit-appearance: none;
+            appearance: none;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .exit-fs-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .app.pseudo-fullscreen .exit-fs-btn {
+            display: flex;
+        }
+
+        .app:fullscreen .exit-fs-btn,
+        .app:-webkit-full-screen .exit-fs-btn {
+            display: none;
+        }
+
+        .app:fullscreen,
+        .app:-webkit-full-screen {
+            background: #000;
+            border-radius: 0;
+            max-width: none;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .app:fullscreen .text-input-row,
+        .app:fullscreen .controls,
+        .app:-webkit-full-screen .text-input-row,
+        .app:-webkit-full-screen .controls {
+            display: none;
+        }
+
+        .app:fullscreen .preview,
+        .app:-webkit-full-screen .preview {
+            height: 100vh;
+            height: 100dvh;
+            width: 100vw;
+            flex: 1;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 0.5rem;
+                align-items: stretch;
+            }
+
+            .app {
+                border-radius: 10px;
+            }
+
+            .preview {
+                height: 160px;
+            }
+
+            .text-input-row {
+                padding: 0.8rem 1rem 0;
+            }
+
+            .text-input {
+                padding: 0.7rem 0.9rem;
+                font-size: 16px;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+                padding: 1rem;
+            }
+
+            .controls label {
+                margin-top: 0.3rem;
+                font-size: 0.95rem;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            input[type="range"] {
+                height: 10px;
+            }
+
+            input[type="range"]::-webkit-slider-thumb {
+                width: 26px;
+                height: 26px;
+            }
+
+            .btn-fullscreen {
+                width: 100%;
+                justify-self: stretch;
+                padding: 0.85rem;
+                font-size: 1rem;
+                margin-top: 0.5rem;
+            }
+
+            .value-display {
+                min-width: 52px;
+                font-size: 0.8rem;
+            }
+
+            .exit-fs-btn {
+                width: 38px;
+                height: 38px;
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .preview {
+                height: 120px;
+            }
+
+            .controls label {
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            .preview {
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <div class="preview" id="preview">
+            <div class="marquee-text font-zh" id="marqueeText">123</div>
+        </div>
+
+        <div class="text-input-row">
+            <input type="text" class="text-input" id="textInput" value="123" placeholder="Type your text here..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        </div>
+
+        <div class="controls">
+            <label for="speed">Scroll Speed</label>
+            <div class="control-group">
+                <input type="range" id="speed" min="500" max="30000" step="100" value="4000">
+                <span class="value-display" id="speedValue">4.0s</span>
+            </div>
+
+            <label for="scrolling">Scrolling</label>
+            <div class="control-group">
+                <label class="toggle">
+                    <input type="checkbox" id="scrolling" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <label for="fontColor">Font Color</label>
+            <div class="control-group">
+                <input type="color" id="fontColor" value="#ffffff">
+            </div>
+
+            <label for="bgColor">Background Color</label>
+            <div class="control-group">
+                <input type="color" id="bgColor" value="#000000">
+            </div>
+
+            <label for="rainbow">Rainbow Mode</label>
+            <div class="control-group">
+                <label class="toggle">
+                    <input type="checkbox" id="rainbow">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <button class="btn-fullscreen" id="fullscreenBtn">Fullscreen</button>
+        </div>
+
+        <button class="exit-fs-btn" id="exitFsBtn" aria-label="Exit fullscreen">✕</button>
+    </div>
+
+    <script>
+        (function() {
+            const app = document.getElementById('app');
+            const preview = document.getElementById('preview');
+            const marqueeText = document.getElementById('marqueeText');
+            const textInput = document.getElementById('textInput');
+            const exitFsBtn = document.getElementById('exitFsBtn');
+
+            const speedInput = document.getElementById('speed');
+            const speedValue = document.getElementById('speedValue');
+            const scrollingInput = document.getElementById('scrolling');
+            const fontColorInput = document.getElementById('fontColor');
+            const bgColorInput = document.getElementById('bgColor');
+            const rainbowInput = document.getElementById('rainbow');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+            const settings = {
+                text: '123',
+                speed: 4000,
+                scrolling: true,
+                fontColor: '#ffffff',
+                bgColor: '#000000',
+                rainbow: false
+            };
+
+            const PADDING_RATIO = 0.85;
+
+            function hasCJK(text) {
+                return /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/.test(text);
+            }
+
+            function applyFont(text) {
+                if (hasCJK(text)) {
+                    marqueeText.classList.add('font-zh');
+                    marqueeText.classList.remove('font-en');
+                } else {
+                    marqueeText.classList.add('font-en');
+                    marqueeText.classList.remove('font-zh');
+                }
+            }
+
+            function formatSeconds(ms) {
+                const s = ms / 1000;
+                if (s >= 10) return s.toFixed(0) + 's';
+                return s.toFixed(1) + 's';
+            }
+
+            function fitFontSize() {
+                const prevTransform = marqueeText.style.transform;
+                marqueeText.style.transform = 'translateX(0)';
+
+                const h = preview.clientHeight * PADDING_RATIO;
+                marqueeText.style.fontSize = '1000px';
+                const textHeight = marqueeText.offsetHeight;
+                if (textHeight > 0) {
+                    const scaled = (h / textHeight) * 1000;
+                    marqueeText.style.fontSize = scaled + 'px';
+                }
+
+                marqueeText.style.transform = prevTransform || 'translateX(0)';
+            }
+
+            let hue = 0;
+            let rainbowFrame = null;
+
+            function startRainbow() {
+                stopRainbow();
+                function step() {
+                    hue = (hue + 1) % 360;
+                    marqueeText.style.color = `hsl(${hue}, 100%, 60%)`;
+                    rainbowFrame = requestAnimationFrame(step);
+                }
+                rainbowFrame = requestAnimationFrame(step);
+            }
+
+            function stopRainbow() {
+                if (rainbowFrame) {
+                    cancelAnimationFrame(rainbowFrame);
+                    rainbowFrame = null;
+                }
+                marqueeText.style.color = settings.fontColor;
+            }
+
+            let startTime = null;
+            let animationId = null;
+            let pausedX = 0;
+
+            function getStartX() {
+                return preview.clientWidth;
+            }
+            function getEndX() {
+                return -marqueeText.offsetWidth;
+            }
+
+            function animate(timestamp) {
+                if (!settings.scrolling) {
+                    animationId = null;
+                    return;
+                }
+                if (startTime === null) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / settings.speed, 1);
+
+                const startX = getStartX();
+                const endX = getEndX();
+                const currentX = startX + (endX - startX) * progress;
+                pausedX = currentX;
+                marqueeText.style.transform = `translateX(${currentX}px)`;
+
+                if (progress < 1) {
+                    animationId = requestAnimationFrame(animate);
+                } else {
+                    startTime = null;
+                    marqueeText.style.transform = `translateX(${getStartX()}px)`;
+                    animationId = requestAnimationFrame(animate);
+                }
+            }
+
+            function startAnimation() {
+                if (animationId) cancelAnimationFrame(animationId);
+                startTime = null;
+                marqueeText.style.transform = `translateX(${getStartX()}px)`;
+                animationId = requestAnimationFrame(animate);
+            }
+
+            function stopAnimation() {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                    animationId = null;
+                }
+                startTime = null;
+            }
+
+            function applySettings() {
+                applyFont(settings.text);
+                fitFontSize();
+
+                if (settings.rainbow) {
+                    startRainbow();
+                } else {
+                    stopRainbow();
+                    marqueeText.style.color = settings.fontColor;
+                }
+
+                preview.style.backgroundColor = settings.bgColor;
+
+                if (settings.scrolling) {
+                    if (!animationId) {
+                        startAnimation();
+                    }
+                } else {
+                    stopAnimation();
+                }
+            }
+
+            textInput.addEventListener('input', () => {
+                settings.text = textInput.value || ' ';
+                marqueeText.textContent = settings.text;
+                applyFont(settings.text);
+                fitFontSize();
+                if (settings.scrolling) {
+                    startAnimation();
+                } else {
+                    marqueeText.style.transform = `translateX(${pausedX}px)`;
+                }
+            });
+
+            speedInput.addEventListener('input', () => {
+                settings.speed = Number(speedInput.value);
+                speedValue.textContent = formatSeconds(settings.speed);
+                if (settings.scrolling) startAnimation();
+            });
+
+            scrollingInput.addEventListener('change', () => {
+                settings.scrolling = scrollingInput.checked;
+                if (settings.scrolling) {
+                    startAnimation();
+                } else {
+                    stopAnimation();
+                    marqueeText.style.transform = `translateX(${pausedX}px)`;
+                }
+            });
+
+            fontColorInput.addEventListener('input', () => {
+                settings.fontColor = fontColorInput.value;
+                if (!settings.rainbow) marqueeText.style.color = settings.fontColor;
+            });
+
+            bgColorInput.addEventListener('input', () => {
+                settings.bgColor = bgColorInput.value;
+                preview.style.backgroundColor = settings.bgColor;
+            });
+
+            rainbowInput.addEventListener('change', () => {
+                settings.rainbow = rainbowInput.checked;
+                if (settings.rainbow) startRainbow();
+                else stopRainbow();
+            });
+
+            function isFullscreen() {
+                return document.fullscreenElement ||
+                       document.webkitFullscreenElement ||
+                       document.mozFullScreenElement ||
+                       document.msFullscreenElement;
+            }
+
+            function nativeRequestFS(el) {
+                const fn = el.requestFullscreen ||
+                           el.webkitRequestFullscreen ||
+                           el.mozRequestFullScreen ||
+                           el.msRequestFullscreen;
+                if (!fn) return null;
+                try {
+                    const result = fn.call(el);
+                    return result && typeof result.then === 'function' ? result : Promise.resolve();
+                } catch (err) {
+                    return Promise.reject(err);
+                }
+            }
+
+            function nativeExitFS() {
+                const fn = document.exitFullscreen ||
+                           document.webkitExitFullscreen ||
+                           document.mozCancelFullScreen ||
+                           document.msExitFullscreen;
+                if (!fn) return null;
+                try {
+                    const result = fn.call(document);
+                    return result && typeof result.then === 'function' ? result : Promise.resolve();
+                } catch (err) {
+                    return Promise.reject(err);
+                }
+            }
+
+            function enterPseudoFullscreen() {
+                app.classList.add('pseudo-fullscreen');
+                document.body.style.overflow = 'hidden';
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        fitFontSize();
+                        if (settings.scrolling) startAnimation();
+                        else marqueeText.style.transform = `translateX(${pausedX}px)`;
+                    });
+                });
+            }
+
+            function exitPseudoFullscreen() {
+                app.classList.remove('pseudo-fullscreen');
+                document.body.style.overflow = '';
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        fitFontSize();
+                        if (settings.scrolling) startAnimation();
+                        else marqueeText.style.transform = `translateX(${pausedX}px)`;
+                    });
+                });
+            }
+
+            function toggleFullscreen() {
+                if (isFullscreen()) {
+                    nativeExitFS();
+                    return;
+                }
+                if (app.classList.contains('pseudo-fullscreen')) {
+                    exitPseudoFullscreen();
+                    return;
+                }
+
+                const req = nativeRequestFS(app);
+                if (req) {
+                    req.then(() => {}).catch(() => enterPseudoFullscreen());
+                } else {
+                    enterPseudoFullscreen();
+                }
+            }
+
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+            exitFsBtn.addEventListener('click', exitPseudoFullscreen);
+
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+                    e.preventDefault();
+                    toggleFullscreen();
+                }
+            });
+
+            function refit() {
+                fitFontSize();
+                if (!settings.scrolling) {
+                    marqueeText.style.transform = `translateX(${pausedX}px)`;
+                }
+            }
+
+            window.addEventListener('resize', refit);
+            window.addEventListener('orientationchange', () => setTimeout(refit, 250));
+
+            ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange']
+                .forEach(evt => document.addEventListener(evt, () => setTimeout(refit, 100)));
+
+            marqueeText.textContent = settings.text;
+            speedValue.textContent = formatSeconds(settings.speed);
+            applySettings();
+
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(refit);
+            }
+        })();
+    </script>
+</body>
+</html>

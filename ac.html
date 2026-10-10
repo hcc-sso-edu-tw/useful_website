@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>冷氣遙控</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<style>
+  :root{
+    --bg:#eef2f1; --card:#ffffff; --text:#14201e; --muted:#6a7b78;
+    --line:#d6dfdd; --accent:#0f8b8d; --accent-text:#ffffff; --off:#c0392b;
+    --ok:#1e8e5a; --err:#c0392b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0d1514; --card:#162220; --text:#e6f0ee; --muted:#8aa09c;
+           --line:#2a3b38; --accent:#3cc4c6; --accent-text:#06201f; --off:#ff7a6b; --ok:#4fd18f; --err:#ff7a6b; }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+    display:flex; align-items:center; justify-content:center;
+    padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));
+  }
+  .remote{
+    width:100%; max-width:360px; background:var(--card);
+    border:1px solid var(--line); border-radius:28px; padding:28px 24px 24px;
+  }
+  h1{font-size:1.05rem; font-weight:600; letter-spacing:.04em; color:var(--muted); text-align:center}
+  .readout{
+    margin:22px 0 20px; text-align:center; min-height:120px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .readout .value{font-size:5.5rem; font-weight:300; line-height:1; font-variant-numeric:tabular-nums}
+  .readout .value sup{font-size:1.6rem; font-weight:400; vertical-align:top; margin-left:4px; color:var(--muted)}
+  .readout.is-off .value{font-size:4.5rem; color:var(--off); font-weight:500}
+  .cmd{margin-top:10px; font:.85rem ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted)}
+
+  .mode{display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:5px; background:var(--bg); border-radius:16px; margin-bottom:18px}
+  .mode button{
+    border:0; background:transparent; color:var(--muted); font:inherit; font-size:1.05rem; font-weight:600;
+    padding:12px 0; border-radius:12px; cursor:pointer;
+  }
+  .mode button[aria-pressed="true"]{background:var(--card); color:var(--text); box-shadow:0 0 0 1px var(--line)}
+  .mode button[data-mode="off"][aria-pressed="true"]{color:var(--off)}
+
+  .temp{display:grid; grid-template-columns:56px 1fr 56px; gap:12px; align-items:center; margin-bottom:20px}
+  .temp.hidden{display:none}
+  .step{
+    width:56px; height:56px; border-radius:50%; border:1px solid var(--line); background:var(--card);
+    color:var(--text); font-size:1.6rem; cursor:pointer; line-height:1;
+  }
+  .step:active{background:var(--bg)}
+  input[type=range]{width:100%; accent-color:var(--accent); height:32px}
+
+  .send{
+    width:100%; border:0; border-radius:16px; padding:16px; font:inherit; font-size:1.1rem; font-weight:700;
+    background:var(--accent); color:var(--accent-text); cursor:pointer;
+  }
+  .send:disabled{opacity:.55; cursor:default}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+  .status{margin-top:14px; min-height:1.3em; text-align:center; font-size:.9rem; color:var(--muted)}
+  .status.ok{color:var(--ok)} .status.err{color:var(--err)}
+</style>
+</head>
+<body>
+<main class="remote">
+  <h1>冷氣遙控</h1>
+
+  <div class="readout" id="readout" aria-live="polite">
+    <div class="value" id="value">26<sup>°C</sup></div>
+    <div class="cmd" id="cmd">!ac-o 26</div>
+  </div>
+
+  <div class="mode" role="group" aria-label="模式">
+    <button type="button" data-mode="off" aria-pressed="false">關</button>
+    <button type="button" data-mode="temp" aria-pressed="true">溫度</button>
+  </div>
+
+  <div class="temp" id="tempRow">
+    <button type="button" class="step" id="minus" aria-label="降低溫度">−</button>
+    <input type="range" id="slider" min="16" max="30" step="1" value="26" aria-label="溫度">
+    <button type="button" class="step" id="plus" aria-label="提高溫度">+</button>
+  </div>
+
+  <button type="button" class="send" id="sendBtn">Send</button>
+  <div class="status" id="status" role="status"></div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ── 設定 ── */
+  const ROOM = "ac";            // 要發送到的聊天室名稱
+  const COMMAND = "!ac-o";      // 指令前綴
+  const SENDER_FALLBACK = "AC遙控";
+
+  firebase.initializeApp({
+    apiKey:      "AIzaSyCqKKmfHbyMrLwxthpY7oYAoNqbekWBOuYk",
+    authDomain:  "chat-site-12345.firebaseapp.com",
+    databaseURL: "https://chat-site-12345-default-rtdb.firebaseio.com",
+    projectId:   "chat-site-12345",
+    appId:       "1:660571630838:web:7be88b3d899720ba1590d7"
+  });
+  const db = firebase.database();
+
+  /* ── 狀態 ── */
+  let mode = "temp";
+  let temp = parseInt(localStorage.getItem("acTemp") || "26", 10);
+  if (!(temp >= 16 && temp <= 30)) temp = 26;
+
+  const $ = id => document.getElementById(id);
+  const readout = $("readout"), valueEl = $("value"), cmdEl = $("cmd");
+  const slider = $("slider"), tempRow = $("tempRow"), statusEl = $("status"), sendBtn = $("sendBtn");
+
+  function payload() { return COMMAND + " " + (mode === "off" ? "off" : temp); }
+
+  function render() {
+    slider.value = temp;
+    tempRow.classList.toggle("hidden", mode === "off");
+    readout.classList.toggle("is-off", mode === "off");
+    valueEl.innerHTML = mode === "off" ? "關" : temp + "<sup>°C</sup>";
+    cmdEl.textContent = payload();
+    document.querySelectorAll(".mode button").forEach(b =>
+      b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+  }
+
+  function setTemp(n) {
+    temp = Math.max(16, Math.min(30, n));
+    localStorage.setItem("acTemp", String(temp));
+    render();
+  }
+
+  document.querySelectorAll(".mode button").forEach(b =>
+    b.addEventListener("click", () => { mode = b.dataset.mode; render(); }));
+  $("minus").addEventListener("click", () => setTemp(temp - 1));
+  $("plus").addEventListener("click", () => setTemp(temp + 1));
+  slider.addEventListener("input", () => setTemp(parseInt(slider.value, 10)));
+
+  let statusTimer;
+  function say(text, cls) {
+    statusEl.textContent = text;
+    statusEl.className = "status" + (cls ? " " + cls : "");
+    clearTimeout(statusTimer);
+    if (cls) statusTimer = setTimeout(() => { statusEl.textContent = ""; statusEl.className = "status"; }, 3500);
+  }
+
+  sendBtn.addEventListener("click", () => {
+    const text = payload();
+    const name = localStorage.getItem("chatName") || SENDER_FALLBACK;
+    sendBtn.disabled = true;
+    say("傳送中…");
+    db.ref("messages/" + ROOM).push({ name: name, msg: text, time: Date.now() })
+      .then(() => say("已發送:" + text, "ok"))
+      .catch(err => say("發送失敗:" + (err && err.message ? err.message : err), "err"))
+      .finally(() => { sendBtn.disabled = false; });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

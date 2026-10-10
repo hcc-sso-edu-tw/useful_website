@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>AC Remote</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -46,6 +46,9 @@
   html,
   body {
     height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
   }
 
   body {
@@ -56,6 +59,8 @@
     align-items: center;
     justify-content: center;
     padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    position: fixed;
+    inset: 0;
   }
 
   .remote {
@@ -68,6 +73,7 @@
     padding: 32px 26px 28px;
     display: flex;
     flex-direction: column;
+    touch-action: none;
   }
 
   .lang {
@@ -135,13 +141,6 @@
     background: var(--bg);
     border: 1px solid var(--line);
     overflow: hidden;
-    cursor: grab;
-    user-select: none;
-    touch-action: none;
-  }
-
-  .mode:active {
-    cursor: grabbing;
   }
 
   .mode[data-state="off"] {
@@ -163,10 +162,6 @@
     transition: transform 0.35s var(--transition-smooth);
   }
 
-  .mode .thumb.dragging {
-    transition: none;
-  }
-
   .mode button {
     position: relative;
     z-index: 1;
@@ -179,7 +174,6 @@
     padding: 14px 0;
     border-radius: 999px;
     cursor: pointer;
-    pointer-events: none;
   }
 
   .mode button[data-mode="on"][aria-pressed="true"] {
@@ -212,6 +206,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
+    text-align: center;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .step:hover {
@@ -220,6 +218,12 @@
 
   .step:active {
     background: var(--line);
+  }
+
+  .step span {
+    display: block;
+    line-height: 1;
+    transform: translateY(-1px);
   }
 
   #slider {
@@ -333,9 +337,9 @@
   </div>
 
   <div class="temp" id="tempRow">
-    <button type="button" class="step" id="minus" data-i18n-aria="down" aria-label="Decrease 0.125°C">−</button>
+    <button type="button" class="step" id="minus" data-i18n-aria="down" aria-label="Decrease 0.125°C"><span>−</span></button>
     <input type="range" id="slider" min="16" max="32" step="0.125" value="26" data-i18n-aria="tempAria" aria-label="Temperature">
-    <button type="button" class="step" id="plus" data-i18n-aria="up" aria-label="Increase 0.125°C">+</button>
+    <button type="button" class="step" id="plus" data-i18n-aria="up" aria-label="Increase 0.125°C"><span>+</span></button>
   </div>
 
   <div class="mode" id="modeBox" data-state="on" role="group" data-i18n-aria="mode" aria-label="Mode">
@@ -381,7 +385,6 @@
   const readout = $("readout"), valueEl = $("value");
   const slider = $("slider"), tempRow = $("tempRow"), statusEl = $("status"), sendBtn = $("sendBtn");
   const modeBox = $("modeBox");
-  const thumb = modeBox.querySelector(".thumb");
 
   const FRAC = { 0.125:"⅛", 0.25:"¼", 0.375:"⅜", 0.5:"½", 0.625:"⅝", 0.75:"¾", 0.875:"⅞" };
 
@@ -421,63 +424,11 @@
     render();
   }
 
-  let dragging = false;
-  let startX = 0;
-  let startMode = mode;
-  let didMove = false;
-
-  modeBox.addEventListener("pointerdown", (e) => {
-    dragging = true;
-    didMove = false;
-    startX = e.clientX;
-    startMode = mode;
-    thumb.classList.add("dragging");
-    modeBox.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-
-  modeBox.addEventListener("pointermove", (e) => {
-    if (!dragging) return;
-    if (Math.abs(e.clientX - startX) > 4) didMove = true;
-    const rect = modeBox.getBoundingClientRect();
-    const relativeX = (e.clientX - rect.left) / rect.width;
-    const clamped = Math.max(0, Math.min(1, relativeX));
-    thumb.style.setProperty("--x", (clamped * 100) + "%");
-  });
-
-  function endDrag(e) {
-    if (!dragging) return;
-    dragging = false;
-    thumb.classList.remove("dragging");
-    thumb.style.removeProperty("--x");
-    const rect = modeBox.getBoundingClientRect();
-    const relativeX = (e.clientX - rect.left) / rect.width;
-    const targetMode = relativeX < 0.5 ? "on" : "off";
-    if (targetMode !== mode) {
-      mode = targetMode;
+  document.querySelectorAll(".mode button").forEach(b =>
+    b.addEventListener("click", () => {
+      mode = b.dataset.mode;
       render();
-    } else if (startMode !== mode) {
-      render();
-    }
-    try { modeBox.releasePointerCapture(e.pointerId); } catch (err) {}
-  }
-
-  modeBox.addEventListener("pointerup", endDrag);
-  modeBox.addEventListener("pointercancel", endDrag);
-
-  modeBox.addEventListener("click", (e) => {
-    if (didMove) {
-      didMove = false;
-      return;
-    }
-    const rect = modeBox.getBoundingClientRect();
-    const relativeX = (e.clientX - rect.left) / rect.width;
-    const targetMode = relativeX < 0.5 ? "on" : "off";
-    if (targetMode !== mode) {
-      mode = targetMode;
-      render();
-    }
-  });
+    }));
 
   $("minus").addEventListener("click", () => setTemp(temp - STEP));
   $("plus").addEventListener("click", () => setTemp(temp + STEP));

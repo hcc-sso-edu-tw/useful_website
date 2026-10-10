@@ -19,11 +19,7 @@
     --off: #c0392b;
     --ok: #1e8e5a;
     --err: #c0392b;
-    --glow: rgba(15, 139, 141, 0.3);
-    --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
     --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-elastic: cubic-bezier(0.68, -0.55, 0.27, 1.55);
   }
 
   @media (prefers-color-scheme: dark) {
@@ -38,8 +34,6 @@
       --off: #ff7a6b;
       --ok: #4fd18f;
       --err: #ff7a6b;
-      --glow: rgba(60, 196, 198, 0.4);
-      --shadow-card: 0 25px 40px -12px rgba(0, 0, 0, 0.8);
     }
   }
 
@@ -62,8 +56,6 @@
     align-items: center;
     justify-content: center;
     padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
-    transition: background 0.3s ease, color 0.3s ease;
-    -webkit-tap-highlight-color: transparent;
   }
 
   .remote {
@@ -72,33 +64,10 @@
     max-width: 380px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 44px;
+    border-radius: 32px;
     padding: 32px 26px 28px;
-    box-shadow: var(--shadow-card), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-    backdrop-filter: blur(2px);
-    animation: cardFloat 0.8s var(--transition-bounce) both;
     display: flex;
     flex-direction: column;
-  }
-
-  @keyframes cardFloat {
-    0% {
-      opacity: 0;
-      transform: translateY(28px) scale(0.94);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  button {
-    transition: transform 0.15s var(--transition-bounce), box-shadow 0.2s, background 0.2s, border-color 0.2s, color 0.2s;
-  }
-
-  button:active {
-    transform: scale(0.92);
   }
 
   .lang {
@@ -113,16 +82,12 @@
     padding: 6px 14px;
     border-radius: 999px;
     cursor: pointer;
-    transition: all 0.25s ease;
-    letter-spacing: 0.3px;
     margin-bottom: 10px;
-    overflow: hidden;
   }
 
   .lang:hover {
     background: var(--line);
     color: var(--text);
-    border-color: var(--muted);
   }
 
   h1 {
@@ -133,8 +98,6 @@
     text-align: center;
     margin-bottom: 6px;
     text-transform: uppercase;
-    opacity: 0.8;
-    position: relative;
   }
 
   .readout {
@@ -145,7 +108,6 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
   }
 
   .readout .value {
@@ -154,13 +116,11 @@
     line-height: 1;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.03em;
-    transition: color 0.35s ease, transform 0.45s var(--transition-bounce), font-weight 0.3s;
   }
 
   .readout.is-off .value {
     color: var(--off);
     font-weight: 500;
-    transform: scale(0.92);
   }
 
   .mode {
@@ -172,15 +132,8 @@
     margin-bottom: 24px;
     border-radius: 999px;
     isolation: isolate;
-    background: linear-gradient(90deg,
-        rgba(30, 142, 90, 0.12) 0%,
-        rgba(255, 255, 255, 0.9) 50%,
-        rgba(192, 57, 43, 0.12) 100%),
-      var(--card);
-    box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.08),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.5),
-      0 6px 12px -6px rgba(0, 0, 0, 0.2);
-    transition: box-shadow 0.3s ease, background 0.3s ease;
+    background: var(--bg);
+    border: 1px solid var(--line);
     overflow: hidden;
     cursor: grab;
     user-select: none;
@@ -198,46 +151,20 @@
   .mode .thumb {
     position: absolute;
     z-index: 0;
-    top: 5px;
-    bottom: 5px;
-    left: 5px;
-    width: calc(50% - 5px);
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
     border-radius: 999px;
     pointer-events: none;
-    background: linear-gradient(180deg,
-        rgba(255, 255, 255, 0.75),
-        rgba(255, 255, 255, 0.25) 55%,
-        rgba(255, 255, 255, 0.45));
-    -webkit-backdrop-filter: blur(12px) saturate(220%) brightness(1.1);
-    backdrop-filter: blur(12px) saturate(220%) brightness(1.1);
-    box-shadow: inset 0 2px 2px rgba(255, 255, 255, 1),
-      inset 0 -2px 3px rgba(255, 255, 255, 0.6),
-      inset 0 0 0 1.5px rgba(255, 255, 255, 0.5),
-      0 8px 18px -4px rgba(0, 0, 0, 0.25),
-      0 2px 5px rgba(0, 0, 0, 0.1);
+    background: var(--card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
     transform: translateX(var(--x));
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
+    transition: transform 0.35s var(--transition-smooth);
   }
 
   .mode .thumb.dragging {
     transition: none;
-  }
-
-  .mode .thumb.settling {
-    animation: thumbSettle 0.4s var(--transition-elastic);
-  }
-
-  @keyframes thumbSettle {
-    0% {
-      transform: translateX(var(--x)) scale(1);
-    }
-    50% {
-      transform: translateX(var(--x)) scale(0.97);
-    }
-    100% {
-      transform: translateX(var(--x)) scale(1);
-    }
   }
 
   .mode button {
@@ -252,69 +179,15 @@
     padding: 14px 0;
     border-radius: 999px;
     cursor: pointer;
-    transition: color 0.3s ease, text-shadow 0.3s;
-    letter-spacing: 0.5px;
     pointer-events: none;
-  }
-
-  .mode button[aria-pressed="true"] {
-    color: var(--text);
-    text-shadow: 0 0 10px var(--glow);
   }
 
   .mode button[data-mode="on"][aria-pressed="true"] {
     color: var(--ok);
-    text-shadow: 0 0 12px rgba(30, 142, 90, 0.3);
   }
 
   .mode button[data-mode="off"][aria-pressed="true"] {
     color: var(--off);
-    text-shadow: 0 0 12px rgba(192, 57, 43, 0.3);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .mode {
-      background: linear-gradient(90deg,
-          rgba(79, 209, 143, 0.12) 0%,
-          rgba(20, 31, 30, 0.9) 50%,
-          rgba(255, 122, 107, 0.12) 100%),
-        var(--card);
-      box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.6),
-        0 2px 6px rgba(0, 0, 0, 0.4);
-    }
-
-    .mode .thumb {
-      background: linear-gradient(180deg,
-          rgba(255, 255, 255, 0.35),
-          rgba(255, 255, 255, 0.08) 55%,
-          rgba(255, 255, 255, 0.2));
-      box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.6),
-        inset 0 -2px 3px rgba(255, 255, 255, 0.25),
-        inset 0 0 0 1.5px rgba(255, 255, 255, 0.2),
-        0 8px 18px -4px rgba(0, 0, 0, 0.6);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .mode .thumb {
-      transition: none;
-    }
-
-    .remote,
-    .readout .value,
-    h1,
-    .readout,
-    .mode,
-    .temp,
-    .send,
-    .status,
-    .lang {
-      animation: none;
-    }
-
-    button {
-      transition: none;
-    }
   }
 
   .temp {
@@ -339,38 +212,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 8px -4px rgba(0, 0, 0, 0.1);
-    transition: background 0.2s, box-shadow 0.2s, transform 0.15s, border-color 0.2s;
-    position: relative;
   }
 
   .step:hover {
     background: var(--bg);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px var(--glow);
   }
 
   .step:active {
     background: var(--line);
-  }
-
-  .step.pressed {
-    animation: stepPop 0.35s var(--transition-bounce);
-  }
-
-  @keyframes stepPop {
-    0% {
-      transform: scale(1);
-    }
-    40% {
-      transform: scale(0.88);
-    }
-    70% {
-      transform: scale(1.06);
-    }
-    100% {
-      transform: scale(1);
-    }
   }
 
   #slider {
@@ -381,15 +230,12 @@
     background: transparent;
     cursor: pointer;
     accent-color: var(--accent);
-    transition: opacity 0.2s;
   }
 
   #slider::-webkit-slider-runnable-track {
     height: 16px;
     background: var(--line);
     border-radius: 999px;
-    transition: background 0.3s;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   #slider::-webkit-slider-thumb {
@@ -401,13 +247,6 @@
     border: 3px solid var(--accent);
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 4px 10px var(--glow), 0 0 0 3px var(--card);
-    transition: transform 0.2s var(--transition-bounce), box-shadow 0.2s;
-  }
-
-  #slider::-webkit-slider-thumb:hover {
-    transform: scale(1.15);
-    box-shadow: 0 6px 14px var(--glow), 0 0 0 3px var(--card);
   }
 
   #slider::-moz-range-track {
@@ -422,14 +261,11 @@
     border: 3px solid var(--accent);
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 4px 10px var(--glow);
   }
 
   .temp.is-disabled {
     opacity: 0.35;
-    filter: grayscale(0.6);
     pointer-events: none;
-    transition: opacity 0.3s, filter 0.3s;
   }
 
   .temp.is-disabled .step,
@@ -447,7 +283,7 @@
   .send {
     width: 100%;
     border: 0;
-    border-radius: 24px;
+    border-radius: 16px;
     padding: 18px;
     font: inherit;
     font-size: 1.15rem;
@@ -456,73 +292,15 @@
     background: var(--accent);
     color: var(--accent-text);
     cursor: pointer;
-    box-shadow: 0 10px 20px -8px var(--accent), 0 0 0 0 transparent;
-    transition: transform 0.2s var(--transition-bounce), box-shadow 0.3s, background 0.3s, opacity 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .send::after {
-    content: "";
-    position: absolute;
-    top: -50%;
-    left: -60%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.4s;
-    transform: rotate(25deg);
-    pointer-events: none;
-  }
-
-  .send:hover::after {
-    opacity: 0.6;
-    animation: shine 1.2s infinite;
-  }
-
-  @keyframes shine {
-    0% {
-      transform: translateX(-30%) rotate(25deg);
-    }
-    100% {
-      transform: translateX(30%) rotate(25deg);
-    }
   }
 
   .send:active {
-    transform: scale(0.95);
-    box-shadow: 0 6px 12px -6px var(--accent);
+    opacity: 0.85;
   }
 
   .send:disabled {
     opacity: 0.55;
     cursor: default;
-    transform: none;
-    box-shadow: none;
-  }
-
-  .send:disabled::after {
-    display: none;
-  }
-
-  .send.sent-pulse {
-    animation: sendPulse 0.5s var(--transition-bounce);
-  }
-
-  @keyframes sendPulse {
-    0% {
-      transform: scale(1);
-    }
-    40% {
-      transform: scale(0.93);
-    }
-    70% {
-      transform: scale(1.04);
-    }
-    100% {
-      transform: scale(1);
-    }
   }
 
   .status {
@@ -532,9 +310,6 @@
     font-size: 0.9rem;
     font-weight: 500;
     color: var(--muted);
-    transition: color 0.2s, opacity 0.3s;
-    opacity: 0.9;
-    letter-spacing: 0.02em;
   }
 
   .status.ok {
@@ -545,1333 +320,6 @@
   .status.err {
     color: var(--err);
     font-weight: 600;
-  }
-
-  @keyframes tempFlash {
-    0% {
-      opacity: 0.5;
-      transform: scale(0.94);
-    }
-    60% {
-      transform: scale(1.04);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  .value.flash {
-    animation: tempFlash 0.35s var(--transition-bounce);
-  }
-
-  .value.mode-change {
-    animation: modeChange 0.5s var(--transition-bounce);
-  }
-
-  @keyframes modeChange {
-    0% {
-      transform: scale(1) rotate(0deg);
-    }
-    30% {
-      transform: scale(0.85) rotate(-3deg);
-    }
-    60% {
-      transform: scale(1.08) rotate(2deg);
-    }
-    100% {
-      transform: scale(1) rotate(0deg);
-    }
-  }
-
-  .remote.mode-off {
-    box-shadow: var(--shadow-card), 0 0 0 1px rgba(192, 57, 43, 0.15) inset;
-  }
-
-  .remote.mode-on {
-    box-shadow: var(--shadow-card), 0 0 0 1px rgba(30, 142, 90, 0.15) inset;
-  }
-
-  .remote.shake {
-    animation: shake 0.4s var(--transition-smooth);
-  }
-
-  @keyframes shake {
-    0%, 100% {
-      transform: translateX(0);
-    }
-    20% {
-      transform: translateX(-4px);
-    }
-    40% {
-      transform: translateX(4px);
-    }
-    60% {
-      transform: translateX(-2px);
-    }
-    80% {
-      transform: translateX(2px);
-    }
-  }
-
-  .readout.pulse-ring .value {
-    animation: pulseRing 0.6s var(--transition-smooth);
-  }
-
-  @keyframes pulseRing {
-    0% {
-      text-shadow: 0 0 0 var(--glow);
-    }
-    50% {
-      text-shadow: 0 0 24px var(--glow);
-    }
-    100% {
-      text-shadow: 0 0 0 var(--glow);
-    }
-  }
-
-  .lang.spin {
-    animation: spin 0.6s var(--transition-smooth);
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  .value.slide-up {
-    animation: slideUp 0.45s var(--transition-bounce);
-  }
-
-  @keyframes slideUp {
-    0% {
-      opacity: 0;
-      transform: translateY(14px) scale(0.95);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  .value.slide-down {
-    animation: slideDown 0.45s var(--transition-bounce);
-  }
-
-  @keyframes slideDown {
-    0% {
-      opacity: 0;
-      transform: translateY(-14px) scale(0.95);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  .status.slide-in {
-    animation: statusSlideIn 0.4s var(--transition-smooth);
-  }
-
-  @keyframes statusSlideIn {
-    0% {
-      opacity: 0;
-      transform: translateX(-12px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .send .ripple {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.45);
-    transform: scale(0);
-    animation: rippleExpand 0.6s var(--transition-smooth);
-    pointer-events: none;
-  }
-
-  @keyframes rippleExpand {
-    0% {
-      transform: scale(0);
-      opacity: 0.7;
-    }
-    100% {
-      transform: scale(4);
-      opacity: 0;
-    }
-  }
-
-  .remote.sent-glow {
-    box-shadow: var(--shadow-card), 0 0 0 2px var(--ok) inset, 0 0 30px -5px var(--ok);
-    transition: box-shadow 0.4s ease;
-  }
-
-  .remote.err-glow {
-    box-shadow: var(--shadow-card), 0 0 0 2px var(--err) inset, 0 0 30px -5px var(--err);
-    transition: box-shadow 0.4s ease;
-  }
-
-  .value.pop-scale {
-    animation: popScale 0.4s var(--transition-bounce);
-  }
-
-  @keyframes popScale {
-    0% {
-      transform: scale(1);
-    }
-    40% {
-      transform: scale(1.12);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-
-  .readout.fade-pulse .value {
-    animation: fadePulse 0.7s var(--transition-smooth);
-  }
-
-  @keyframes fadePulse {
-    0% {
-      opacity: 1;
-    }
-    30% {
-      opacity: 0.4;
-    }
-    60% {
-      opacity: 1;
-    }
-    80% {
-      opacity: 0.7;
-    }
-    100% {
-      opacity: 1;
-    }
-  }
-
-  .lang.ripple-fx::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 999px;
-    border: 1px solid var(--accent);
-    animation: langRipple 0.5s var(--transition-smooth);
-    pointer-events: none;
-  }
-
-  @keyframes langRipple {
-    0% {
-      transform: scale(1);
-      opacity: 0.8;
-    }
-    100% {
-      transform: scale(1.5);
-      opacity: 0;
-    }
-  }
-
-  h1.title-swap {
-    animation: titleSwap 0.5s var(--transition-smooth);
-  }
-
-  @keyframes titleSwap {
-    0% {
-      opacity: 0.8;
-      transform: scale(1);
-    }
-    40% {
-      opacity: 0;
-      transform: scale(0.92);
-    }
-    60% {
-      opacity: 0;
-      transform: scale(0.92);
-    }
-    100% {
-      opacity: 0.8;
-      transform: scale(1);
-    }
-  }
-
-  .status.flash-in {
-    animation: statusFlashIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes statusFlashIn {
-    0% {
-      opacity: 0;
-      filter: blur(4px);
-    }
-    100% {
-      opacity: 1;
-      filter: blur(0);
-    }
-  }
-
-  .readout.scale-in .value {
-    animation: scaleIn 0.4s var(--transition-bounce);
-  }
-
-  @keyframes scaleIn {
-    0% {
-      transform: scale(0.7);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.bounce-in {
-    animation: bounceIn 0.5s var(--transition-bounce);
-  }
-
-  @keyframes bounceIn {
-    0% {
-      transform: scale(0.5);
-      opacity: 0;
-    }
-    60% {
-      transform: scale(1.1);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-
-  .value.flip-in {
-    animation: flipIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes flipIn {
-    0% {
-      transform: perspective(400px) rotateX(90deg);
-      opacity: 0;
-    }
-    100% {
-      transform: perspective(400px) rotateX(0deg);
-      opacity: 1;
-    }
-  }
-
-  .value.slide-rotate-in {
-    animation: slideRotateIn 0.5s var(--transition-bounce);
-  }
-
-  @keyframes slideRotateIn {
-    0% {
-      transform: translateX(-20px) rotate(-10deg);
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(0) rotate(0deg);
-      opacity: 1;
-    }
-  }
-
-  .status.scale-fade {
-    animation: scaleFade 0.4s var(--transition-smooth);
-  }
-
-  @keyframes scaleFade {
-    0% {
-      transform: scale(0.85);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .status.blur-slide {
-    animation: blurSlide 0.45s var(--transition-smooth);
-  }
-
-  @keyframes blurSlide {
-    0% {
-      filter: blur(6px);
-      transform: translateY(6px);
-      opacity: 0;
-    }
-    100% {
-      filter: blur(0);
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .send.btn-scale-in {
-    animation: btnScaleIn 0.4s var(--transition-bounce);
-  }
-
-  @keyframes btnScaleIn {
-    0% {
-      transform: scale(0.96);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-
-  .readout.shake-text .value {
-    animation: shakeText 0.4s var(--transition-smooth);
-  }
-
-  @keyframes shakeText {
-    0%, 100% {
-      transform: translateX(0);
-    }
-    25% {
-      transform: translateX(-3px);
-    }
-    75% {
-      transform: translateX(3px);
-    }
-  }
-
-  .value.scale-rotate {
-    animation: scaleRotate 0.5s var(--transition-bounce);
-  }
-
-  @keyframes scaleRotate {
-    0% {
-      transform: scale(0.8) rotate(-5deg);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1) rotate(0deg);
-      opacity: 1;
-    }
-  }
-
-  .value.drop-in {
-    animation: dropIn 0.5s var(--transition-bounce);
-  }
-
-  @keyframes dropIn {
-    0% {
-      transform: translateY(-30px);
-      opacity: 0;
-    }
-    70% {
-      transform: translateY(5px);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
-
-  .value.rise-in {
-    animation: riseIn 0.5s var(--transition-bounce);
-  }
-
-  @keyframes riseIn {
-    0% {
-      transform: translateY(30px);
-      opacity: 0;
-    }
-    70% {
-      transform: translateY(-5px);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
-
-  .lang.pop-in {
-    animation: popIn 0.4s var(--transition-bounce);
-  }
-
-  @keyframes popIn {
-    0% {
-      transform: scale(0.8);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .status.text-pop {
-    animation: textPop 0.4s var(--transition-bounce);
-  }
-
-  @keyframes textPop {
-    0% {
-      transform: scale(0.9);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.fade-zoom {
-    animation: fadeZoom 0.45s var(--transition-smooth);
-  }
-
-  @keyframes fadeZoom {
-    0% {
-      opacity: 0;
-      transform: scale(1.2);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  .status.slide-right {
-    animation: slideRight 0.4s var(--transition-smooth);
-  }
-
-  @keyframes slideRight {
-    0% {
-      opacity: 0;
-      transform: translateX(12px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  .value.skew-in {
-    animation: skewIn 0.5s var(--transition-bounce);
-  }
-
-  @keyframes skewIn {
-    0% {
-      transform: skewX(12deg) scale(0.9);
-      opacity: 0;
-    }
-    100% {
-      transform: skewX(0) scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.swing-in {
-    animation: swingIn 0.6s var(--transition-smooth);
-  }
-
-  @keyframes swingIn {
-    0% {
-      transform: rotate(15deg) translateY(-8px);
-      opacity: 0;
-    }
-    60% {
-      transform: rotate(-4deg) translateY(2px);
-    }
-    100% {
-      transform: rotate(0) translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .value.expand-in {
-    animation: expandIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes expandIn {
-    0% {
-      transform: scaleX(0.6);
-      opacity: 0;
-    }
-    100% {
-      transform: scaleX(1);
-      opacity: 1;
-    }
-  }
-
-  .value.contract-in {
-    animation: contractIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes contractIn {
-    0% {
-      transform: scaleX(1.4);
-      opacity: 0;
-    }
-    100% {
-      transform: scaleX(1);
-      opacity: 1;
-    }
-  }
-
-  .value.arc-in {
-    animation: arcIn 0.55s var(--transition-smooth);
-  }
-
-  @keyframes arcIn {
-    0% {
-      transform: translate(20px, -20px) rotate(10deg);
-      opacity: 0;
-    }
-    100% {
-      transform: translate(0, 0) rotate(0);
-      opacity: 1;
-    }
-  }
-
-  .value.diagonal-in {
-    animation: diagonalIn 0.5s var(--transition-bounce);
-  }
-
-  @keyframes diagonalIn {
-    0% {
-      transform: translate(-18px, 18px);
-      opacity: 0;
-    }
-    100% {
-      transform: translate(0, 0);
-      opacity: 1;
-    }
-  }
-
-  .value.tilt-in {
-    animation: tiltIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes tiltIn {
-    0% {
-      transform: rotate(-12deg) scale(0.88);
-      opacity: 0;
-    }
-    100% {
-      transform: rotate(0) scale(1);
-      opacity: 1;
-    }
-  }
-
-  .status.fade-up {
-    animation: fadeUp 0.45s var(--transition-smooth);
-  }
-
-  @keyframes fadeUp {
-    0% {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .status.fade-down {
-    animation: fadeDown 0.45s var(--transition-smooth);
-  }
-
-  @keyframes fadeDown {
-    0% {
-      opacity: 0;
-      transform: translateY(-8px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .status.zoom-in {
-    animation: zoomIn 0.4s var(--transition-bounce);
-  }
-
-  @keyframes zoomIn {
-    0% {
-      transform: scale(1.15);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .lang.icon-swap {
-    animation: iconSwap 0.5s var(--transition-bounce);
-  }
-
-  @keyframes iconSwap {
-    0% {
-      transform: scale(1) rotate(0);
-    }
-    50% {
-      transform: scale(0.85) rotate(-15deg);
-    }
-    100% {
-      transform: scale(1) rotate(0);
-    }
-  }
-
-  .readout.blur-focus .value {
-    animation: blurFocus 0.6s var(--transition-smooth);
-  }
-
-  @keyframes blurFocus {
-    0% {
-      filter: blur(6px);
-      opacity: 0.3;
-    }
-    100% {
-      filter: blur(0);
-      opacity: 1;
-    }
-  }
-
-  .value.wave-in {
-    animation: waveIn 0.55s var(--transition-smooth);
-  }
-
-  @keyframes waveIn {
-    0% {
-      transform: translateY(10px) rotate(-3deg);
-      opacity: 0;
-    }
-    40% {
-      transform: translateY(-4px) rotate(2deg);
-    }
-    100% {
-      transform: translateY(0) rotate(0);
-      opacity: 1;
-    }
-  }
-
-  .value.jello-in {
-    animation: jelloIn 0.6s var(--transition-smooth);
-  }
-
-  @keyframes jelloIn {
-    0% {
-      transform: scale(0.9, 1.1);
-      opacity: 0;
-    }
-    40% {
-      transform: scale(1.05, 0.95);
-    }
-    70% {
-      transform: scale(0.98, 1.02);
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.heartbeat-in {
-    animation: heartbeatIn 0.7s var(--transition-smooth);
-  }
-
-  @keyframes heartbeatIn {
-    0% {
-      transform: scale(0.7);
-      opacity: 0;
-    }
-    30% {
-      transform: scale(1.1);
-    }
-    50% {
-      transform: scale(0.95);
-    }
-    70% {
-      transform: scale(1.05);
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.roll-in {
-    animation: rollIn 0.6s var(--transition-smooth);
-  }
-
-  @keyframes rollIn {
-    0% {
-      transform: translateX(-40px) rotate(-30deg);
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(0) rotate(0);
-      opacity: 1;
-    }
-  }
-
-  .value.unfold-in {
-    animation: unfoldIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes unfoldIn {
-    0% {
-      transform: scaleY(0.3);
-      opacity: 0;
-    }
-    100% {
-      transform: scaleY(1);
-      opacity: 1;
-    }
-  }
-
-  .value.cascade-in {
-    animation: cascadeIn 0.55s var(--transition-bounce);
-  }
-
-  @keyframes cascadeIn {
-    0% {
-      transform: translateY(-12px) scale(0.9);
-      opacity: 0;
-    }
-    60% {
-      transform: translateY(3px) scale(1.02);
-    }
-    100% {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.float-in {
-    animation: floatIn 0.6s var(--transition-smooth);
-  }
-
-  @keyframes floatIn {
-    0% {
-      transform: translateY(18px) scale(0.95);
-      opacity: 0;
-    }
-    100% {
-      transform: translateY(0) scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.slide-flip-in {
-    animation: slideFlipIn 0.55s var(--transition-smooth);
-  }
-
-  @keyframes slideFlipIn {
-    0% {
-      transform: translateX(-15px) rotateY(40deg);
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(0) rotateY(0);
-      opacity: 1;
-    }
-  }
-
-  .status.rise-fade {
-    animation: riseFade 0.45s var(--transition-smooth);
-  }
-
-  @keyframes riseFade {
-    0% {
-      opacity: 0;
-      transform: translateY(10px) scale(0.96);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  .status.descend-fade {
-    animation: descendFade 0.45s var(--transition-smooth);
-  }
-
-  @keyframes descendFade {
-    0% {
-      opacity: 0;
-      transform: translateY(-10px) scale(0.96);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-
-  .mode .thumb.grab-pulse {
-    animation: grabPulse 0.3s var(--transition-smooth);
-  }
-
-  @keyframes grabPulse {
-    0% {
-      transform: translateX(var(--x)) scale(1);
-    }
-    50% {
-      transform: translateX(var(--x)) scale(1.04);
-    }
-    100% {
-      transform: translateX(var(--x)) scale(1);
-    }
-  }
-
-  .value.pulse-grow {
-    animation: pulseGrow 0.5s var(--transition-bounce);
-  }
-
-  @keyframes pulseGrow {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.08);
-    }
-    100% {
-      transform: scale(1);
-    }
-  }
-
-  .value.elastic-in {
-    animation: elasticIn 0.65s var(--transition-smooth);
-  }
-
-  @keyframes elasticIn {
-    0% {
-      transform: scale(0.5);
-      opacity: 0;
-    }
-    40% {
-      transform: scale(1.12);
-    }
-    70% {
-      transform: scale(0.96);
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.flip-x-in {
-    animation: flipXIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes flipXIn {
-    0% {
-      transform: perspective(400px) rotateY(90deg);
-      opacity: 0;
-    }
-    100% {
-      transform: perspective(400px) rotateY(0deg);
-      opacity: 1;
-    }
-  }
-
-  .value.zoom-out-in {
-    animation: zoomOutIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes zoomOutIn {
-    0% {
-      transform: scale(1.4);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.shake-in {
-    animation: shakeIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes shakeIn {
-    0% {
-      transform: translateX(-10px);
-      opacity: 0;
-    }
-    25% {
-      transform: translateX(6px);
-    }
-    50% {
-      transform: translateX(-4px);
-    }
-    75% {
-      transform: translateX(2px);
-    }
-    100% {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-
-  .value.bounce-down-in {
-    animation: bounceDownIn 0.6s var(--transition-bounce);
-  }
-
-  @keyframes bounceDownIn {
-    0% {
-      transform: translateY(-30px);
-      opacity: 0;
-    }
-    60% {
-      transform: translateY(6px);
-      opacity: 1;
-    }
-    80% {
-      transform: translateY(-2px);
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
-
-  .value.bounce-up-in {
-    animation: bounceUpIn 0.6s var(--transition-bounce);
-  }
-
-  @keyframes bounceUpIn {
-    0% {
-      transform: translateY(30px);
-      opacity: 0;
-    }
-    60% {
-      transform: translateY(-6px);
-      opacity: 1;
-    }
-    80% {
-      transform: translateY(2px);
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
-
-  .value.spin-in {
-    animation: spinIn 0.6s var(--transition-smooth);
-  }
-
-  @keyframes spinIn {
-    0% {
-      transform: rotate(180deg) scale(0.5);
-      opacity: 0;
-    }
-    100% {
-      transform: rotate(0) scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.puff-in {
-    animation: puffIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes puffIn {
-    0% {
-      transform: scale(1.3);
-      filter: blur(4px);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      filter: blur(0);
-      opacity: 1;
-    }
-  }
-
-  .value.blur-in {
-    animation: blurIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes blurIn {
-    0% {
-      filter: blur(8px);
-      opacity: 0;
-    }
-    100% {
-      filter: blur(0);
-      opacity: 1;
-    }
-  }
-
-  .value.slide-up-fade {
-    animation: slideUpFade 0.5s var(--transition-smooth);
-  }
-
-  @keyframes slideUpFade {
-    0% {
-      transform: translateY(20px);
-      opacity: 0;
-    }
-    100% {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .value.slide-down-fade {
-    animation: slideDownFade 0.5s var(--transition-smooth);
-  }
-
-  @keyframes slideDownFade {
-    0% {
-      transform: translateY(-20px);
-      opacity: 0;
-    }
-    100% {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .value.slide-left-fade {
-    animation: slideLeftFade 0.5s var(--transition-smooth);
-  }
-
-  @keyframes slideLeftFade {
-    0% {
-      transform: translateX(20px);
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-
-  .value.slide-right-fade {
-    animation: slideRightFade 0.5s var(--transition-smooth);
-  }
-
-  @keyframes slideRightFade {
-    0% {
-      transform: translateX(-20px);
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-
-  .value.rotate-scale-in {
-    animation: rotateScaleIn 0.55s var(--transition-bounce);
-  }
-
-  @keyframes rotateScaleIn {
-    0% {
-      transform: rotate(-20deg) scale(0.7);
-      opacity: 0;
-    }
-    100% {
-      transform: rotate(0) scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.flip-vertical-in {
-    animation: flipVerticalIn 0.55s var(--transition-smooth);
-  }
-
-  @keyframes flipVerticalIn {
-    0% {
-      transform: perspective(400px) rotateX(-90deg);
-      opacity: 0;
-    }
-    100% {
-      transform: perspective(400px) rotateX(0deg);
-      opacity: 1;
-    }
-  }
-
-  .value.stretch-in {
-    animation: stretchIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes stretchIn {
-    0% {
-      transform: scaleY(1.5) scaleX(0.8);
-      opacity: 0;
-    }
-    100% {
-      transform: scaleY(1) scaleX(1);
-      opacity: 1;
-    }
-  }
-
-  .value.squish-in {
-    animation: squishIn 0.5s var(--transition-smooth);
-  }
-
-  @keyframes squishIn {
-    0% {
-      transform: scaleY(0.5) scaleX(1.3);
-      opacity: 0;
-    }
-    100% {
-      transform: scaleY(1) scaleX(1);
-      opacity: 1;
-    }
-  }
-
-  .value.morph-in {
-    animation: morphIn 0.6s var(--transition-smooth);
-  }
-
-  @keyframes morphIn {
-    0% {
-      transform: scale(0.8) rotate(10deg) skewX(10deg);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1) rotate(0) skewX(0);
-      opacity: 1;
-    }
-  }
-
-  .value.glide-in {
-    animation: glideIn 0.55s var(--transition-smooth);
-  }
-
-  @keyframes glideIn {
-    0% {
-      transform: translateX(-30px) skewX(-8deg);
-      opacity: 0;
-    }
-    100% {
-      transform: translateX(0) skewX(0);
-      opacity: 1;
-    }
-  }
-
-  .value.toss-in {
-    animation: tossIn 0.6s var(--transition-bounce);
-  }
-
-  @keyframes tossIn {
-    0% {
-      transform: translate(30px, -30px) rotate(20deg);
-      opacity: 0;
-    }
-    100% {
-      transform: translate(0, 0) rotate(0);
-      opacity: 1;
-    }
-  }
-
-  .value.drift-in {
-    animation: driftIn 0.65s var(--transition-smooth);
-  }
-
-  @keyframes driftIn {
-    0% {
-      transform: translate(20px, 20px) scale(0.9);
-      opacity: 0;
-    }
-    100% {
-      transform: translate(0, 0) scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.spiral-in {
-    animation: spiralIn 0.65s var(--transition-smooth);
-  }
-
-  @keyframes spiralIn {
-    0% {
-      transform: rotate(90deg) scale(0.3);
-      opacity: 0;
-    }
-    100% {
-      transform: rotate(0) scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.flip-3d-in {
-    animation: flip3dIn 0.6s var(--transition-smooth);
-  }
-
-  @keyframes flip3dIn {
-    0% {
-      transform: perspective(600px) rotateY(-60deg) rotateX(20deg);
-      opacity: 0;
-    }
-    100% {
-      transform: perspective(600px) rotateY(0) rotateX(0);
-      opacity: 1;
-    }
-  }
-
-  .value.pop-out-in {
-    animation: popOutIn 0.55s var(--transition-bounce);
-  }
-
-  @keyframes popOutIn {
-    0% {
-      transform: scale(1.3) rotate(-5deg);
-      opacity: 0;
-    }
-    60% {
-      transform: scale(0.95) rotate(2deg);
-    }
-    100% {
-      transform: scale(1) rotate(0);
-      opacity: 1;
-    }
-  }
-
-  .value.swoop-in {
-    animation: swoopIn 0.6s var(--transition-smooth);
-  }
-
-  @keyframes swoopIn {
-    0% {
-      transform: translate(40px, -20px) rotate(-15deg);
-      opacity: 0;
-    }
-    100% {
-      transform: translate(0, 0) rotate(0);
-      opacity: 1;
-    }
-  }
-
-  .value.stamp-in {
-    animation: stampIn 0.45s var(--transition-smooth);
-  }
-
-  @keyframes stampIn {
-    0% {
-      transform: scale(2);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  .value.reverse-stamp-in {
-    animation: reverseStampIn 0.45s var(--transition-smooth);
-  }
-
-  @keyframes reverseStampIn {
-    0% {
-      transform: scale(0.3);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
   }
 </style>
 </head>
@@ -1932,29 +380,10 @@
   const $ = id => document.getElementById(id);
   const readout = $("readout"), valueEl = $("value");
   const slider = $("slider"), tempRow = $("tempRow"), statusEl = $("status"), sendBtn = $("sendBtn");
-  const remote = $("remote"), titleEl = $("titleEl");
   const modeBox = $("modeBox");
   const thumb = modeBox.querySelector(".thumb");
 
   const FRAC = { 0.125:"⅛", 0.25:"¼", 0.375:"⅜", 0.5:"½", 0.625:"⅝", 0.75:"¾", 0.875:"⅞" };
-
-  const VALUE_ANIMS = [
-    "flash", "mode-change", "slide-up", "slide-down", "pop-scale", "glow-fade", "rotate-in",
-    "scale-in", "bounce-in", "flip-in", "slide-rotate-in", "scale-rotate", "drop-in", "rise-in",
-    "text-pulse", "fade-zoom", "skew-in", "swing-in", "expand-in", "contract-in", "arc-in",
-    "diagonal-in", "tilt-in", "wave-in", "pulse-grow", "jello-in", "heartbeat-in", "roll-in",
-    "unfold-in", "cascade-in", "float-in", "slide-flip-in", "elastic-in", "flip-x-in",
-    "zoom-out-in", "shake-in", "bounce-down-in", "bounce-up-in", "spin-in", "puff-in",
-    "blur-in", "slide-up-fade", "slide-down-fade", "slide-left-fade", "slide-right-fade",
-    "rotate-scale-in", "flip-vertical-in", "stretch-in", "squish-in", "morph-in",
-    "glide-in", "toss-in", "drift-in", "spiral-in", "flip-3d-in", "pop-out-in",
-    "swoop-in", "stamp-in", "reverse-stamp-in"
-  ];
-
-  const STATUS_ANIMS = [
-    "slide-in", "flash-in", "scale-fade", "blur-slide", "text-pop", "slide-right",
-    "fade-up", "fade-down", "zoom-in", "rise-fade", "descend-fade"
-  ];
 
   function fmt(n) {
     const whole = Math.floor(n);
@@ -1965,64 +394,14 @@
     return COMMAND + " " + (mode === "off" ? "off" : (SEND_FRACTIONS ? fmt(temp) : String(temp)));
   }
 
-  function clearAnims(el, classes) {
-    el.classList.remove(...classes);
-    void el.offsetWidth;
-  }
-
-  function animateValue(cls) {
-    clearAnims(valueEl, VALUE_ANIMS);
-    valueEl.classList.add(cls);
-    setTimeout(() => valueEl.classList.remove(cls), 850);
-  }
-
-  function pulseReadout() {
-    clearAnims(readout, ["pulse-ring", "fade-pulse", "scale-in", "blur-focus"]);
-    readout.classList.add("pulse-ring");
-    setTimeout(() => {
-      readout.classList.remove("pulse-ring");
-      readout.classList.add("fade-pulse");
-      setTimeout(() => readout.classList.remove("fade-pulse"), 750);
-    }, 650);
-  }
-
-  function glowRemote(cls) {
-    clearAnims(remote, ["sent-glow", "err-glow"]);
-    remote.classList.add(cls);
-    setTimeout(() => remote.classList.remove(cls), 1200);
-  }
-
-  function shakeRemote() {
-    clearAnims(remote, ["shake"]);
-    remote.classList.add("shake");
-    setTimeout(() => remote.classList.remove("shake"), 450);
-  }
-
-  function render(animate, direction) {
+  function render() {
     slider.value = temp;
     const off = mode === "off";
     slider.disabled = $("minus").disabled = $("plus").disabled = off;
     tempRow.classList.toggle("is-disabled", off);
     modeBox.dataset.state = mode;
     readout.classList.toggle("is-off", off);
-    remote.classList.toggle("mode-off", off);
-    remote.classList.toggle("mode-on", !off);
-
-    const oldText = valueEl.textContent;
     valueEl.textContent = mode === "off" ? t("off") : fmt(temp) + "℃";
-    if (animate !== false && oldText !== valueEl.textContent) {
-      if (off || mode === "off") {
-        animateValue("mode-change");
-        pulseReadout();
-      } else if (direction === "up") {
-        animateValue("slide-up");
-      } else if (direction === "down") {
-        animateValue("slide-down");
-      } else {
-        animateValue("flash");
-      }
-    }
-
     document.querySelectorAll(".mode button").forEach(b =>
       b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
   }
@@ -2033,21 +412,13 @@
     document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
     document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
     $("langBtn").textContent = t("langBtn");
-    render(false);
+    render();
   }
 
-  function setTemp(n, fromButton) {
-    const prev = temp;
+  function setTemp(n) {
     temp = Math.max(16, Math.min(32, snap(n)));
     localStorage.setItem("acTemp", String(temp));
-    const dir = temp > prev ? "up" : (temp < prev ? "down" : undefined);
-    render(true, dir);
-    if (fromButton) {
-      const btn = fromButton === "minus" ? $("minus") : $("plus");
-      clearAnims(btn, ["pressed"]);
-      btn.classList.add("pressed");
-      setTimeout(() => btn.classList.remove("pressed"), 400);
-    }
+    render();
   }
 
   let dragging = false;
@@ -2060,8 +431,7 @@
     didMove = false;
     startX = e.clientX;
     startMode = mode;
-    thumb.classList.add("dragging", "grab-pulse");
-    setTimeout(() => thumb.classList.remove("grab-pulse"), 350);
+    thumb.classList.add("dragging");
     modeBox.setPointerCapture(e.pointerId);
     e.preventDefault();
   });
@@ -2085,14 +455,10 @@
     const targetMode = relativeX < 0.5 ? "on" : "off";
     if (targetMode !== mode) {
       mode = targetMode;
-      render(true);
+      render();
     } else if (startMode !== mode) {
-      render(true);
-    } else {
-      render(false);
+      render();
     }
-    thumb.classList.add("settling");
-    setTimeout(() => thumb.classList.remove("settling"), 450);
     try { modeBox.releasePointerCapture(e.pointerId); } catch (err) {}
   }
 
@@ -2109,22 +475,18 @@
     const targetMode = relativeX < 0.5 ? "on" : "off";
     if (targetMode !== mode) {
       mode = targetMode;
-      render(true);
-      thumb.classList.add("settling");
-      setTimeout(() => thumb.classList.remove("settling"), 450);
+      render();
     }
   });
 
-  $("minus").addEventListener("click", () => setTemp(temp - STEP, "minus"));
-  $("plus").addEventListener("click", () => setTemp(temp + STEP, "plus"));
+  $("minus").addEventListener("click", () => setTemp(temp - STEP));
+  $("plus").addEventListener("click", () => setTemp(temp + STEP));
   slider.addEventListener("input", () => setTemp(parseFloat(slider.value)));
 
   let statusTimer;
-  function say(text, cls, anim) {
+  function say(text, cls) {
     statusEl.textContent = text;
     statusEl.className = "status" + (cls ? " " + cls : "");
-    clearAnims(statusEl, STATUS_ANIMS);
-    statusEl.classList.add(anim || "slide-in");
     clearTimeout(statusTimer);
     if (cls) statusTimer = setTimeout(() => {
       statusEl.textContent = "";
@@ -2136,54 +498,16 @@
     const text = payload();
     const name = localStorage.getItem("chatName") || SENDER_FALLBACK;
     sendBtn.disabled = true;
-    clearAnims(sendBtn, ["sent-pulse", "btn-scale-in"]);
-    sendBtn.classList.add("sent-pulse", "btn-scale-in");
-    const rect = sendBtn.getBoundingClientRect();
-    const ripple = document.createElement("span");
-    ripple.className = "ripple";
-    const size = Math.max(rect.width, rect.height);
-    ripple.style.width = ripple.style.height = size + "px";
-    ripple.style.left = (rect.width / 2 - size / 2) + "px";
-    ripple.style.top = (rect.height / 2 - size / 2) + "px";
-    sendBtn.appendChild(ripple);
-    setTimeout(() => ripple.remove(), 650);
     say(t("sending"));
     db.ref("messages/" + ROOM).push({ name: name, msg: text, time: Date.now() })
-      .then(() => {
-        say(t("sent") + text, "ok", "flash-in");
-        pulseReadout();
-        glowRemote("sent-glow");
-        animateValue("pop-scale");
-      })
-      .catch(err => {
-        say(t("failed") + (err && err.message ? err.message : err), "err", "flash-in");
-        shakeRemote();
-        glowRemote("err-glow");
-        clearAnims(readout, ["shake-text"]);
-        readout.classList.add("shake-text");
-        setTimeout(() => readout.classList.remove("shake-text"), 450);
-      })
-      .finally(() => {
-        sendBtn.disabled = false;
-        sendBtn.classList.remove("sent-pulse", "btn-scale-in");
-      });
+      .then(() => say(t("sent") + text, "ok"))
+      .catch(err => say(t("failed") + (err && err.message ? err.message : err), "err"))
+      .finally(() => { sendBtn.disabled = false; });
   });
 
   $("langBtn").addEventListener("click", () => {
     lang = lang === "en" ? "zh" : "en";
     localStorage.setItem("acLang", lang);
-    const btn = $("langBtn");
-    clearAnims(btn, ["spin", "ripple-fx", "pop-in", "icon-swap"]);
-    btn.classList.add("spin", "ripple-fx", "pop-in", "icon-swap");
-    clearAnims(titleEl, ["title-swap"]);
-    titleEl.classList.add("title-swap");
-    clearAnims(valueEl, ["fade-zoom", "rotate-in"]);
-    valueEl.classList.add("fade-zoom");
-    setTimeout(() => {
-      btn.classList.remove("spin", "ripple-fx", "pop-in", "icon-swap");
-      titleEl.classList.remove("title-swap");
-      valueEl.classList.remove("fade-zoom");
-    }, 700);
     applyLang();
   });
 

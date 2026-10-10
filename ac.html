@@ -36,7 +36,6 @@
   }
   .readout .value{font-size:4.6rem; font-weight:300; line-height:1; font-variant-numeric:tabular-nums}
   .readout.is-off .value{font-size:4.5rem; color:var(--off); font-weight:500}
-  .cmd{margin-top:10px; font:.85rem ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--muted)}
 
   .mode{display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:5px; background:var(--bg); border-radius:16px; margin-bottom:18px}
   .mode button{
@@ -72,7 +71,6 @@
 
   <div class="readout" id="readout" aria-live="polite">
     <div class="value" id="value">26℃</div>
-    <div class="cmd" id="cmd">!ac-o 26</div>
   </div>
 
   <div class="mode" role="group" data-i18n-aria="mode" aria-label="Mode">
@@ -129,7 +127,7 @@
   if (!(temp >= 16 && temp <= 32)) temp = 26;
 
   const $ = id => document.getElementById(id);
-  const readout = $("readout"), valueEl = $("value"), cmdEl = $("cmd");
+  const readout = $("readout"), valueEl = $("value");
   const slider = $("slider"), tempRow = $("tempRow"), statusEl = $("status"), sendBtn = $("sendBtn");
 
   const FRAC = { 0.125:"⅛", 0.25:"¼", 0.375:"⅜", 0.5:"½", 0.625:"⅝", 0.75:"¾", 0.875:"⅞" };
@@ -145,7 +143,6 @@
     tempRow.classList.toggle("hidden", mode === "off");
     readout.classList.toggle("is-off", mode === "off");
     valueEl.textContent = mode === "off" ? t("offBig") : fmt(temp) + "℃";
-    cmdEl.textContent = payload();
     document.querySelectorAll(".mode button").forEach(b =>
       b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
   }

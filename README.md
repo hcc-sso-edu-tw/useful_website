@@ -12,21 +12,17 @@ This repository is a set of static HTML/JavaScript pages. Each `.html` file typi
 
 | File | Inferred Purpose |
 | --- | --- |
-| `almanac/` | Almanac / calendar-related pages or data |
-| `Cooling Air Conditioner Icon.png` | Air-conditioning related icon asset |
-| `Pokemon Firered.html` | Pokémon FireRed-related web mini-game or demo |
-| `ac.html` | Air conditioner / AC-related tool page |
-| `animation.html` | CSS or JavaScript animation demo |
-| `api.js` | Shared API request or utility functions |
-| `barecode.html` | Barcode generation or scanning page |
-| `code_editor.html` | Online code editor |
-| `draw.html` | Online drawing board |
-| `graph.html` | Chart drawing page |
-| `line.html` | Line chart or LINE-related page |
-| `map.js` | Shared map-related script |
-| `marquee.html` | Marquee text effect demo |
-| `smpte.html` | SMPTE color test bars (TV test pattern) |
-| `stock.html` | Stock or trend chart-related page |
+| [Pokemon Firered.html](https://hcc-sso-edu-tw.github.io/useful_website/Pokemon%20Firered.html) | Pokémon FireRed-related web mini-game or demo |
+| [ac.html](https://hcc-sso-edu-tw.github.io/useful_website/ac.html) | Air conditioner / AC-related tool page |
+| [animation.html](https://hcc-sso-edu-tw.github.io/useful_website/animation.html) | CSS or JavaScript animation demo |
+| [barecode.html](https://hcc-sso-edu-tw.github.io/useful_website/barecode.html) | Barcode generation or scanning page |
+| [code_editor.html](https://hcc-sso-edu-tw.github.io/useful_website/code_editor.html) | Online code editor |
+| [draw.html](https://hcc-sso-edu-tw.github.io/useful_website/draw.html) | Online drawing board |
+| [graph.html](https://hcc-sso-edu-tw.github.io/useful_website/graph.html) | Chart drawing page |
+| [line.html](https://hcc-sso-edu-tw.github.io/useful_website/line.html) | Line chart or LINE-related page |
+| [marquee.html](https://hcc-sso-edu-tw.github.io/useful_website/marquee.html) | Marquee text effect demo |
+| [smpte.html](https://hcc-sso-edu-tw.github.io/useful_website/smpte.html) | SMPTE color test bars (TV test pattern) |
+| [stock.html](https://hcc-sso-edu-tw.github.io/useful_website/stock.html) | Stock or trend chart-related page |
 
 ## Usage
 

@@ -23,7 +23,7 @@ This repository is a set of static HTML/JavaScript pages. Each `.html` file typi
 | [marquee.html](https://hcc-sso-edu-tw.github.io/useful_website/marquee.html) | Marquee text effect demo |
 | [smpte.html](https://hcc-sso-edu-tw.github.io/useful_website/smpte.html) | SMPTE color test bars (TV test pattern) |
 | [stock.html](https://hcc-sso-edu-tw.github.io/useful_website/stock.html) | Stock or trend chart-related page |
-| [stock.html](https://hcc-sso-edu-tw.github.io/useful_website/translate_simple.html) | Translation App |
+| [translate_simple.html](https://hcc-sso-edu-tw.github.io/useful_website/translate_simple.html) | Translation App |
 
 ## Usage
 

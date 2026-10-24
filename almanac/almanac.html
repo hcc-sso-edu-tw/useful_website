@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link href="./assets/almanac.png" rel="apple-touch-icon" type="image/png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#05090f">
 <title>Rectangle Filler</title>
@@ -70,9 +69,24 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 @keyframes brand-flow{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
 @keyframes shimmerBg{0%{background-position:-200% 0}100%{background-position:200% 0}}
 @keyframes gradientShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-@keyframes ripple{0%{transform:scale(0);opacity:.6}100%{transform:scale(4);opacity:0}}
+@keyframes ripple{0%{transform:scale(0);opacity:.6}100%{transform:scale(2.5);opacity:0}}
 @keyframes kenBurns { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
 @keyframes spotPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,.55), 0 0 0 9999px rgba(0,0,0,.6); } 50% { box-shadow: 0 0 0 6px rgba(255,255,255,.55), 0 0 0 9999px rgba(0,0,0,.6); } }
+@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 var(--theme-glow); } 50% { box-shadow: 0 0 20px 5px var(--theme-glow); } 100% { box-shadow: 0 0 0 0 var(--theme-glow); } }
+/* 👈 新增點擊波紋動畫 */
+@keyframes clickRipple { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
+
+/* 👈 新增點擊波紋樣式 */
+.tut-click-ripple {
+  position: fixed;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 825;
+  animation: clickRipple 0.5s ease-out forwards;
+  transform-origin: center center;
+}
 
 .aurora-layer{display:none;}
 .particle-field{display:none;}
@@ -171,7 +185,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 }
 .btn-mini svg{width:18px;height:18px;pointer-events:none;opacity:.9;}
 
-.ripple-fx{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);transform:scale(0);pointer-events:none;animation:ripple .7s ease-out forwards;mix-blend-mode:overlay;}
+.ripple-fx{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);transform:scale(0);pointer-events:none;animation:ripple .6s ease-out forwards;mix-blend-mode:overlay;}
 
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 0 22px;position:relative;min-height:44px;gap:8px;}
 .back-btn{background:none;border:none;color:var(--ink-1);font-size:16px;font-weight:600;display:flex;align-items:center;gap:3px;padding:8px 4px 8px 0;cursor:pointer;border-radius:8px;transition:color .2s ease;flex:0 0 auto;z-index:2;}
@@ -404,51 +418,61 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   transition:opacity .25s ease;
 }
 .tut-demo-rect.show{opacity:.9;}
+
+/* 修改：整合 Next 按钮与提示框，支持拖曳，避免互相遮挡 */
 .tut-tip{
   position:fixed;
   left:50%;
-  bottom:calc(18px + env(safe-area-inset-bottom));
+  bottom:calc(20px + env(safe-area-inset-bottom));
   transform:translateX(-50%) translateY(20px);
   z-index:830;
   background:rgba(20,28,38,0.95);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
   border:1px solid var(--line);
   color:var(--ink-0);
-  padding:12px 18px;
-  border-radius:14px;
-  font-size:13.5px;
-  font-weight:700;
+  padding:16px 20px;
+  border-radius:16px;
+  font-size:14px;
+  font-weight:600;
   text-align:center;
   box-shadow:0 20px 44px -12px rgba(0,0,0,.9);
-  max-width:calc(100% - 40px);
+  max-width:min(380px, calc(100% - 32px));
+  width:max-content;
+  min-width:250px;
+  height: fit-content;
   opacity:0;
   pointer-events:none;
   transition:opacity .3s ease,transform .3s ease;
+  cursor: grab;
 }
-.tut-tip.show{opacity:1;transform:translateX(-50%) translateY(0);}
-.tut-tip .k{color:var(--gold);}
-.tut-cta{
-  position:fixed;
-  left:50%;
-  bottom:calc(80px + env(safe-area-inset-bottom));
-  transform:translateX(-50%) translateY(20px);
-  z-index:840;
+.tut-tip:active { cursor: grabbing; }
+.tut-tip.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+.tut-tip .k{color:var(--gold);display:block;margin-bottom:6px;font-size:12px;font-weight:800;letter-spacing:.05em;pointer-events: none;}
+.tut-tip .tip-content{margin-bottom:16px;line-height:1.5;pointer-events: none;}
+
+/* 内嵌的 Next 按钮 */
+.tut-inner-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   background:linear-gradient(145deg,var(--theme-1),var(--theme-2));
   color:#fff;
   border:none;
-  padding:13px 34px;
-  border-radius:14px;
-  font-size:14.5px;
+  padding:10px 30px;
+  border-radius:10px;
+  font-size:14px;
   font-weight:800;
   cursor:pointer;
-  box-shadow:0 10px 24px -6px var(--theme-glow);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .3s ease,transform .3s ease,filter .15s ease;
   font-family:inherit;
+  box-shadow:0 4px 12px -4px var(--theme-glow);
+  transition:filter .15s ease;
+  width:100%;
+  position: relative;
+  z-index: 10;
 }
-.tut-cta.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);}
-.tut-cta:hover{filter:brightness(1.06);}
-.tut-cta:disabled{opacity:.35;pointer-events:none;}
+.tut-inner-btn:hover{filter:brightness(1.08);}
+.tut-inner-btn:disabled{opacity:.5;pointer-events:none;}
 
 .tut-spotlight{
   position:fixed;
@@ -483,6 +507,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   box-shadow:0 24px 48px -12px rgba(0,0,0,.95);
   max-width:min(380px, calc(100% - 32px));
   pointer-events:auto;
+  transition:top .3s ease;
 }
 .tut-spotlight .tip-card .k{color:var(--gold);font-weight:800;font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px;}
 .tut-spotlight .tip-card .next{
@@ -498,6 +523,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   font-family:inherit;
   box-shadow:0 6px 16px -4px var(--theme-glow);
   transition:filter .15s ease;
+  width:100%;
 }
 .tut-spotlight .tip-card .next:hover{filter:brightness(1.06);}
 
@@ -766,6 +792,10 @@ html[data-theme="light"] .cell:not(.gray):not(.filled):not(.preview)::before{
 html[data-theme="light"] .game-level .n{color:var(--ink-0);text-shadow:none;}
 html[data-theme="light"] .game-level .s{color:var(--ink-1);text-shadow:none;}
 
+/* 教程拖拽演示的手和矩形不应阻挡点击 */
+.tut-hand, .tut-demo-rect {
+  pointer-events: none !important;
+}
 </style>
 </head>
 <body>
@@ -940,7 +970,7 @@ html[data-theme="light"] .game-level .s{color:var(--ink-1);text-shadow:none;}
   <div class="game-shell">
     <div class="game-top">
       <button class="back-btn" data-action="game-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Back</button>
-      <div class="game-level">
+      <div class="game-level" id="gameLevelIndicator">
         <div class="n" id="gameLevelNum">Level 1</div>
         <div class="s" id="gameLevelSize">5 × 5</div>
       </div>
@@ -1014,8 +1044,13 @@ html[data-theme="light"] .game-level .s{color:var(--ink-1);text-shadow:none;}
   </svg>
 </div>
 <div class="tut-demo-rect" id="tutDemoRect"></div>
-<div class="tut-tip" id="tutTip"></div>
-<button class="tut-cta" id="tutCta">Next</button>
+
+<!-- 前 3 步可拖曳的說明框 -->
+<div class="tut-tip" id="tutTip">
+  <div class="k" id="tutTipTitle">Step 1 / 3</div>
+  <div class="tip-content" id="tutTipContent">Watch: press the top-left cell and drag to the bottom-right cell, then release.</div>
+  <button class="tut-inner-btn" id="tutCta">Next</button>
+</div>
 
 <div class="tut-spotlight" id="tutSpotlight">
   <div class="hole" id="tutHole"></div>
@@ -1046,6 +1081,22 @@ html[data-theme="light"] .game-level .s{color:var(--ink-1);text-shadow:none;}
 <script>
 (function(){
 'use strict';
+
+let tutActive = false;
+let tutStep = 0;
+let tutAllowInput = false;
+let tutHandEl = null, tutRectEl = null, tutTipEl = null, tutCtaEl = null;
+let tutRAF = null;
+let tutTimer = null;
+let tutSpotEl = null, tutHoleEl = null, tutSpotTipEl = null, tutSpotTextEl = null, tutSpotNextEl = null;
+let tutSpotSteps = [];
+let tutSpotIndex = 0;
+let pendingWin = false;
+
+// 拖曳變數
+let isDraggingTip = false;
+let dragTipStartX = 0, dragTipStartY = 0, dragTipInitLeft = 0, dragTipInitTop = 0;
+let hasDragged = false;
 
 const MEDIA_BGS = {
   'meadow': 'assets/meadow.jpg',
@@ -1647,13 +1698,13 @@ const rippleAttached=new WeakSet();
 function attachRipple(el){
   el.addEventListener('click',function(e){
     const r=el.getBoundingClientRect();
-    const size=Math.max(r.width,r.height);
-    const x=e.clientX-r.left-size/2,y=e.clientY-r.top-size/2;
+    const size = 200; // 👈 修改：固定波紋大小為 200px (半徑 100px)
+    const x=e.clientX-r.left-size/2, y=e.clientY-r.top-size/2;
     const s=document.createElement('span');
     s.className='ripple-fx';
     s.style.width=s.style.height=size+'px';
-    s.style.left=x+'px';s.style.top=y+'px';
-    el.appendChild(s);setTimeout(()=>s.remove(),700);
+    s.style.left=x+'px'; s.style.top=y+'px';
+    el.appendChild(s); setTimeout(()=>s.remove(),700);
   });
 }
 function attachRippleOnce(el){
@@ -2070,12 +2121,17 @@ function startLevel(w,lv){
   $('gameLevelSize').textContent=SIZE+' × '+SIZE;
   initBoard(currentLevelData);
   showScreen('gameScreen');
-  if(w===TUTORIAL_WORLD&&lv===1){
+  
+  // 只在第一关且教程未看过时启动教程
+  if(w===TUTORIAL_WORLD && lv===1) {
     let seen=false;
     try{seen=localStorage.getItem(TUT_KEY)==='1';}catch(e){}
-    if(!seen)setTimeout(startInteractiveTutorial,500);
+    if(!seen) {
+      setTimeout(startInteractiveTutorial, 500);
+    }
   }
 }
+
 function initBoard(levelData){
   board=Array.from({length:SIZE},()=>Array(SIZE).fill(null));
   for(const [r,c] of (levelData.grayCells||[])){
@@ -2362,7 +2418,12 @@ document.addEventListener('pointerup',e=>{
         $('message').textContent='Puzzle solved!';
         $('message').classList.add('success');
         $('message').classList.remove('error');
-        onLevelComplete();
+        
+        if(tutActive) {
+          pendingWin = true;
+        } else {
+          onLevelComplete();
+        }
       }
       if(tutActive && tutStep===3 && tutAllowInput){
         tutOnPlayerRectPlaced();
@@ -2615,16 +2676,6 @@ function hideFinale(){
 }
 
 /* ---------------- Interactive tutorial ---------------- */
-let tutActive=false;
-let tutStep=0;
-let tutAllowInput=false;
-let tutHandEl=null,tutRectEl=null,tutTipEl=null,tutCtaEl=null;
-let tutRAF=null;
-let tutTimer=null;
-let tutSpotEl=null,tutHoleEl=null,tutSpotTipEl=null,tutSpotTextEl=null,tutSpotNextEl=null;
-let tutSpotSteps=[];
-let tutSpotIndex=0;
-
 function cellRect(r,c){
   const el=cellEls[r]&&cellEls[r][c];
   if(!el)return null;
@@ -2638,10 +2689,15 @@ function tutHideHand(){
   if(!tutHandEl)return;
   tutHandEl.classList.remove('show');
 }
-function tutShowTip(html){
+function tutShowTip(title, html){
   if(!tutTipEl)return;
-  tutTipEl.innerHTML=html;
+  $('tutTipTitle').textContent = title;
+  $('tutTipContent').innerHTML = html;
   tutTipEl.classList.add('show');
+  tutTipEl.style.left = '';
+  tutTipEl.style.top = '';
+  tutTipEl.style.bottom = ''; 
+  tutTipEl.style.transform = '';
 }
 function tutHideTip(){
   if(!tutTipEl)return;
@@ -2650,12 +2706,11 @@ function tutHideTip(){
 function tutShowCta(label){
   if(!tutCtaEl)return;
   tutCtaEl.textContent=label;
-  tutCtaEl.classList.add('show');
-  tutCtaEl.disabled=false;
+  tutCtaEl.classList.remove('hidden');
 }
 function tutHideCta(){
   if(!tutCtaEl)return;
-  tutCtaEl.classList.remove('show');
+  tutCtaEl.classList.add('hidden');
 }
 function tutMoveHandTo(x,y,angle){
   if(!tutHandEl)return;
@@ -2678,6 +2733,63 @@ function tutShowDemoRect(r0,c0,r1,c1){
 function tutHideDemoRect(){
   if(tutRectEl)tutRectEl.classList.remove('show');
 }
+
+// 拖曳邏輯
+function initTutTipDrag(){
+  if(!tutTipEl) return;
+  
+  const onDown = (e) => {
+    // 只有點擊非按鈕區域才觸發拖曳
+    if (e.target.closest('button')) return;
+    isDraggingTip = true;
+    hasDragged = false;
+    
+    // 獲取當前位置的絕對座標
+    const r = tutTipEl.getBoundingClientRect();
+    dragTipInitLeft = r.left;
+    dragTipInitTop = r.top;
+    dragTipStartX = e.clientX;
+    dragTipStartY = e.clientY;
+    
+    // 👈 修改：強制將定位屬性改為絕對座標，避免與原本的 bottom/transform 衝突
+    tutTipEl.style.bottom = 'auto';
+    tutTipEl.style.transform = 'none';
+    tutTipEl.style.left = dragTipInitLeft + 'px';
+    tutTipEl.style.top = dragTipInitTop + 'px';
+    
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    e.preventDefault();
+  };
+  
+  const onMove = (e) => {
+    if (!isDraggingTip) return;
+    const dx = e.clientX - dragTipStartX;
+    const dy = e.clientY - dragTipStartY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged = true;
+    
+    let newLeft = dragTipInitLeft + dx;
+    let newTop = dragTipInitTop + dy;
+    
+    // 邊界限制
+    const w = tutTipEl.offsetWidth;
+    const h = tutTipEl.offsetHeight;
+    newLeft = Math.max(10, Math.min(window.innerWidth - w - 10, newLeft));
+    newTop = Math.max(10, Math.min(window.innerHeight - h - 10, newTop));
+    
+    tutTipEl.style.left = newLeft + 'px';
+    tutTipEl.style.top = newTop + 'px';
+  };
+  
+  const onUp = () => {
+    isDraggingTip = false;
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+  };
+  
+  tutTipEl.addEventListener('pointerdown', onDown);
+}
+
 function tutSweepDemo(r0,c0,r1,c1,duration,cb){
   const a=cellRect(r0,c0),b=cellRect(r1,c1);
   if(!a||!b){
@@ -2713,6 +2825,7 @@ function startInteractiveTutorial(){
   tutActive=true;
   tutStep=0;
   tutAllowInput=false;
+  pendingWin = false;
   tutHandEl=$('tutHand');
   tutRectEl=$('tutDemoRect');
   tutTipEl=$('tutTip');
@@ -2722,6 +2835,9 @@ function startInteractiveTutorial(){
   tutSpotTipEl=$('tutSpotTip');
   tutSpotTextEl=$('tutSpotText');
   tutSpotNextEl=$('tutSpotNext');
+  
+  initTutTipDrag();
+  
   tutHideHand();
   tutHideDemoRect();
   tutHideTip();
@@ -2731,7 +2847,7 @@ function startInteractiveTutorial(){
 }
 
 function tutStepDemoSweep(){
-  tutShowTip('<span class="k">Step 1 / 3</span><br>Watch: press the top-left cell and drag to the bottom-right cell, then release.');
+  tutShowTip('Step 1 / 3', 'Watch: press the top-left cell and drag to the bottom-right cell, then release.');
   const last=SIZE-1;
   tutSweepDemo(0,0,last,last,2200,()=>{
     if(board[0][0]===null){
@@ -2743,14 +2859,14 @@ function tutStepDemoSweep(){
       updateBoardView();
       SFX.place();
     }
-    tutShowTip('<span class="k">Step 1 / 3</span><br>Release places one big rectangle. Press <b>Next</b> to continue.');
+    tutShowTip('Step 1 / 3', 'Release places one big rectangle. Press <b>Next</b> to continue.');
     tutShowCta('Next');
     tutStep=1;
   });
 }
 
 function tutStepRemove(){
-  tutShowTip('<span class="k">Step 2 / 3</span><br>Watch: tap the filled area once to remove it.');
+  tutShowTip('Step 2 / 3', 'Watch: tap the filled area once to remove it.');
   const last=SIZE-1;
   const mid=Math.floor(last/2);
   const b=cellRect(mid,mid);
@@ -2758,32 +2874,63 @@ function tutStepRemove(){
     tutTimer=setTimeout(tutStepRemove,200);
     return;
   }
+  
+  // 在要被點擊的方塊上加入光暈提示
+  const cellEl = cellEls[mid][mid];
+  if(cellEl) cellEl.style.animation = 'pulseGlow 1.2s ease-in-out infinite';
+  
   tutShowHand();
   tutMoveHandTo(b.left+b.width/2-22,b.top+b.height/2-22,0);
+  
+  // 👈 新增：在手指快要按下去的時候（1.3 秒時）產生點擊波紋
+  const rippleTimer = setTimeout(() => {
+    const centerX = b.left + b.width / 2;
+    const centerY = b.top + b.height / 2;
+    const ripple = document.createElement('div');
+    ripple.className = 'tut-click-ripple';
+    // 將波紋中心對準點擊中心（40px 是波紋的寬高）
+    ripple.style.left = (centerX - 20) + 'px';
+    ripple.style.top = (centerY - 20) + 'px';
+    document.body.appendChild(ripple);
+    
+    // 動畫結束後移除元素
+    setTimeout(() => ripple.remove(), 500);
+    
+    // 可以在點擊瞬間播放音效（可選）
+    // SFX.click();
+  }, 1300);
+
   tutTimer=setTimeout(()=>{
-    tutHideHand();
+    if(cellEl) cellEl.style.animation = '';
+    
     if(board[mid][mid]&&board[mid][mid].group!==undefined){
       removeGroupAt(mid,mid);
       updateBoardView();
       SFX.pickup();
     }
-    tutShowTip('<span class="k">Step 2 / 3</span><br>Tap removes the rectangle. Press <b>Next</b> to try it yourself.');
+    tutShowTip('Step 2 / 3', 'Tap removes the rectangle. Press <b>Next</b> to try it yourself.');
     tutShowCta('Next');
     tutStep=2;
   },1600);
 }
 
 function tutStepYouTry(){
-  tutShowTip('<span class="k">Step 3 / 3</span><br>Your turn! Drag across <b>any 3 empty cells</b> and release.');
-  tutHideCta();
+  tutShowTip('Step 3 / 3', 'Your turn! Drag across <b>any 3 empty cells</b> and release.');
+  tutHideCta(); // Step 3/3 沒有 Next 按鈕，必須完全填滿盤面
   tutAllowInput=true;
   tutStep=3;
 }
 
 function tutOnPlayerRectPlaced(){
   if(!tutActive)return;
+  
+  // 檢查是否已經完全填滿盤面
+  if(!isBoardFilled()) {
+    return; // 還沒填滿，繼續等玩家動作
+  }
+  
   tutAllowInput=false;
-  tutShowTip('<span class="k">Nice!</span><br>That is how you fill the board.');
+  tutShowTip('Nice!', 'That is how you fill the board.');
   tutShowCta('Show me the rules');
   tutStep=4;
 }
@@ -2812,7 +2959,7 @@ function tutStartSpotlight(){
       text:'<b>Reset</b> clears the board so you can try a different solution without leaving the level.'
     },
     {
-      target:()=>$('winStars'),
+      target:()=>$('gameLevelIndicator'), // 修正：高亮右上角的關卡標題
       text:'<b>Stars:</b> 1★ for solving. +1★ for using the minimum rectangles. +1★ for matching the minimum perimeter. Some levels have two goals — solve both to pass.',
       fallback:()=>$('statRect')
     }
@@ -2844,18 +2991,26 @@ function tutShowSpotStep(){
   tutSpotTextEl.innerHTML=s.text;
   tutSpotNextEl.textContent=(tutSpotIndex===tutSpotSteps.length-1)?'Start playing':'Next';
 
+  // 動態計算說明框位置
   const holeTop=r.top-pad, holeBottom=r.bottom+pad;
-  const cardH=140;
+  const cardH=tutSpotTipEl.offsetHeight || 140; // 取得實際高度或預設 140
   const vh=window.innerHeight;
   let cardTop;
-  if(holeBottom+cardH+20<vh){
-    cardTop=holeBottom+16;
-  } else if(holeTop-cardH-20>0){
-    cardTop=holeTop-cardH-16;
-  } else {
-    cardTop=Math.max(16, vh-cardH-16);
+  
+  // 如果下方空間足夠，放在下方
+  if(holeBottom + cardH + 20 < vh){
+    cardTop = holeBottom + 16;
+  } 
+  // 否則如果上方空間足夠，放在上方
+  else if(holeTop - cardH - 20 > 0){
+    cardTop = holeTop - cardH - 16;
+  } 
+  // 如果上下都不夠，放在畫面底部，但這可能會遮擋，所以盡量把聚光燈往下移
+  else {
+    cardTop = Math.max(16, vh - cardH - 16);
   }
-  tutSpotTipEl.style.top=cardTop+'px';
+  
+  tutSpotTipEl.style.top = cardTop + 'px';
 }
 
 function tutNextSpot(){
@@ -2868,6 +3023,11 @@ function tutEndSpotlight(){
   tutActive=false;
   tutAllowInput=false;
   try{localStorage.setItem(TUT_KEY,'1');}catch(e){}
+  
+  if(pendingWin) {
+    pendingWin = false;
+    onLevelComplete();
+  }
 }
 
 function cleanupTutorial(){
@@ -2876,13 +3036,15 @@ function cleanupTutorial(){
   tutHideHand();tutHideDemoRect();tutHideTip();tutHideCta();
   if(tutSpotEl)tutSpotEl.classList.remove('show');
   tutActive=false;tutAllowInput=false;
+  pendingWin = false;
 }
 
 if($('tutCta')){
-  $('tutCta').addEventListener('click',()=>{
+  $('tutCta').addEventListener('click',(e)=>{
+    if(hasDragged) return; // 如果剛剛拖曳過，就不觸發點擊
     if(!tutActive)return;
     if(tutStep===1){tutStepRemove();}
-    else if(tutStep===2){tutStepYouTry();}
+    else if(tutStep===2){tutHideHand();tutStepYouTry();}
     else if(tutStep===4){tutStartSpotlight();}
   });
 }

@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<link href="assets/almanac.png" rel="apple-touch-icon" type="image/png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#05090f">
 <title>Rectangle Filler</title>
+<link href="assets/almanac.png" rel="apple-touch-icon" type="image/png">
 
 <style>
 :root{
@@ -73,7 +73,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 @keyframes kenBurns { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
 @keyframes spotPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,.55), 0 0 0 9999px rgba(0,0,0,.6); } 50% { box-shadow: 0 0 0 6px rgba(255,255,255,.55), 0 0 0 9999px rgba(0,0,0,.6); } }
 @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 var(--theme-glow); } 50% { box-shadow: 0 0 20px 5px var(--theme-glow); } 100% { box-shadow: 0 0 0 0 var(--theme-glow); } }
-/* 僅保留教學 Step 2 的小手點擊波紋 */
 @keyframes clickRipple { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
 .aurora-layer{display:none;}
@@ -405,7 +404,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 }
 .tut-demo-rect.show{opacity:.9;}
 
-/* 修正：整合 Next 按鈕與提示框，支持拖曳，避免互相遮擋 */
 .tut-tip{
   position:fixed;
   left:50%;
@@ -426,7 +424,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   max-width:min(380px, calc(100% - 32px));
   width:max-content;
   min-width:250px;
-  height: fit-content; /* 確保高度自適應 */
+  height: fit-content;
   opacity:0;
   pointer-events:none;
   transition:opacity .3s ease,transform .3s ease;
@@ -437,7 +435,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 .tut-tip .k{color:var(--gold);display:block;margin-bottom:6px;font-size:12px;font-weight:800;letter-spacing:.05em;pointer-events: none;}
 .tut-tip .tip-content{margin-bottom:16px;line-height:1.5;pointer-events: none;}
 
-/* 内嵌的 Next 按钮 */
 .tut-inner-btn{
   display:inline-flex;
   align-items:center;
@@ -445,9 +442,9 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   background:linear-gradient(145deg,var(--theme-1),var(--theme-2));
   color:#fff;
   border:none;
-  padding:10px 30px;
+  padding:14px 30px;
   border-radius:10px;
-  font-size:14px;
+  font-size:15px;
   font-weight:800;
   cursor:pointer;
   font-family:inherit;
@@ -456,6 +453,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   width:100%;
   position: relative;
   z-index: 10;
+  touch-action: manipulation;
 }
 .tut-inner-btn:hover{filter:brightness(1.08);}
 .tut-inner-btn:disabled{opacity:.5;pointer-events:none;}
@@ -501,15 +499,16 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   background:linear-gradient(145deg,var(--theme-1),var(--theme-2));
   color:#fff;
   border:none;
-  padding:10px 22px;
+  padding:12px 22px;
   border-radius:10px;
-  font-size:13px;
+  font-size:14px;
   font-weight:800;
   cursor:pointer;
   font-family:inherit;
   box-shadow:0 6px 16px -4px var(--theme-glow);
   transition:filter .15s ease;
   width:100%;
+  touch-action: manipulation;
 }
 .tut-spotlight .tip-card .next:hover{filter:brightness(1.06);}
 
@@ -529,7 +528,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 .gf-stat-k{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6);}
 .gf-btn{margin-top:20px;background:linear-gradient(145deg,#f5d76e,#e8b23a);color:#1a1408;border:none;padding:14px 40px;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 8px 0 #a87417;transition:filter .15s ease;}
 
-/* 僅保留教學 Step 2 的點擊波紋 */
 .tut-click-ripple {
   position: fixed;
   width: 40px; height: 40px;
@@ -790,7 +788,6 @@ html[data-theme="light"] .cell:not(.gray):not(.filled):not(.preview)::before{
 html[data-theme="light"] .game-level .n{color:var(--ink-0);text-shadow:none;}
 html[data-theme="light"] .game-level .s{color:var(--ink-1);text-shadow:none;}
 
-/* 教程拖拽演示的手和矩形不应阻挡点击 */
 .tut-hand, .tut-demo-rect {
   pointer-events: none !important;
 }
@@ -1043,7 +1040,6 @@ html[data-theme="light"] .game-level .s{color:var(--ink-1);text-shadow:none;}
 </div>
 <div class="tut-demo-rect" id="tutDemoRect"></div>
 
-<!-- 前 3 步可拖曳的說明框 -->
 <div class="tut-tip" id="tutTip">
   <div class="k" id="tutTipTitle">Step 1 / 3</div>
   <div class="tip-content" id="tutTipContent">Watch: press the top-left cell and drag to the bottom-right cell, then release.</div>
@@ -1094,7 +1090,6 @@ let pendingWin = false;
 // 拖曳變數
 let isDraggingTip = false;
 let dragTipStartX = 0, dragTipStartY = 0, dragTipInitLeft = 0, dragTipInitTop = 0;
-let hasDragged = false;
 
 const MEDIA_BGS = {
   'meadow': 'assets/meadow.jpg',
@@ -2097,7 +2092,6 @@ function startLevel(w,lv){
   initBoard(currentLevelData);
   showScreen('gameScreen');
   
-  // 只在第一關且教程未看過時啟動教程
   if(w===TUTORIAL_WORLD && lv===1) {
     let seen=false;
     try{seen=localStorage.getItem(TUT_KEY)==='1';}catch(e){}
@@ -2710,14 +2704,12 @@ function tutHideDemoRect(){
   if(tutRectEl)tutRectEl.classList.remove('show');
 }
 
-// 拖曳邏輯
 function initTutTipDrag(){
   if(!tutTipEl) return;
   
   const onDown = (e) => {
     if (e.target.closest('button')) return;
     isDraggingTip = true;
-    hasDragged = false;
     const r = tutTipEl.getBoundingClientRect();
     dragTipInitLeft = r.left;
     dragTipInitTop = r.top;
@@ -2738,7 +2730,6 @@ function initTutTipDrag(){
     if (!isDraggingTip) return;
     const dx = e.clientX - dragTipStartX;
     const dy = e.clientY - dragTipStartY;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) hasDragged = true;
     
     let newLeft = dragTipInitLeft + dx;
     let newTop = dragTipInitTop + dy;
@@ -2852,7 +2843,6 @@ function tutStepRemove(){
   tutShowHand();
   tutMoveHandTo(b.left+b.width/2-22,b.top+b.height/2-22,0);
   
-  // 在手指快要按下去的時候產生點擊波紋
   const rippleTimer = setTimeout(() => {
     const centerX = b.left + b.width / 2;
     const centerY = b.top + b.height / 2;
@@ -2865,7 +2855,6 @@ function tutStepRemove(){
   }, 1300);
 
   tutTimer=setTimeout(()=>{
-    // 不馬上隱藏小手，讓它留在畫面上直到玩家按 Next
     if(cellEl) cellEl.style.animation = '';
     
     if(board[mid][mid]&&board[mid][mid].group!==undefined){
@@ -2994,19 +2983,18 @@ function cleanupTutorial(){
 }
 
 if($('tutCta')){
-  $('tutCta').addEventListener('click',(e)=>{
-    if(hasDragged) return;
-    if(!tutActive)return;
+  $('tutCta').addEventListener('pointerdown', (e) => {
+    if(!tutActive) return;
     if(tutStep===1){tutStepRemove();}
     else if(tutStep===2){
-      tutHideHand(); // 在這裡才隱藏小手
+      tutHideHand();
       tutStepYouTry();
     }
     else if(tutStep===4){tutStartSpotlight();}
   });
 }
 if($('tutSpotNext')){
-  $('tutSpotNext').addEventListener('click',()=>{
+  $('tutSpotNext').addEventListener('pointerdown',()=>{
     if(!tutActive)return;
     tutNextSpot();
   });

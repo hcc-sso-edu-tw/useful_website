@@ -13,6 +13,7 @@ This repository is a set of static HTML/JavaScript pages. Each `.html` file typi
 | File | Inferred Purpose |
 | --- | --- |
 | [Pokemon Firered.html](https://hcc-sso-edu-tw.github.io/useful_website/Pokemon%20Firered.html) | Pokémon FireRed-related web mini-game or demo |
+| [almanac.html](https://hcc-sso-edu-tw.github.io/useful_website/almanac/almanac.html) | Almanac game |
 | [ac.html](https://hcc-sso-edu-tw.github.io/useful_website/ac.html) | Air conditioner / AC-related tool page |
 | [animation.html](https://hcc-sso-edu-tw.github.io/useful_website/animation.html) | CSS or JavaScript animation demo |
 | [barecode.html](https://hcc-sso-edu-tw.github.io/useful_website/barecode.html) | Barcode generation or scanning page |

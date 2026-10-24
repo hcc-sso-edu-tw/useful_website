@@ -70,24 +70,11 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 @keyframes brand-flow{0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
 @keyframes shimmerBg{0%{background-position:-200% 0}100%{background-position:200% 0}}
 @keyframes gradientShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-@keyframes ripple{0%{transform:scale(0);opacity:.6}100%{transform:scale(2.5);opacity:0}}
 @keyframes kenBurns { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
 @keyframes spotPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,.55), 0 0 0 9999px rgba(0,0,0,.6); } 50% { box-shadow: 0 0 0 6px rgba(255,255,255,.55), 0 0 0 9999px rgba(0,0,0,.6); } }
 @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 var(--theme-glow); } 50% { box-shadow: 0 0 20px 5px var(--theme-glow); } 100% { box-shadow: 0 0 0 0 var(--theme-glow); } }
-/* 👈 新增點擊波紋動畫 */
-@keyframes clickRipple { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
-
-/* 👈 新增點擊波紋樣式 */
-.tut-click-ripple {
-  position: fixed;
-  width: 40px; height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
-  pointer-events: none;
-  z-index: 825;
-  animation: clickRipple 0.5s ease-out forwards;
-  transform-origin: center center;
-}
+/* 僅保留教學 Step 2 的小手點擊波紋 */
+@keyframes clickRipple { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
 
 .aurora-layer{display:none;}
 .particle-field{display:none;}
@@ -185,8 +172,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   gap: 6px;
 }
 .btn-mini svg{width:18px;height:18px;pointer-events:none;opacity:.9;}
-
-.ripple-fx{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);transform:scale(0);pointer-events:none;animation:ripple .6s ease-out forwards;mix-blend-mode:overlay;}
 
 .top-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 0 22px;position:relative;min-height:44px;gap:8px;}
 .back-btn{background:none;border:none;color:var(--ink-1);font-size:16px;font-weight:600;display:flex;align-items:center;gap:3px;padding:8px 4px 8px 0;cursor:pointer;border-radius:8px;transition:color .2s ease;flex:0 0 auto;z-index:2;}
@@ -420,7 +405,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 }
 .tut-demo-rect.show{opacity:.9;}
 
-/* 修改：整合 Next 按钮与提示框，支持拖曳，避免互相遮挡 */
+/* 修正：整合 Next 按鈕與提示框，支持拖曳，避免互相遮擋 */
 .tut-tip{
   position:fixed;
   left:50%;
@@ -441,7 +426,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   max-width:min(380px, calc(100% - 32px));
   width:max-content;
   min-width:250px;
-  height: fit-content;
+  height: fit-content; /* 確保高度自適應 */
   opacity:0;
   pointer-events:none;
   transition:opacity .3s ease,transform .3s ease;
@@ -543,6 +528,18 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 .gf-stat-v{font-size:24px;font-weight:800;color:#f5d76e;font-variant-numeric:tabular-nums;}
 .gf-stat-k{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.6);}
 .gf-btn{margin-top:20px;background:linear-gradient(145deg,#f5d76e,#e8b23a);color:#1a1408;border:none;padding:14px 40px;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 8px 0 #a87417;transition:filter .15s ease;}
+
+/* 僅保留教學 Step 2 的點擊波紋 */
+.tut-click-ripple {
+  position: fixed;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 825;
+  animation: clickRipple 0.5s ease-out forwards;
+  transform-origin: center center;
+}
 
 svg.ico{width:1em;height:1em;display:block;}
 
@@ -1695,27 +1692,6 @@ function rollNumber(el,to,duration){
   duration=duration||420;
   el.textContent=String(to);
 }
-const rippleAttached=new WeakSet();
-function attachRipple(el){
-  el.addEventListener('click',function(e){
-    const r=el.getBoundingClientRect();
-    const size = 200; // 👈 修改：固定波紋大小為 200px (半徑 100px)
-    const x=e.clientX-r.left-size/2, y=e.clientY-r.top-size/2;
-    const s=document.createElement('span');
-    s.className='ripple-fx';
-    s.style.width=s.style.height=size+'px';
-    s.style.left=x+'px'; s.style.top=y+'px';
-    el.appendChild(s); setTimeout(()=>s.remove(),700);
-  });
-}
-function attachRippleOnce(el){
-  if(rippleAttached.has(el))return;
-  rippleAttached.add(el);attachRipple(el);
-}
-document.addEventListener('click',e=>{
-  const t=e.target.closest('button, .level-cell, .world-card, .ach, .shop-card');
-  if(t)attachRippleOnce(t);
-},true);
 
 function showScreen(id){
   const cur=document.querySelector('.screen.active');
@@ -1916,7 +1892,6 @@ function renderLevels(){
       cell.innerHTML=svgIcon('lock');
     }
     grid.appendChild(cell);
-    attachRippleOnce(cell);
   }
 }
 
@@ -1959,7 +1934,6 @@ function renderAchievements(){
     item.style.setProperty('--ach-glow',c.glow);
     item.innerHTML='<div class="ach-icon">'+achIconSvg(a.id)+'</div><div class="ach-label">'+a.name+'</div>';
     grid.appendChild(item);
-    attachRippleOnce(item);
   });
   const cnt=$('achCount');
   if(cnt)cnt.textContent=u+' / '+ACHIEVEMENTS.length;
@@ -2123,7 +2097,7 @@ function startLevel(w,lv){
   initBoard(currentLevelData);
   showScreen('gameScreen');
   
-  // 只在第一关且教程未看过时启动教程
+  // 只在第一關且教程未看過時啟動教程
   if(w===TUTORIAL_WORLD && lv===1) {
     let seen=false;
     try{seen=localStorage.getItem(TUT_KEY)==='1';}catch(e){}
@@ -2695,9 +2669,10 @@ function tutShowTip(title, html){
   $('tutTipTitle').textContent = title;
   $('tutTipContent').innerHTML = html;
   tutTipEl.classList.add('show');
+  // 重置拖曳位置
   tutTipEl.style.left = '';
   tutTipEl.style.top = '';
-  tutTipEl.style.bottom = ''; 
+  tutTipEl.style.bottom = '';
   tutTipEl.style.transform = '';
 }
 function tutHideTip(){
@@ -2740,19 +2715,15 @@ function initTutTipDrag(){
   if(!tutTipEl) return;
   
   const onDown = (e) => {
-    // 只有點擊非按鈕區域才觸發拖曳
     if (e.target.closest('button')) return;
     isDraggingTip = true;
     hasDragged = false;
-    
-    // 獲取當前位置的絕對座標
     const r = tutTipEl.getBoundingClientRect();
     dragTipInitLeft = r.left;
     dragTipInitTop = r.top;
     dragTipStartX = e.clientX;
     dragTipStartY = e.clientY;
     
-    // 👈 修改：強制將定位屬性改為絕對座標，避免與原本的 bottom/transform 衝突
     tutTipEl.style.bottom = 'auto';
     tutTipEl.style.transform = 'none';
     tutTipEl.style.left = dragTipInitLeft + 'px';
@@ -2772,7 +2743,6 @@ function initTutTipDrag(){
     let newLeft = dragTipInitLeft + dx;
     let newTop = dragTipInitTop + dy;
     
-    // 邊界限制
     const w = tutTipEl.offsetWidth;
     const h = tutTipEl.offsetHeight;
     newLeft = Math.max(10, Math.min(window.innerWidth - w - 10, newLeft));
@@ -2876,32 +2846,26 @@ function tutStepRemove(){
     return;
   }
   
-  // 在要被點擊的方塊上加入光暈提示
   const cellEl = cellEls[mid][mid];
   if(cellEl) cellEl.style.animation = 'pulseGlow 1.2s ease-in-out infinite';
   
   tutShowHand();
   tutMoveHandTo(b.left+b.width/2-22,b.top+b.height/2-22,0);
   
-  // 👈 新增：在手指快要按下去的時候（1.3 秒時）產生點擊波紋
+  // 在手指快要按下去的時候產生點擊波紋
   const rippleTimer = setTimeout(() => {
     const centerX = b.left + b.width / 2;
     const centerY = b.top + b.height / 2;
     const ripple = document.createElement('div');
     ripple.className = 'tut-click-ripple';
-    // 將波紋中心對準點擊中心（40px 是波紋的寬高）
     ripple.style.left = (centerX - 20) + 'px';
     ripple.style.top = (centerY - 20) + 'px';
     document.body.appendChild(ripple);
-    
-    // 動畫結束後移除元素
     setTimeout(() => ripple.remove(), 500);
-    
-    // 可以在點擊瞬間播放音效（可選）
-    // SFX.click();
   }, 1300);
 
   tutTimer=setTimeout(()=>{
+    // 不馬上隱藏小手，讓它留在畫面上直到玩家按 Next
     if(cellEl) cellEl.style.animation = '';
     
     if(board[mid][mid]&&board[mid][mid].group!==undefined){
@@ -2917,19 +2881,16 @@ function tutStepRemove(){
 
 function tutStepYouTry(){
   tutShowTip('Step 3 / 3', 'Your turn! Drag across <b>any 3 empty cells</b> and release.');
-  tutHideCta(); // Step 3/3 沒有 Next 按鈕，必須完全填滿盤面
+  tutHideCta();
   tutAllowInput=true;
   tutStep=3;
 }
 
 function tutOnPlayerRectPlaced(){
   if(!tutActive)return;
-  
-  // 檢查是否已經完全填滿盤面
   if(!isBoardFilled()) {
-    return; // 還沒填滿，繼續等玩家動作
+    return;
   }
-  
   tutAllowInput=false;
   tutShowTip('Nice!', 'That is how you fill the board.');
   tutShowCta('Show me the rules');
@@ -2960,7 +2921,7 @@ function tutStartSpotlight(){
       text:'<b>Reset</b> clears the board so you can try a different solution without leaving the level.'
     },
     {
-      target:()=>$('gameLevelIndicator'), // 修正：高亮右上角的關卡標題
+      target:()=>$('gameLevelIndicator'),
       text:'<b>Stars:</b> 1★ for solving. +1★ for using the minimum rectangles. +1★ for matching the minimum perimeter. Some levels have two goals — solve both to pass.',
       fallback:()=>$('statRect')
     }
@@ -2992,25 +2953,17 @@ function tutShowSpotStep(){
   tutSpotTextEl.innerHTML=s.text;
   tutSpotNextEl.textContent=(tutSpotIndex===tutSpotSteps.length-1)?'Start playing':'Next';
 
-  // 動態計算說明框位置
   const holeTop=r.top-pad, holeBottom=r.bottom+pad;
-  const cardH=tutSpotTipEl.offsetHeight || 140; // 取得實際高度或預設 140
+  const cardH=tutSpotTipEl.offsetHeight || 140;
   const vh=window.innerHeight;
   let cardTop;
-  
-  // 如果下方空間足夠，放在下方
   if(holeBottom + cardH + 20 < vh){
     cardTop = holeBottom + 16;
-  } 
-  // 否則如果上方空間足夠，放在上方
-  else if(holeTop - cardH - 20 > 0){
+  } else if(holeTop - cardH - 20 > 0){
     cardTop = holeTop - cardH - 16;
-  } 
-  // 如果上下都不夠，放在畫面底部，但這可能會遮擋，所以盡量把聚光燈往下移
-  else {
+  } else {
     cardTop = Math.max(16, vh - cardH - 16);
   }
-  
   tutSpotTipEl.style.top = cardTop + 'px';
 }
 
@@ -3042,10 +2995,13 @@ function cleanupTutorial(){
 
 if($('tutCta')){
   $('tutCta').addEventListener('click',(e)=>{
-    if(hasDragged) return; // 如果剛剛拖曳過，就不觸發點擊
+    if(hasDragged) return;
     if(!tutActive)return;
     if(tutStep===1){tutStepRemove();}
-    else if(tutStep===2){tutHideHand();tutStepYouTry();}
+    else if(tutStep===2){
+      tutHideHand(); // 在這裡才隱藏小手
+      tutStepYouTry();
+    }
     else if(tutStep===4){tutStartSpotlight();}
   });
 }

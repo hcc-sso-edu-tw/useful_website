@@ -330,6 +330,50 @@
     color: var(--err);
     font-weight: 600;
   }
+
+  /* 新增：指令選擇器（無標籤） */
+  .command-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 10px 16px;
+    background: var(--bg);
+    border-radius: 16px;
+    border: 1px solid var(--line);
+  }
+
+  .command-toggle {
+    display: flex;
+    gap: 8px;
+    background: var(--card);
+    border-radius: 999px;
+    padding: 4px;
+    border: 1px solid var(--line);
+  }
+
+  .command-toggle button {
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 10px 22px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .command-toggle button.active {
+    background: var(--accent);
+    color: var(--accent-text);
+  }
+
+  .command-toggle button:not(.active):hover {
+    background: var(--line);
+    color: var(--text);
+  }
 </style>
 </head>
 <body>
@@ -347,6 +391,14 @@
     <button type="button" class="step" id="plus" data-i18n-aria="up" aria-label="Increase 0.125°C">🔥</button>
   </div>
 
+  <!-- 指令選擇按鈕（無文字標籤） -->
+  <div class="command-selector">
+    <div class="command-toggle" id="commandToggle">
+      <button type="button" data-command="!ac-o" class="active">!ac-o</button>
+      <button type="button" data-command="!ac-r">!ac-r</button>
+    </div>
+  </div>
+
   <div class="mode" id="modeBox" data-state="on" role="group" data-i18n-aria="mode" aria-label="Mode">
     <span class="thumb" aria-hidden="true"></span>
     <button type="button" data-mode="on" aria-pressed="true" data-i18n="on">On</button>
@@ -362,7 +414,8 @@
   "use strict";
 
   const ROOM = "ac";
-  const COMMAND = "!ac-o";
+  // 預設指令
+  let selectedCommand = "!ac-o";
   const SEND_FRACTIONS = false;
   const SENDER_FALLBACK = "AC遙控";
 
@@ -399,7 +452,7 @@
   }
 
   function payload() {
-    return COMMAND + " " + (mode === "off" ? "off" : (SEND_FRACTIONS ? fmt(temp) : String(temp)));
+    return selectedCommand + " " + (mode === "off" ? "off" : (SEND_FRACTIONS ? fmt(temp) : String(temp)));
   }
 
   function render() {
@@ -427,6 +480,18 @@
     temp = Math.max(16, Math.min(32, snap(n)));
     localStorage.setItem("acTemp", String(temp));
     render();
+  }
+
+  // 指令切換按鈕事件
+  function initCommandToggle() {
+    const toggleBtns = document.querySelectorAll("#commandToggle button");
+    toggleBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        selectedCommand = btn.dataset.command;
+        toggleBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
   }
 
   document.querySelectorAll(".mode button").forEach(b =>
@@ -466,6 +531,9 @@
     localStorage.setItem("acLang", lang);
     applyLang();
   });
+
+  // 初始化指令切換
+  initCommandToggle();
 
   applyLang();
 })();

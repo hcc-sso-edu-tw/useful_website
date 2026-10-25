@@ -1842,27 +1842,24 @@ function renderLevels(){
       const goalData = save.goals[key];
       const solvedData = save.solved[key];
       
-      let isPassed = !!solvedData; 
+      // 是否「通關」對雙目標關卡來說，必須看 goals 的聯集，而不是單次 solved 記錄
+      let isPassed;
       let isMinRect = false;
       let isMinPerim = false;
       
-      if (isPassed) {
-        if (isDual(L)) {
-          if (goalData) {
-            isMinRect = !!goalData.a;
-            isMinPerim = !!goalData.b;
-          }
-          if (solvedData) {
-            if (solvedData.steps <= L.minimumSteps) isMinRect = true;
-            const tp = (L.minimumPerimeterAny != null) ? L.minimumPerimeterAny : L.minimumPerimeter;
-            if (solvedData.perimeter <= tp) isMinPerim = true;
-          }
-        } else {
-          if (solvedData) {
-            isMinRect = solvedData.steps <= L.minimumSteps;
-            const tp = (L.minimumPerimeterAny != null) ? L.minimumPerimeterAny : L.minimumPerimeter;
-            isMinPerim = solvedData.perimeter <= tp;
-          }
+      if (isDual(L)) {
+        isPassed = !!(goalData && goalData.a && goalData.b);
+        if (goalData) {
+          isMinRect = !!goalData.a;
+          isMinPerim = !!goalData.b;
+        }
+        // 注意：雙目標關卡不再用 solvedData 覆寫 isMinRect / isMinPerim
+      } else {
+        isPassed = !!solvedData;
+        if (solvedData) {
+          isMinRect = solvedData.steps <= L.minimumSteps;
+          const tp = (L.minimumPerimeterAny != null) ? L.minimumPerimeterAny : L.minimumPerimeter;
+          isMinPerim = solvedData.perimeter <= tp;
         }
       }
 

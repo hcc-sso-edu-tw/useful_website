@@ -126,6 +126,11 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.4s var(--ease); }
 #layerBtn:hover svg { transform: rotate(180deg); }
 #centerBtn:hover svg { transform: scale(1.2); }
+#themeBtn:hover svg { transform: rotate(90deg); }
+
+#measureBtn.active { background: var(--warn); box-shadow: 0 0 15px var(--warn); }
+#measureBtn.active svg { stroke: #fff; animation: pulseIcon 1.5s infinite; }
+@keyframes pulseIcon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
 /* Markers */
 .marker-container { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
@@ -134,6 +139,8 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .marker-breathe { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0.5; animation: pulse 2s infinite; }
 .marker-label { position: absolute; top: -30px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); transition: transform 0.2s; }
 .marker-container:hover .marker-label { transform: translateY(-2px) scale(1.05); }
+.heading-arrow { position: absolute; top: -8px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--accent); transform-origin: 50% 28px; transition: transform 0.3s; }
+.meetup-pin { font-size: 32px; text-shadow: 0 4px 8px rgba(0,0,0,0.4); }
 
 /* Modal & Cards */
 .modal-backdrop { position: fixed; inset: 0; z-index: 2000; display: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; }
@@ -162,7 +169,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 }
 .mode-indicator.active { display: block; animation: popIn 0.3s; }
 
-/* ★ Ping 視覺提示橫幅 ★ */
+/* Ping 視覺提示橫幅 */
 .ping-banner {
   position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
   z-index: 9999; padding: 16px 32px; border-radius: var(--pill);
@@ -175,7 +182,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .ping-banner.show { transform: translateX(-50%) translateY(0); }
 .ping-banner svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 2; }
 
-/* ★ 地圖聲波擴散動畫 ★ */
+/* 地圖聲波擴散動畫 */
 .sonar-wave {
   position: absolute; inset: -20px; border-radius: 50%;
   border: 2px solid var(--accent);
@@ -236,13 +243,16 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 <div class="mode-indicator" id="modeIndicator"></div>
 
 <div class="map-controls">
+  <button class="ctrl-btn glass interactive" id="meetupBtn" title="Set Meetup Point">
+    <!-- 全新的極簡圖釘 SVG -->
+    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+  </button>
+  
   <button class="ctrl-btn glass interactive" id="measureBtn" title="Measure Distance">
+    <!-- 全新的簡約尺 SVG -->
     <svg viewBox="0 0 24 24" style="stroke-linecap: round; stroke-linejoin: round;">
-      <rect x="4" y="10" width="16" height="4" rx="1" fill="currentColor" stroke="none"/>
-      <line x1="7" y1="10" x2="7" y2="13" stroke="#fff" stroke-width="1.5"/>
-      <line x1="11" y1="10" x2="11" y2="13" stroke="#fff" stroke-width="1.5"/>
-      <line x1="15" y1="10" x2="15" y2="13" stroke="#fff" stroke-width="1.5"/>
-      <line x1="19" y1="10" x2="19" y2="13" stroke="#fff" stroke-width="1.5"/>
+      <path d="M3 15l12-12 6 6-12 12-6-6z"/>
+      <path d="M9 9l1.5 1.5M12 6l1.5 1.5M15 9l1.5 1.5"/>
     </svg>
   </button>
   
@@ -296,6 +306,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const usersRef = db.ref('users');
+  const meetupRef = db.ref('meetup');
   const pingRef = db.ref('pings');
 
   // 2. Identity
@@ -332,6 +343,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   let focusedId = null;
   let usersData = {};
   let lastRenderedIds = new Set();
+  let meetupMarker = null;
 
   // 測距狀態
   let measureMode = 0;
@@ -344,6 +356,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   const sidebar = document.getElementById('sidebar');
   const sidebarBackdrop = document.getElementById('sidebarBackdrop');
   const measureBtn = document.getElementById('measureBtn');
+  const meetupBtn = document.getElementById('meetupBtn');
   
   nameInput.value = localStorage.getItem('myName') || '';
 
@@ -402,21 +415,45 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
   }
 
-  // ★ 接收 Ping 的視覺處理 ★
+  // 集合點
+  meetupBtn.addEventListener('click', () => {
+    if (meetupMarker) {
+      meetupMarker.remove(); meetupMarker = null;
+      meetupRef.remove();
+      meetupBtn.classList.remove('active');
+      return;
+    }
+    map.once('click', (e) => {
+      const pos = { lat: e.latlng.lat, lng: e.latlng.lng };
+      meetupRef.set(pos);
+      meetupBtn.classList.add('active');
+    });
+  });
+
+  meetupRef.on('value', (snap) => {
+    if (meetupMarker) { meetupMarker.remove(); meetupMarker = null; }
+    if (snap.exists()) {
+      const pos = snap.val();
+      const icon = L.divIcon({ html: '<div class="meetup-pin"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>', iconSize: [40,40], iconAnchor: [20,40] });
+      meetupMarker = L.marker([pos.lat, pos.lng], { icon }).addTo(map);
+      meetupBtn.classList.add('active');
+    } else {
+      meetupBtn.classList.remove('active');
+    }
+  });
+
+  // Ping 接收
   pingRef.child(myId).on('value', (snap) => {
     if (snap.exists() && snap.val().time > Date.now() - 5000) {
       const sender = snap.val().sender || 'Someone';
       
-      // 1. 顯示頂部橫幅
       document.getElementById('pingText').textContent = `${sender} is looking for you!`;
       const banner = document.getElementById('pingBanner');
       banner.classList.add('show');
       setTimeout(() => banner.classList.remove('show'), 4000);
 
-      // 2. 手機震動
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
 
-      // 3. 在地圖標記上加入聲波擴散特效
       if (myMarker) {
         const el = myMarker.getElement();
         if (el) {

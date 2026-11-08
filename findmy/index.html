@@ -54,10 +54,6 @@ body {
 #map { flex: 1; width: 100%; height: 100%; z-index: 1; background: transparent; }
 .leaflet-div-icon { background: transparent !important; border: none !important; }
 
-/* Leaflet Draw Customization for Glass */
-.leaflet-draw-toolbar a { background-color: rgba(255,255,255,0.9) !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(38,40,62,0.9) !important; }
-
 /* Glass Base */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
@@ -165,6 +161,7 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
   box-shadow: var(--glass-shadow);
 }
 .ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.4s var(--ease); }
+
 #layerBtn:hover svg { transform: rotate(180deg); }
 #centerBtn:hover svg { transform: scale(1.2); }
 #fullscreenBtn:hover svg { transform: scale(1.2); }
@@ -213,9 +210,16 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-/* Mode Indicator */
-.mode-indicator { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; font-size: 14px; font-weight: 700; display: none; white-space: nowrap; }
-.mode-indicator.active { display: block; animation: fadeIn 0.3s; }
+/* ★ 距離顯示條 (大字體) ★ */
+.mode-indicator { 
+  position: absolute; top: 90px; left: 50%; transform: translateX(-50%); 
+  z-index: 1000; padding: 14px 28px; font-size: 18px; font-weight: 800; 
+  display: none; white-space: nowrap; border-radius: var(--pill);
+  background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  color: var(--warn); border: 2px solid var(--warn);
+}
+.mode-indicator.active { display: block; animation: popIn 0.3s; }
 
 @media (max-width: 480px) {
   .topbar { gap: 8px; left: 12px; right: 12px; }
@@ -259,15 +263,25 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   <button class="btn-big interactive" id="shareBtn">Share</button>
 </div>
 
-<div class="mode-indicator glass" id="modeIndicator"></div>
+<!-- 距離顯示條 -->
+<div class="mode-indicator" id="modeIndicator"></div>
 
 <div class="map-controls">
   <button class="ctrl-btn glass interactive" id="meetupBtn" title="Set Meetup Point">
     <svg viewBox="0 0 24 24"><path d="M12 2L22 22H2L12 2Z"/><circle cx="12" cy="15" r="3" fill="currentColor"/></svg>
   </button>
+  
+  <!-- ★ 全新的簡約尺圖示 ★ -->
   <button class="ctrl-btn glass interactive" id="measureBtn" title="Measure Distance">
-    <svg viewBox="0 0 24 24"><path d="M2 17h20v3H2z" fill="currentColor" stroke="none"/><line x1="5" y1="17" x2="5" y2="14"/><line x1="8" y1="17" x2="8" y2="15"/><line x1="11" y1="17" x2="11" y2="14"/><line x1="14" y1="17" x2="14" y2="15"/><line x1="17" y1="17" x2="17" y2="14"/><line x1="20" y1="17" x2="20" y2="15"/></svg>
+    <svg viewBox="0 0 24 24" style="stroke-linecap: round; stroke-linejoin: round;">
+      <rect x="4" y="10" width="16" height="4" rx="1" fill="currentColor" stroke="none"/>
+      <line x1="7" y1="10" x2="7" y2="13" stroke="#fff" stroke-width="1.5"/>
+      <line x1="11" y1="10" x2="11" y2="13" stroke="#fff" stroke-width="1.5"/>
+      <line x1="15" y1="10" x2="15" y2="13" stroke="#fff" stroke-width="1.5"/>
+      <line x1="19" y1="10" x2="19" y2="13" stroke="#fff" stroke-width="1.5"/>
+    </svg>
   </button>
+  
   <button class="ctrl-btn glass interactive" id="layerBtn" title="Change Map Layer">
     <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
   </button>
@@ -293,7 +307,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       </div>
     </div>
 
-    <!-- 新增：Ping 找人按鈕 -->
     <button class="modal-btn btn-ping interactive" id="pingBtn" style="background:var(--accent-soft); color:var(--accent); margin-bottom:16px;">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg>
       Ping Device
@@ -342,7 +355,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true });
   let isSatellite = false;
 
-  // ★ 新增：地圖塗鴉功能 ★
+  // 地圖塗鴉功能
   const drawnItems = new L.FeatureGroup().addTo(map);
   const drawControl = new L.Control.Draw({
     position: 'topright',
@@ -351,7 +364,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   });
   map.addControl(drawControl);
 
-  // 將畫好的線同步到 Firebase
   map.on(L.Draw.Event.CREATED, (e) => {
     const layer = e.layer;
     drawnItems.addLayer(layer);
@@ -359,7 +371,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     drawRef.push(latlngs);
   });
 
-  // 接收別人的塗鴉
   drawRef.on('child_added', (snap) => {
     const latlngs = snap.val().map(p => L.latLng(p.lat, p.lng));
     L.polyline(latlngs, { color: '#e5484d', weight: 4, opacity: 0.7 }).addTo(map);
@@ -382,7 +393,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   let meetupMarker = null;
 
   // 測距狀態
-  let measureMode = 0;
+  let measureMode = 0; // 0: 關閉, 1: 測距中, 2: 顯示結果
   let measurePoints = [];
   let measureLayerGroup = new L.FeatureGroup().addTo(map);
   let finalMeasureText = '';
@@ -404,16 +415,10 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   colorPicker.style.background = myColor;
 
   window.toggleSidebar = function(show) {
-    if (show) {
-      sidebar.classList.add('open');
-      sidebarBackdrop.classList.add('show');
-    } else {
-      sidebar.classList.remove('open');
-      sidebarBackdrop.classList.remove('show');
-    }
+    if (show) { sidebar.classList.add('open'); sidebarBackdrop.classList.add('show'); }
+    else { sidebar.classList.remove('open'); sidebarBackdrop.classList.remove('show'); }
   };
 
-  // 互動特效
   document.querySelectorAll('.interactive').forEach(el => {
     el.addEventListener('pointerdown', function(e) {
       const rect = this.getBoundingClientRect();
@@ -464,7 +469,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
   }
 
-  // ★ 集合點邏輯 ★
+  // 集合點
   meetupBtn.addEventListener('click', () => {
     if (meetupMarker) {
       meetupMarker.remove(); meetupMarker = null;
@@ -491,7 +496,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     }
   });
 
-  // ★ Ping 震動邏輯 ★
+  // Ping
   pingRef.child(myId).on('value', (snap) => {
     if (snap.exists() && snap.val() > Date.now() - 5000) {
       if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
@@ -508,7 +513,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     document.getElementById('infoModal').classList.remove('show');
   });
 
-  // ★ 偏離警戒邏輯 ★
+  // 偏離警戒
   document.getElementById('alertBtn').addEventListener('click', function() {
     if (alertTargetId === focusedId) {
       alertTargetId = null;
@@ -521,8 +526,8 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     }
   });
 
-  // 6. 測距
-  const measureDotIcon = L.divIcon({ className: 'measure-dot-wrapper', html: '<div class="measure-point"></div>', iconSize: [14, 14], iconAnchor: [7, 7] });
+  // ★ 6. 全新測距邏輯 ★
+  const measureDotIcon = L.divIcon({ className: 'measure-dot-wrapper', html: '<div style="width:14px;height:14px;background:var(--warn);border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(245,158,11,0.8);"></div>', iconSize: [14, 14], iconAnchor: [7, 7] });
 
   function addMeasurePoint(latlng) {
     if (measureMode !== 1) return;
@@ -536,6 +541,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         total += calcDist(measurePoints[i].lat, measurePoints[i].lng, measurePoints[i+1].lat, measurePoints[i+1].lng);
       }
       finalMeasureText = `Total Distance: ${formatDist(total)}`;
+      // 每次點擊立刻更新顯示條
       modeIndicator.textContent = finalMeasureText;
     } else {
       modeIndicator.textContent = 'Point set. Tap map to add another.';
@@ -546,22 +552,25 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
   measureBtn.addEventListener('click', () => {
     if (measureMode === 0) {
+      // 啟動測距
       measureMode = 1;
       measureBtn.classList.add('active');
       modeIndicator.classList.add('active');
       modeIndicator.textContent = 'Tap map or a person to start measuring.';
       map.getContainer().style.cursor = 'crosshair';
     } else if (measureMode === 1) {
+      // 鎖定結果，不再新增點
       measureMode = 2;
       measureBtn.classList.remove('active');
       map.getContainer().style.cursor = '';
       if (measurePoints.length < 2) {
         modeIndicator.textContent = 'Not enough points.';
-        setTimeout(() => modeIndicator.classList.remove('active'), 2000);
+        setTimeout(() => { modeIndicator.classList.remove('active'); measureMode = 0; }, 2000);
       } else {
         modeIndicator.textContent = finalMeasureText;
       }
     } else {
+      // 清除並重置
       measureMode = 0;
       modeIndicator.classList.remove('active');
       measureLayerGroup.clearLayers();
@@ -602,7 +611,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       if (usersData[id] && usersData[id].updatedAt && now - usersData[id].updatedAt < 120000) online[id] = usersData[id];
     });
 
-    // 更新側邊欄
     const currentIds = new Set(Object.keys(online));
     lastRenderedIds.forEach(id => {
       if (!currentIds.has(id)) {
@@ -621,7 +629,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         const d = calcDist(p.lat, p.lng, u.lat, u.lng);
         distText = isMe ? 'You' : formatDist(d);
 
-        // ★ 警戒觸發 ★
         if (alertTargetId === id && !isMe && d > 500) {
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
           document.body.style.boxShadow = "inset 0 0 50px rgba(229,72,77,0.5)";
@@ -655,7 +662,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
     lastRenderedIds = currentIds;
 
-    // 更新地圖
     Object.keys(markers).forEach(id => {
       if (!online[id]) {
         map.removeLayer(markers[id]);

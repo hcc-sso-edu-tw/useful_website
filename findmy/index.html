@@ -66,11 +66,9 @@ body {
 
 /* Map */
 #map { flex: 1; width: 100%; z-index: 1; background: transparent; }
-
-/* Fix Leaflet Default Marker Box */
 .leaflet-div-icon { background: transparent !important; border: none !important; }
 
-/* Glassmorphism Base */
+/* Glassmorphism */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -81,35 +79,24 @@ body {
   position: relative; overflow: hidden;
 }
 
-/* ★ Topbar 修正：取消外層背景，讓按鈕各自獨立 ★ */
+/* Topbar */
 .topbar {
   position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px;
   z-index: 1000; display: flex; gap: 12px; align-items: center;
-  /* 移除原本的 glass class 效果，讓按鈕不被裁切 */
 }
-
-/* 輸入框獨立毛玻璃 */
 .name-input-wrapper {
-  flex: 1;
-  padding: 4px;
-  border-radius: var(--pill);
+  flex: 1; padding: 4px; border-radius: var(--pill);
 }
 .name-input {
-  width: 100%;
-  padding: 14px 20px; border-radius: var(--pill); border: none;
-  background: transparent; color: var(--text);
-  font-size: 16px; outline: none; font-weight: 700;
+  width: 100%; padding: 14px 20px; border-radius: var(--pill); border: none;
+  background: transparent; color: var(--text); font-size: 16px; outline: none; font-weight: 700;
 }
-
-/* ★ 按鈕修正：固定大小、不被壓縮、陰影不被裁切 ★ */
 .btn-big {
   padding: 14px 28px; border-radius: var(--pill); border: none;
   font-size: 16px; font-weight: 800; color: #fff; cursor: pointer;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 8px 24px -6px var(--accent); 
-  transition: transform 0.2s;
-  white-space: nowrap; /* 防止文字換行 */
-  flex-shrink: 0;      /* 防止被輸入框擠壓 */
+  transition: transform 0.2s; white-space: nowrap; flex-shrink: 0;
 }
 .btn-big:active { transform: scale(0.95); }
 .btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); }
@@ -121,7 +108,7 @@ body {
   color: var(--text); white-space: nowrap; pointer-events: none;
 }
 
-/* Custom Marker (Pure Circle) */
+/* Custom Marker */
 .custom-marker {
   display: flex; align-items: center; justify-content: center;
   width: 48px; height: 48px; border-radius: 50%; font-size: 24px;
@@ -132,7 +119,7 @@ body {
 }
 .custom-marker:hover { transform: scale(1.1); }
 
-/* Device Info Popup (Modal) */
+/* Modal */
 .modal-backdrop {
   position: fixed; inset: 0; z-index: 2000; display: none;
   background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
@@ -155,7 +142,6 @@ body {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
-/* Mobile tweaks */
 @media (max-width: 480px) {
   .topbar { gap: 8px; left: 12px; right: 12px; }
   .name-input { padding: 12px 16px; font-size: 15px; }
@@ -173,7 +159,6 @@ body {
 
 <div id="map"></div>
 
-<!-- 將 topbar 拆開，不用外層 glass 包住，避免陰影被 overflow:hidden 裁切 -->
 <div class="topbar">
   <div class="name-input-wrapper glass">
     <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
@@ -227,6 +212,7 @@ body {
   let myName = '';
   let heartbeatTimer = null;
   let wakeLock = null;
+  let cleanupTimer = null;
 
   const nameInput = document.getElementById('nameInput');
   const shareBtn = document.getElementById('shareBtn');
@@ -249,13 +235,14 @@ body {
     });
   }
 
-  // 5. Firebase Sync
+  // ★ 5. Firebase Sync (包含自動清理過期資料) ★
   usersRef.on('value', (snap) => {
     const users = snap.val() || {};
     const now = Date.now();
     const online = {};
     
     Object.keys(users).forEach(id => {
+      // 只有 2 分鐘內更新過的才算在線
       if (users[id] && users[id].updatedAt && now - users[id].updatedAt < 120000) {
         online[id] = users[id];
       }
@@ -294,16 +281,31 @@ body {
     });
   });
 
-  // 6. Wake Lock
+  // ★ 6. 無限使用機制：自動清理資料庫舊資料 ★
+  function startCleanup() {
+    if (cleanupTimer) clearInterval(cleanupTimer);
+    cleanupTimer = setInterval(() => {
+      usersRef.once('value', (snap) => {
+        const users = snap.val() || {};
+        const now = Date.now();
+        Object.keys(users).forEach(id => {
+          // 如果有超過 5 分鐘沒更新的殘留資料，直接刪除，防止資料庫塞爆
+          if (users[id] && users[id].updatedAt && now - users[id].updatedAt > 300000) {
+            usersRef.child(id).remove();
+          }
+        });
+      });
+    }, 60000); // 每 60 秒執行一次清理
+  }
+  startCleanup();
+
+  // 7. Wake Lock
   async function requestWakeLock() {
     try {
       if ('wakeLock' in navigator) {
         wakeLock = await navigator.wakeLock.request('screen');
-        console.log('Wake Lock is active');
       }
-    } catch (err) {
-      console.warn(`Wake Lock Error: ${err.name}, ${err.message}`);
-    }
+    } catch (err) {}
   }
   function releaseWakeLock() {
     if (wakeLock !== null) {
@@ -311,7 +313,7 @@ body {
     }
   }
 
-  // 7. Sharing Logic
+  // 8. Sharing Logic
   shareBtn.addEventListener('click', () => {
     if (!sharing) startSharing(); else stopSharing();
   });
@@ -337,7 +339,6 @@ body {
         statusEl.textContent = 'Live Sharing Active';
         
         requestWakeLock();
-
         sendLocation(pos);
         map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { duration: 1.5 });
 
@@ -347,6 +348,7 @@ body {
           { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
         );
 
+        // 每 15 秒發送心跳，保持連線
         heartbeatTimer = setInterval(() => {
           if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() });
         }, 15000);

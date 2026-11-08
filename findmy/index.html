@@ -56,7 +56,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Animated Background */
+/* Background */
 .bg-stage { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--bg-root); }
 .bg-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .6; animation: float 20s infinite alternate; }
 .bg-blob.b1 { left: -20vmax; top: -20vmax; background: radial-gradient(circle, #ff7aa8 0%, transparent 60%); }
@@ -68,7 +68,7 @@ body {
 #map { flex: 1; width: 100%; z-index: 1; background: transparent; }
 .leaflet-div-icon { background: transparent !important; border: none !important; }
 
-/* Glassmorphism */
+/* Glassmorphism Base */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -79,7 +79,7 @@ body {
   position: relative; overflow: hidden;
 }
 
-/* Topbar */
+/* Top Bar */
 .topbar {
   position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px;
   z-index: 1000; display: flex; gap: 12px; align-items: center;
@@ -89,35 +89,53 @@ body {
 }
 .name-input {
   width: 100%; padding: 14px 20px; border-radius: var(--pill); border: none;
-  background: transparent; color: var(--text); font-size: 16px; outline: none; font-weight: 700;
+  background: transparent; color: var(--text); font-size: 16px; outline: none; font-weight: 600;
 }
 .btn-big {
   padding: 14px 28px; border-radius: var(--pill); border: none;
   font-size: 16px; font-weight: 800; color: #fff; cursor: pointer;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 8px 24px -6px var(--accent); 
-  transition: transform 0.2s; white-space: nowrap; flex-shrink: 0;
+  box-shadow: 0 8px 24px -6px var(--accent); transition: transform 0.2s;
+  white-space: nowrap; flex-shrink: 0;
 }
 .btn-big:active { transform: scale(0.95); }
 .btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); }
 
-/* Status Toast */
-.status-toast {
-  position: absolute; bottom: max(24px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
-  z-index: 1000; padding: 12px 24px; font-size: 14px; font-weight: 600;
-  color: var(--text); white-space: nowrap; pointer-events: none;
+/* Map Controls (Bottom Right) */
+.map-controls {
+  position: absolute; right: 16px; bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 1000; display: flex; flex-direction: column; gap: 10px;
 }
-
-/* Custom Marker */
-.custom-marker {
-  display: flex; align-items: center; justify-content: center;
-  width: 48px; height: 48px; border-radius: 50%; font-size: 24px;
-  background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
-  backdrop-filter: blur(10px);
-  border: 2px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+.ctrl-btn {
+  width: 48px; height: 48px; border-radius: 50%; border: none;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
+  backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-2);
   transition: transform 0.2s;
 }
-.custom-marker:hover { transform: scale(1.1); }
+.ctrl-btn:active { transform: scale(0.9); }
+.ctrl-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; }
+
+/* SVG Icons Styling */
+.icon { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Custom Marker */
+.marker-container {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg, #fff, #f0f0f0);
+  border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
+.marker-container .dot {
+  width: 16px; height: 16px; border-radius: 50%;
+}
+.marker-label {
+  position: absolute; top: -28px; white-space: nowrap;
+  background: rgba(0,0,0,0.7); color: #fff; font-size: 12px; font-weight: 600;
+  padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px);
+}
 
 /* Modal */
 .modal-backdrop {
@@ -127,18 +145,32 @@ body {
 }
 .modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
 .modal-content {
-  width: 100%; max-width: 380px; padding: 28px 24px; text-align: center;
+  width: 100%; max-width: 360px; padding: 28px 24px; text-align: center;
   animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.modal-icon { font-size: 56px; margin-bottom: 16px; }
-.modal-name { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-.modal-detail { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+.modal-icon-wrap {
+  width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent);
+}
+.modal-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; font-weight: 600; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.modal-data-box {
+  background: rgba(128,128,128,0.1); border-radius: 12px; padding: 12px; text-align: left;
+}
+.modal-data-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
+.modal-data-val { font-size: 14px; font-weight: 600; }
 .modal-btn {
   width: 100%; padding: 16px; border-radius: var(--pill); border: none;
-  background: var(--glass-3-a); color: var(--text); font-size: 16px; font-weight: 700;
-  cursor: pointer; box-shadow: var(--glass-inset);
+  background: var(--text); color: var(--bg-root); font-size: 16px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 .modal-btn:active { transform: scale(0.98); }
+.btn-focus {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
+  margin-bottom: 10px; box-shadow: 0 8px 20px -6px var(--accent);
+}
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
@@ -166,13 +198,39 @@ body {
   <button class="btn-big" id="shareBtn">Share</button>
 </div>
 
-<div class="status-toast glass" id="statusEl">Click Share to start</div>
+<div class="map-controls">
+  <button class="ctrl-btn" id="mapStyleBtn" title="Toggle Satellite">
+    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+  </button>
+  <button class="ctrl-btn" id="centerBtn" title="Center My Location">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+  </button>
+</div>
 
 <div class="modal-backdrop" id="infoModal">
   <div class="modal-content glass">
-    <div class="modal-icon" id="mIcon">📱</div>
-    <div class="modal-name" id="mName">Device Name</div>
-    <div class="modal-detail" id="mDetail">Status • Distance</div>
+    <div class="modal-icon-wrap">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+    </div>
+    <div class="modal-name" id="mName">User</div>
+    <div class="modal-sub" id="mSub">Status</div>
+    
+    <div class="modal-grid">
+      <div class="modal-data-box">
+        <div class="modal-data-label">Distance</div>
+        <div class="modal-data-val" id="mDist">--</div>
+      </div>
+      <div class="modal-data-box">
+        <div class="modal-data-label">Battery</div>
+        <div class="modal-data-val" id="mBatt">--</div>
+      </div>
+      <div class="modal-data-box" style="grid-column: 1 / -1;">
+        <div class="modal-data-label">Last Updated</div>
+        <div class="modal-data-val" id="mTime">--</div>
+      </div>
+    </div>
+
+    <button class="modal-btn btn-focus" id="focusBtn">Focus on Map</button>
     <button class="modal-btn" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
   </div>
 </div>
@@ -199,46 +257,90 @@ body {
     localStorage.setItem('findMyId', myId);
   }
 
-  // 3. Map Setup (限制邊界，防止無限滑動)
+  // 3. Map Setup
   const map = L.map('map', { 
     zoomControl: false,
-    maxBounds: [[-90, -180], [90, 180]], // 限制在地球範圍內
-    maxBoundsViscosity: 1.0,             // 黏性最高，滑到底會直接卡住
-    worldCopyJump: false,                // 禁止跨換日線無限複製地圖
-    minZoom: 3                           // 最小縮放級別，防止縮太小看到一堆重複地圖
+    maxBounds: [[-90, -180], [90, 180]],
+    maxBoundsViscosity: 1.0,
+    worldCopyJump: false,
+    minZoom: 3
   }).setView([25.033, 121.5654], 15);
   
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap',
-    noWrap: true // 禁止水平無限延伸
+  const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap', noWrap: true
   }).addTo(map);
+  
+  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri', noWrap: true
+  });
 
+  let isSatellite = false;
+  document.getElementById('mapStyleBtn').addEventListener('click', () => {
+    isSatellite = !isSatellite;
+    if (isSatellite) { map.removeLayer(standardLayer); map.addLayer(satelliteLayer); }
+    else { map.removeLayer(satelliteLayer); map.addLayer(standardLayer); }
+  });
+
+  document.getElementById('centerBtn').addEventListener('click', () => {
+    if (myMarker && myMarker.getLatLng()) {
+      map.flyTo(myMarker.getLatLng(), 17, { duration: 1 });
+    } else {
+      map.flyTo([25.033, 121.5654], 15, { duration: 1 });
+    }
+  });
+
+  // State
   const markers = {};
+  const trails = {};
+  let myMarker = null;
+  let myBattery = null;
   let sharing = false;
   let watchId = null;
   let myName = '';
   let heartbeatTimer = null;
   let wakeLock = null;
-  let cleanupTimer = null;
+  let focusedId = null; // Tracking mode
 
   const nameInput = document.getElementById('nameInput');
   const shareBtn = document.getElementById('shareBtn');
-  const statusEl = document.getElementById('statusEl');
   nameInput.value = localStorage.getItem('myName') || '';
 
+  // Battery API
+  if (navigator.getBattery) {
+    navigator.getBattery().then(b => {
+      const updateBatt = () => { myBattery = Math.round(b.level * 100) + '%'; };
+      updateBatt();
+      b.addEventListener('levelchange', updateBatt);
+    });
+  }
+
   // 4. Helper Functions
-  function colorFor(id) {
-    const colors = ['#007aff','#ff3b30','#ff9500','#34c759','#5856d6','#af52de','#ff2d55'];
+  function getColor(id) {
+    const colors = ['#3b5bdb','#e5484d','#f59e0b','#10b981','#8b5cf6','#ec4899','#06b6d4'];
     let hash = 0;
     for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
     return colors[hash % colors.length];
   }
 
-  function makeIcon(color, isMe) {
+  function calcDist(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
+    const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const d = R * c;
+    return d > 1000 ? (d/1000).toFixed(1) + ' km' : Math.round(d) + ' m';
+  }
+
+  function makeIcon(color, name, isMe) {
     return L.divIcon({
       className: 'custom-marker-wrapper',
-      html: `<div class="custom-marker" style="color: ${color};">${isMe ? '⭐' : '📍'}</div>`,
+      html: `
+        <div class="marker-container" style="box-shadow: 0 4px 12px ${color}80;">
+          <div class="dot" style="background: ${color};"></div>
+          <div class="marker-label">${name}${isMe ? ' (You)' : ''}</div>
+        </div>
+      `,
       iconSize: [48, 48], iconAnchor: [24, 24]
     });
   }
@@ -255,83 +357,102 @@ body {
       }
     });
 
+    // Remove offline
+    Object.keys(markers).forEach(id => {
+      if (!online[id]) {
+        map.removeLayer(markers[id]);
+        if (trails[id]) map.removeLayer(trails[id]);
+        delete markers[id];
+        delete trails[id];
+        if (focusedId === id) focusedId = null;
+      }
+    });
+
     Object.keys(online).forEach(id => {
       const u = online[id];
       const isMe = id === myId;
-      const color = colorFor(id);
+      const color = getColor(id);
+      const pos = [u.lat, u.lng];
 
-      if (markers[id]) {
-        markers[id].setLatLng([u.lat, u.lng]);
+      // Trails (Polyline)
+      if (!trails[id]) {
+        trails[id] = L.polyline([pos], { color: color, weight: 4, opacity: 0.4, lineJoin: 'round' }).addTo(map);
       } else {
-        const marker = L.marker([u.lat, u.lng], { icon: makeIcon(color, isMe) }).addTo(map);
+        const pts = trails[id].getLatLngs();
+        const lastPt = pts[pts.length - 1];
+        if (lastPt.lat !== pos[0] || lastPt.lng !== pos[1]) {
+          pts.push(L.latLng(pos));
+          trails[id].setLatLngs(pts);
+        }
+      }
+
+      // Markers
+      if (markers[id]) {
+        markers[id].setLatLng(pos);
+      } else {
+        const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe) }).addTo(map);
         
         marker.on('click', () => {
-          document.getElementById('mIcon').textContent = isMe ? '⭐' : '📍';
-          document.getElementById('mName').textContent = u.name + (isMe ? ' (You)' : '');
-          document.getElementById('mDetail').innerHTML = `
-            <b>Status:</b> ${isMe ? 'Sharing' : 'Online'}<br>
-            <b>Last Update:</b> ${new Date(u.updatedAt).toLocaleTimeString()}<br>
-            <b>Coordinates:</b><br>${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}
-          `;
+          document.getElementById('mName').textContent = u.name;
+          document.getElementById('mSub').textContent = isMe ? 'Sharing active' : 'Online now';
+          
+          let distText = '--';
+          if (myMarker && myMarker.getLatLng()) {
+            const myLatLng = myMarker.getLatLng();
+            distText = calcDist(myLatLng.lat, myLatLng.lng, u.lat, u.lng);
+          }
+          document.getElementById('mDist').textContent = isMe ? '--' : distText;
+          document.getElementById('mBatt').textContent = isMe ? (myBattery || 'Unknown') : 'Unknown';
+          document.getElementById('mTime').textContent = new Date(u.updatedAt).toLocaleTimeString();
+          
+          document.getElementById('focusBtn').onclick = () => {
+            focusedId = id;
+            map.flyTo(pos, 18, { duration: 1 });
+            document.getElementById('infoModal').classList.remove('show');
+          };
           document.getElementById('infoModal').classList.add('show');
         });
-        
+
+        if (isMe) myMarker = marker;
         markers[id] = marker;
       }
     });
 
-    Object.keys(markers).forEach(id => {
-      if (!online[id]) {
-        map.removeLayer(markers[id]);
-        delete markers[id];
+    // Follow Mode Auto-Pan
+    if (focusedId && online[focusedId]) {
+      const u = online[focusedId];
+      if (!map.getBounds().contains([u.lat, u.lng])) {
+        map.panTo([u.lat, u.lng], { animate: true, duration: 1 });
       }
-    });
+    }
   });
 
-  // ★ 6. 核心修正：當關閉網頁或斷線時，瞬間清除 Pin ★
-  function setupOnDisconnect() {
-    // 使用 Firebase 的 onDisconnect 機制，只要伺服器發現客戶端斷線，就會自動刪除該節點
-    usersRef.child(myId).onDisconnect().remove();
-  }
+  // Drag map cancels follow mode
+  map.on('dragstart', () => { focusedId = null; });
 
-  // 點擊關閉分頁、重新整理或手機切換 App 時觸發
-  window.addEventListener('beforeunload', () => {
-    usersRef.child(myId).remove();
-  });
-  window.addEventListener('pagehide', () => {
-    usersRef.child(myId).remove();
-  });
+  // 6. Disconnect Cleanup
+  usersRef.child(myId).onDisconnect().remove();
+  window.addEventListener('beforeunload', () => usersRef.child(myId).remove());
+  window.addEventListener('pagehide', () => usersRef.child(myId).remove());
 
-  // 自動清理殘留資料（防呆機制，防止極端情況下 onDisconnect 沒觸發）
-  function startCleanup() {
-    if (cleanupTimer) clearInterval(cleanupTimer);
-    cleanupTimer = setInterval(() => {
-      usersRef.once('value', (snap) => {
-        const users = snap.val() || {};
-        const now = Date.now();
-        Object.keys(users).forEach(id => {
-          if (users[id] && users[id].updatedAt && now - users[id].updatedAt > 300000) {
-            usersRef.child(id).remove();
-          }
-        });
+  // Periodic cleanup (removes ghost users > 5 mins)
+  setInterval(() => {
+    usersRef.once('value', (snap) => {
+      const users = snap.val() || {};
+      const now = Date.now();
+      Object.keys(users).forEach(id => {
+        if (users[id] && users[id].updatedAt && now - users[id].updatedAt > 300000) {
+          usersRef.child(id).remove();
+        }
       });
-    }, 60000); 
-  }
-  startCleanup();
+    });
+  }, 60000);
 
   // 7. Wake Lock
   async function requestWakeLock() {
-    try {
-      if ('wakeLock' in navigator) {
-        wakeLock = await navigator.wakeLock.request('screen');
-      }
-    } catch (err) {}
+    try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
   }
-  function releaseWakeLock() {
-    if (wakeLock !== null) {
-      wakeLock.release().then(() => { wakeLock = null; });
-    }
-  }
+  function releaseWakeLock() { if (wakeLock !== null) wakeLock.release().then(() => { wakeLock = null; }); }
 
   // 8. Sharing Logic
   shareBtn.addEventListener('click', () => {
@@ -342,12 +463,8 @@ body {
     myName = nameInput.value.trim() || 'Anonymous';
     localStorage.setItem('myName', myName);
 
-    if (!navigator.geolocation) {
-      statusEl.textContent = 'Geolocation not supported';
-      return;
-    }
+    if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
 
-    statusEl.textContent = 'Acquiring GPS signal...';
     shareBtn.disabled = true;
 
     navigator.geolocation.getCurrentPosition(
@@ -356,18 +473,14 @@ body {
         shareBtn.disabled = false;
         shareBtn.textContent = 'Stop';
         shareBtn.classList.add('active');
-        statusEl.textContent = 'Live Sharing Active';
         
-        // 註冊斷線自動刪除
-        setupOnDisconnect();
         requestWakeLock();
-
         sendLocation(pos);
         map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { duration: 1.5 });
 
         watchId = navigator.geolocation.watchPosition(
           sendLocation,
-          (err) => { statusEl.textContent = 'GPS Error: ' + err.message; },
+          (err) => console.warn(err),
           { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
         );
 
@@ -377,7 +490,7 @@ body {
       },
       (err) => {
         shareBtn.disabled = false;
-        statusEl.textContent = 'Permission denied or GPS unavailable';
+        alert('Permission denied or GPS unavailable');
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -395,19 +508,18 @@ body {
 
   function stopSharing() {
     sharing = false;
+    focusedId = null;
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     clearInterval(heartbeatTimer);
     releaseWakeLock();
     
     shareBtn.textContent = 'Share';
     shareBtn.classList.remove('active');
-    statusEl.textContent = 'Sharing stopped';
     
     usersRef.child(myId).remove();
-    if (markers[myId]) { 
-      map.removeLayer(markers[myId]); 
-      delete markers[myId]; 
-    }
+    if (myMarker) { map.removeLayer(myMarker); myMarker = null; }
+    if (markers[myId]) { map.removeLayer(markers[myId]); delete markers[myId]; }
+    if (trails[myId]) { map.removeLayer(trails[myId]); delete trails[myId]; }
   }
 </script>
 </body>

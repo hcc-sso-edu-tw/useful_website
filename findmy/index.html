@@ -14,7 +14,7 @@
 <style>
 :root {
   --accent: #3b5bdb; --accent-2: #7048e8;
-  --ok: #10b981; --err: #e5484d;
+  --ok: #10b981; --err: #e5484d; --warn: #f59e0b;
   --bg-root: #eef0f7; --text: #0f1020; --text-muted: #5f617a;
   --glass-1-a: rgba(255,255,255,.42); --glass-1-b: rgba(255,255,255,.28);
   --glass-2-a: rgba(255,255,255,.60); --glass-2-b: rgba(255,255,255,.42);
@@ -41,7 +41,7 @@ body {
   height: 100vh; height: 100dvh; display: flex; overflow: hidden; -webkit-font-smoothing: antialiased;
 }
 
-/* Background */
+/* Background & Radar */
 .bg-stage { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--bg-root); }
 .bg-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .6; animation: float 20s infinite alternate; }
 .bg-blob.b1 { left: -20vmax; top: -20vmax; background: radial-gradient(circle, #ff7aa8 0%, transparent 60%); }
@@ -54,7 +54,7 @@ body {
 .leaflet-div-icon { background: transparent !important; border: none !important; }
 .leaflet-control-scale-line { background: rgba(255,255,255,0.6) !important; color: #000 !important; backdrop-filter: blur(4px); border-color: rgba(0,0,0,0.2) !important; }
 
-/* Glass */
+/* Glass Base */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -72,7 +72,7 @@ body {
 .sidebar-header { padding: 24px 20px 16px; border-bottom: 1px solid var(--glass-border-lo); display: flex; justify-content: space-between; align-items: center; }
 .sidebar-title { font-size: 18px; font-weight: 800; }
 .user-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.user-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: rgba(255,255,255,0.3); border: 1px solid transparent; transition: all 0.2s; cursor: pointer; }
+.user-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: rgba(255,255,255,0.3); border: 1px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
 html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .user-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.5); }
 .user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 16px; }
@@ -88,54 +88,38 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .topbar > * { pointer-events: auto; }
 .menu-btn { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); backdrop-filter: blur(10px); }
 .menu-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; }
-.name-input-wrapper { flex: 1; padding: 4px; border-radius: var(--pill); }
-.name-input { width: 100%; padding: 12px 20px; border-radius: var(--pill); border: none; background: transparent; color: var(--text); font-size: 15px; outline: none; font-weight: 600; }
+.name-input-wrapper { flex: 1; padding: 4px; border-radius: var(--pill); display: flex; align-items: center; padding-right: 12px; }
+.name-input { flex: 1; padding: 12px 20px; border-radius: var(--pill); border: none; background: transparent; color: var(--text); font-size: 15px; outline: none; font-weight: 600; }
+.color-picker { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
 .btn-big {
   padding: 0 24px; height: 52px; border-radius: var(--pill); border: none;
   font-size: 15px; font-weight: 800; color: #fff; cursor: pointer;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 8px 24px -6px var(--accent); transition: all 0.2s;
-  white-space: nowrap; flex-shrink: 0;
+  box-shadow: 0 8px 24px -6px var(--accent); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
 }
 .btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); }
 
 /* Map Controls */
-.map-controls {
-  position: absolute; right: 16px; bottom: max(24px, env(safe-area-inset-bottom));
-  z-index: 1000; display: flex; flex-direction: column; gap: 10px;
-}
+.map-controls { position: absolute; right: 16px; bottom: max(24px, env(safe-area-inset-bottom)); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
 .ctrl-btn {
   width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border);
   display: flex; align-items: center; justify-content: center; cursor: pointer;
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
-  backdrop-filter: blur(10px); box-shadow: var(--glass-shadow);
-  transition: transform 0.2s;
+  backdrop-filter: blur(10px); box-shadow: var(--glass-shadow); transition: transform 0.2s;
 }
 .ctrl-btn:active { transform: scale(0.9); }
 .ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; }
 
-/* Markers */
-.marker-container {
-  position: relative; display: flex; align-items: center; justify-content: center;
-  width: 40px; height: 40px; border-radius: 50%;
-  background: linear-gradient(135deg, #fff, #f0f0f0);
-  border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
+/* Markers & Radar */
+.marker-container { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
 .marker-dot { width: 14px; height: 14px; border-radius: 50%; }
-.marker-label {
-  position: absolute; top: -26px; white-space: nowrap;
-  background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700;
-  padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px);
-  transform: scale(0.9); transition: transform 0.2s;
-}
+.marker-label { position: absolute; top: -26px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); }
+.radar-ring { position: absolute; inset: -15px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: pulse 2s infinite; }
+@keyframes pulse { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2); opacity: 0; } }
 
 /* Modal */
-.modal-backdrop {
-  position: fixed; inset: 0; z-index: 2000; display: none;
-  background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
-  align-items: center; justify-content: center; padding: 20px;
-}
+.modal-backdrop { position: fixed; inset: 0; z-index: 2000; display: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; }
 .modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
 .modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .modal-avatar { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; font-weight: 800; }
@@ -148,19 +132,17 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .modal-btn { width: 100%; padding: 16px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
 .btn-focus { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 8px 20px -6px var(--accent); }
 .btn-close { background: rgba(128,128,128,0.2); color: var(--text); }
+.btn-gpx { background: var(--warn); color: #fff; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
-/* Draw Tool Override for Glassmorphism */
+/* Mode Indicator */
+.mode-indicator { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; font-size: 14px; font-weight: 700; display: none; }
+.mode-indicator.active { display: block; animation: fadeIn 0.3s; }
+
+/* Draw Tool Override */
 .leaflet-draw-toolbar a { background-color: rgba(255,255,255,0.8) !important; border: 1px solid var(--glass-border) !important; backdrop-filter: blur(10px); }
 html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,30,0.8) !important; }
-
-@media (max-width: 480px) {
-  .topbar { gap: 8px; left: 12px; right: 12px; }
-  .name-input { padding: 10px 14px; font-size: 14px; }
-  .btn-big { padding: 0 16px; font-size: 14px; height: 48px; }
-  .menu-btn { width: 48px; height: 48px; }
-}
 </style>
 </head>
 <body>
@@ -181,9 +163,7 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
       <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
   </div>
-  <div class="user-list" id="userList">
-    <!-- User cards injected here -->
-  </div>
+  <div class="user-list" id="userList"></div>
 </div>
 
 <!-- Top Bar -->
@@ -193,17 +173,26 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
   </div>
   <div class="name-input-wrapper glass">
     <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
+    <div class="color-picker" id="colorPicker" title="Change Color"></div>
   </div>
   <button class="btn-big" id="shareBtn">Share</button>
 </div>
 
+<div class="mode-indicator glass" id="modeIndicator"></div>
+
 <!-- Map Controls -->
 <div class="map-controls">
-  <button class="ctrl-btn" id="mapStyleBtn" title="Toggle Satellite">
-    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+  <button class="ctrl-btn glass" id="measureBtn" title="Measure Distance">
+    <svg viewBox="0 0 24 24"><path d="M2 22l1-1h3l-1 1H2zM6 22l1-1h3l-1 1H6zM10 22l1-1h3l-1 1h-3zM14 22l1-1h3l-1 1h-3zM18 22l1-1h3l-1 1h-3zM22 22V12l-2 2v6h-6l-2 2h10zM14 2v8l2 2V6h6l2-2H14zM2 14v8h8l2-2H6v-4l-2-2zM2 2v8l2-2V6h4l2-2H2z"/></svg>
   </button>
-  <button class="ctrl-btn" id="centerBtn" title="Center My Location">
+  <button class="ctrl-btn glass" id="layerBtn" title="Change Map Layer">
+    <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+  </button>
+  <button class="ctrl-btn glass" id="centerBtn" title="Center My Location">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+  </button>
+  <button class="ctrl-btn glass" id="fullscreenBtn" title="Fullscreen">
+    <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
   </button>
 </div>
 
@@ -230,6 +219,7 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
     </div>
 
     <button class="modal-btn btn-focus" id="focusBtn">Focus on Map</button>
+    <button class="modal-btn btn-gpx" id="gpxBtn" style="display:none;">Export GPX Track</button>
     <button class="modal-btn btn-close" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
   </div>
 </div>
@@ -255,6 +245,7 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
     myId = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
     localStorage.setItem('findMyId', myId);
   }
+  let myColor = localStorage.getItem('myColor') || '#3b5bdb';
 
   // 3. Map Setup
   const map = L.map('map', { 
@@ -263,26 +254,16 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
   
   L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
 
-  const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', noWrap: true }).addTo(map);
-  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true });
+  const layerOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', noWrap: true }).addTo(map);
+  const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true });
+  const layerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', noWrap: true });
+  let currentLayer = 0;
 
   // Drawing Tools
   const drawnItems = new L.FeatureGroup();
   map.addLayer(drawnItems);
-  const drawControl = new L.Control.Draw({
-    position: 'bottomleft',
-    draw: { polyline: true, polygon: true, circle: false, marker: false, circlemarker: false },
-    edit: { featureGroup: drawnItems }
-  });
-  map.addControl(drawControl);
+  new L.Control.Draw({ position: 'bottomleft', draw: { polyline: true, polygon: true, circle: false, marker: false, circlemarker: false }, edit: { featureGroup: drawnItems } }).addTo(map);
   map.on(L.Draw.Event.CREATED, (e) => { drawnItems.addLayer(e.layer); });
-
-  let isSatellite = false;
-  document.getElementById('mapStyleBtn').addEventListener('click', () => {
-    isSatellite = !isSatellite;
-    if (isSatellite) { map.removeLayer(standardLayer); map.addLayer(satelliteLayer); }
-    else { map.removeLayer(satelliteLayer); map.addLayer(standardLayer); }
-  });
 
   // 4. State
   const markers = {};
@@ -295,12 +276,16 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
   let wakeLock = null;
   let focusedId = null;
   let usersData = {};
+  let isMeasuring = false;
+  let measureLine = null;
 
   const nameInput = document.getElementById('nameInput');
   const shareBtn = document.getElementById('shareBtn');
+  const colorPicker = document.getElementById('colorPicker');
+  const modeIndicator = document.getElementById('modeIndicator');
   nameInput.value = localStorage.getItem('myName') || '';
+  colorPicker.style.background = myColor;
 
-  // Battery API
   if (navigator.getBattery) {
     navigator.getBattery().then(b => {
       const update = () => { myBattery = Math.round(b.level * 100) + '%'; };
@@ -309,13 +294,6 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
   }
 
   // 5. Helpers
-  function getColor(id) {
-    const colors = ['#3b5bdb','#e5484d','#f59e0b','#10b981','#8b5cf6','#ec4899','#06b6d4'];
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-    return colors[hash % colors.length];
-  }
-
   function calcDist(lat1, lon1, lat2, lon2) {
     const R = 6371e3, p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
     const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
@@ -324,15 +302,14 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
     return d > 1000 ? (d/1000).toFixed(1) + ' km' : Math.round(d) + ' m';
   }
 
-  function getInitials(name) {
-    return name.trim().slice(0, 2).toUpperCase() || '?';
-  }
+  function getInitials(name) { return name.trim().slice(0, 2).toUpperCase() || '?'; }
 
   function makeIcon(color, name, isMe) {
     return L.divIcon({
       className: 'custom-marker-wrapper',
       html: `
         <div class="marker-container" style="box-shadow: 0 4px 12px ${color}80;">
+          ${isMe ? '<div class="radar-ring"></div>' : ''}
           <div class="marker-dot" style="background: ${color};"></div>
           <div class="marker-label">${name}${isMe ? ' (You)' : ''}</div>
         </div>
@@ -341,34 +318,75 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
     });
   }
 
-  // 6. Sync & UI
+  // 6. UI Events
+  colorPicker.addEventListener('click', () => {
+    const colors = ['#3b5bdb', '#e5484d', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+    let idx = colors.indexOf(myColor);
+    myColor = colors[(idx + 1) % colors.length];
+    colorPicker.style.background = myColor;
+    localStorage.setItem('myColor', myColor);
+    if (sharing) sendLocation({ coords: myMarker.getLatLng() });
+  });
+
+  document.getElementById('layerBtn').addEventListener('click', () => {
+    map.removeLayer([layerOSM, layerSat, layerDark][currentLayer]);
+    currentLayer = (currentLayer + 1) % 3;
+    map.addLayer([layerOSM, layerSat, layerDark][currentLayer]);
+  });
+
+  document.getElementById('measureBtn').addEventListener('click', () => {
+    isMeasuring = !isMeasuring;
+    modeIndicator.classList.toggle('active', isMeasuring);
+    modeIndicator.textContent = isMeasuring ? 'Tap map to measure. Tap button again to stop.' : '';
+    if (!isMeasuring && measureLine) { map.removeLayer(measureLine); measureLine = null; }
+  });
+
+  map.on('click', (e) => {
+    if (!isMeasuring) return;
+    if (!measureLine) {
+      measureLine = L.polyline([e.latlng], { color: '#f59e0b', dashArray: '5, 5', weight: 3 }).addTo(map);
+    } else {
+      const pts = measureLine.getLatLngs();
+      pts.push(e.latlng);
+      measureLine.setLatLngs(pts);
+      const dist = calcDist(pts[0].lat, pts[0].lng, e.latlng.lat, e.latlng.lng);
+      modeIndicator.textContent = `Distance: ${dist}`;
+    }
+  });
+
+  document.getElementById('fullscreenBtn').addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  });
+
+  document.getElementById('centerBtn').addEventListener('click', () => {
+    if (myMarker) { focusedId = myId; map.flyTo(myMarker.getLatLng(), 17, { duration: 1 }); }
+  });
+
+  // 7. Sync
   usersRef.on('value', (snap) => {
     usersData = snap.val() || {};
     const now = Date.now();
     const online = {};
     
     Object.keys(usersData).forEach(id => {
-      if (usersData[id] && usersData[id].updatedAt && now - usersData[id].updatedAt < 120000) {
-        online[id] = usersData[id];
-      }
+      if (usersData[id] && usersData[id].updatedAt && now - usersData[id].updatedAt < 120000) online[id] = usersData[id];
     });
 
-    // Update List
     const listEl = document.getElementById('userList');
     listEl.innerHTML = '';
     Object.keys(online).forEach(id => {
       const u = online[id];
       const isMe = id === myId;
       let distText = '--';
-      if (myMarker && myMarker.getLatLng()) {
+      if (myMarker) {
         const p = myMarker.getLatLng();
         distText = isMe ? 'You' : calcDist(p.lat, p.lng, u.lat, u.lng);
       }
-      
       const card = document.createElement('div');
       card.className = 'user-card';
       card.innerHTML = `
-        <div class="user-avatar" style="background: ${getColor(id)};">${getInitials(u.name)}</div>
+        <div class="user-avatar" style="background: ${u.color || '#3b5bdb'};">${getInitials(u.name)}</div>
         <div class="user-info">
           <div class="user-name">${u.name}</div>
           <div class="user-dist">${distText}</div>
@@ -378,36 +396,28 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
       listEl.appendChild(card);
     });
 
-    // Update Map
     Object.keys(markers).forEach(id => {
       if (!online[id]) {
         map.removeLayer(markers[id]);
         if (trails[id]) map.removeLayer(trails[id]);
         delete markers[id]; delete trails[id];
-        if (focusedId === id) focusedId = null;
       }
     });
 
     Object.keys(online).forEach(id => {
       const u = online[id];
       const isMe = id === myId;
-      const color = getColor(id);
+      const color = u.color || '#3b5bdb';
       const pos = [u.lat, u.lng];
 
-      if (!trails[id]) {
-        trails[id] = L.polyline([pos], { color: color, weight: 4, opacity: 0.5 }).addTo(map);
-      } else {
+      if (!trails[id]) trails[id] = L.polyline([pos], { color: color, weight: 4, opacity: 0.5 }).addTo(map);
+      else {
         const pts = trails[id].getLatLngs();
-        const last = pts[pts.length - 1];
-        if (last.lat !== pos[0] || last.lng !== pos[1]) {
-          pts.push(L.latLng(pos));
-          trails[id].setLatLngs(pts);
-        }
+        if (pts[pts.length - 1].lat !== pos[0]) { pts.push(L.latLng(pos)); trails[id].setLatLngs(pts); }
       }
 
-      if (markers[id]) {
-        markers[id].setLatLng(pos);
-      } else {
+      if (markers[id]) markers[id].setLatLng(pos);
+      else {
         const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe) }).addTo(map);
         marker.on('click', () => openUserInfo(id, u));
         if (isMe) myMarker = marker;
@@ -415,69 +425,51 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
       }
     });
 
-    if (focusedId && online[focusedId]) {
-      const u = online[focusedId];
-      if (!map.getBounds().contains([u.lat, u.lng])) {
-        map.panTo([u.lat, u.lng], { animate: true, duration: 1 });
-      }
-    }
+    if (focusedId && online[focusedId]) map.panTo([online[focusedId].lat, online[focusedId].lng], { animate: true });
   });
 
   function openUserInfo(id, u) {
     const isMe = id === myId;
     document.getElementById('mAvatar').textContent = getInitials(u.name);
-    document.getElementById('mAvatar').style.background = getColor(id);
+    document.getElementById('mAvatar').style.background = u.color || '#3b5bdb';
     document.getElementById('mName').textContent = u.name;
     document.getElementById('mSub').textContent = isMe ? 'Sharing active' : 'Online now';
-    
-    let distText = '--';
-    if (myMarker && myMarker.getLatLng()) {
-      const p = myMarker.getLatLng();
-      distText = isMe ? '--' : calcDist(p.lat, p.lng, u.lat, u.lng);
-    }
-    document.getElementById('mDist').textContent = distText;
+    document.getElementById('mDist').textContent = myMarker ? calcDist(myMarker.getLatLng().lat, myMarker.getLatLng().lng, u.lat, u.lng) : '--';
     document.getElementById('mBatt').textContent = isMe ? (myBattery || 'Unknown') : 'Unknown';
     document.getElementById('mTime').textContent = new Date(u.updatedAt).toLocaleTimeString();
     
     document.getElementById('focusBtn').onclick = () => {
-      focusedId = id;
-      map.flyTo([u.lat, u.lng], 18, { duration: 1 });
+      focusedId = id; map.flyTo([u.lat, u.lng], 18, { duration: 1 });
       document.getElementById('infoModal').classList.remove('show');
-      document.getElementById('sidebar').classList.remove('open');
     };
+
+    const gpxBtn = document.getElementById('gpxBtn');
+    if (trails[id] && trails[id].getLatLngs().length > 1) {
+      gpxBtn.style.display = 'block';
+      gpxBtn.onclick = () => exportGPX(id, u.name);
+    } else {
+      gpxBtn.style.display = 'none';
+    }
     document.getElementById('infoModal').classList.add('show');
   }
 
-  map.on('dragstart', () => { focusedId = null; });
+  function exportGPX(id, name) {
+    const pts = trails[id].getLatLngs();
+    let gpx = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="FindMyGlass" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${name} Track</name><trkseg>`;
+    pts.forEach(p => { gpx += `<trkpt lat="${p.lat}" lon="${p.lng}"></trkpt>`; });
+    gpx += `</trkseg></trk></gpx>`;
+    const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = `${name}_track.gpx`; a.click();
+  }
 
-  document.getElementById('centerBtn').addEventListener('click', () => {
-    if (myMarker && myMarker.getLatLng()) {
-      focusedId = myId;
-      map.flyTo(myMarker.getLatLng(), 17, { duration: 1 });
-    }
-  });
-
-  // 7. Disconnect Cleanup
+  // 8. Cleanup & Sharing
   usersRef.child(myId).onDisconnect().remove();
   window.addEventListener('beforeunload', () => usersRef.child(myId).remove());
-  window.addEventListener('pagehide', () => usersRef.child(myId).remove());
-  setInterval(() => {
-    usersRef.once('value', (snap) => {
-      const users = snap.val() || {};
-      const now = Date.now();
-      Object.keys(users).forEach(id => {
-        if (users[id] && users[id].updatedAt && now - users[id].updatedAt > 300000) {
-          usersRef.child(id).remove();
-        }
-      });
-    });
-  }, 60000);
 
-  // 8. Wake Lock
   async function requestWakeLock() { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
   function releaseWakeLock() { if (wakeLock !== null) wakeLock.release().then(() => { wakeLock = null; }); }
 
-  // 9. Sharing
   shareBtn.addEventListener('click', () => {
     if (!sharing) startSharing(); else stopSharing();
   });
@@ -485,25 +477,20 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
   function startSharing() {
     const myName = nameInput.value.trim() || 'Anonymous';
     localStorage.setItem('myName', myName);
-    if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+    if (!navigator.geolocation) return alert('Geolocation not supported');
     shareBtn.disabled = true;
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        sharing = true;
-        shareBtn.disabled = false;
-        shareBtn.textContent = 'Stop';
-        shareBtn.classList.add('active');
+        sharing = true; shareBtn.disabled = false;
+        shareBtn.textContent = 'Stop'; shareBtn.classList.add('active');
         requestWakeLock();
         sendLocation(pos);
         map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { duration: 1.5 });
         watchId = navigator.geolocation.watchPosition(sendLocation, (err) => console.warn(err), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
         heartbeatTimer = setInterval(() => { if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() }); }, 15000);
       },
-      (err) => {
-        shareBtn.disabled = false;
-        alert('Permission denied or GPS unavailable');
-      },
+      (err) => { shareBtn.disabled = false; alert('Permission denied or GPS unavailable'); },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
@@ -511,17 +498,15 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
   function sendLocation(pos) {
     if (!sharing) return;
     const { latitude: lat, longitude: lng } = pos.coords;
-    usersRef.child(myId).set({ lat, lng, name: localStorage.getItem('myName') || 'Anonymous', updatedAt: Date.now() });
+    usersRef.child(myId).set({ lat, lng, name: localStorage.getItem('myName') || 'Anonymous', color: myColor, updatedAt: Date.now() });
   }
 
   function stopSharing() {
-    sharing = false;
-    focusedId = null;
+    sharing = false; focusedId = null;
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     clearInterval(heartbeatTimer);
     releaseWakeLock();
-    shareBtn.textContent = 'Share';
-    shareBtn.classList.remove('active');
+    shareBtn.textContent = 'Share'; shareBtn.classList.remove('active');
     usersRef.child(myId).remove();
     if (myMarker) { map.removeLayer(myMarker); myMarker = null; }
     if (markers[myId]) { map.removeLayer(markers[myId]); delete markers[myId]; }

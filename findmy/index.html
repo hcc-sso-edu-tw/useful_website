@@ -67,13 +67,10 @@ body {
 /* Map */
 #map { flex: 1; width: 100%; z-index: 1; background: transparent; }
 
-/* ★ 修正：徹底清除 Leaflet 標記預設的白色正方形 ★ */
-.leaflet-div-icon {
-  background: transparent !important;
-  border: none !important;
-}
+/* Fix Leaflet Default Marker Box */
+.leaflet-div-icon { background: transparent !important; border: none !important; }
 
-/* Glassmorphism Utility */
+/* Glassmorphism Base */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -84,29 +81,38 @@ body {
   position: relative; overflow: hidden;
 }
 
-/* Top Bar */
+/* ★ Topbar 修正：取消外層背景，讓按鈕各自獨立 ★ */
 .topbar {
   position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px;
   z-index: 1000; display: flex; gap: 12px; align-items: center;
-  padding: 10px 16px;
+  /* 移除原本的 glass class 效果，讓按鈕不被裁切 */
+}
+
+/* 輸入框獨立毛玻璃 */
+.name-input-wrapper {
+  flex: 1;
+  padding: 4px;
+  border-radius: var(--pill);
 }
 .name-input {
-  flex: 1; padding: 14px 18px; border-radius: var(--pill); border: none;
-  background: rgba(255,255,255,0.4); color: var(--text);
-  font-size: 16px; outline: none; font-weight: 600;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  width: 100%;
+  padding: 14px 20px; border-radius: var(--pill); border: none;
+  background: transparent; color: var(--text);
+  font-size: 16px; outline: none; font-weight: 700;
 }
-html[data-theme="dark"] .name-input { background: rgba(0,0,0,0.3); }
 
-/* Big Button */
+/* ★ 按鈕修正：固定大小、不被壓縮、陰影不被裁切 ★ */
 .btn-big {
   padding: 14px 28px; border-radius: var(--pill); border: none;
   font-size: 16px; font-weight: 800; color: #fff; cursor: pointer;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 8px 20px -6px var(--accent); transition: transform 0.2s;
+  box-shadow: 0 8px 24px -6px var(--accent); 
+  transition: transform 0.2s;
+  white-space: nowrap; /* 防止文字換行 */
+  flex-shrink: 0;      /* 防止被輸入框擠壓 */
 }
 .btn-big:active { transform: scale(0.95); }
-.btn-big.active { background: var(--err); box-shadow: 0 8px 20px -6px var(--err); }
+.btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); }
 
 /* Status Toast */
 .status-toast {
@@ -149,6 +155,12 @@ html[data-theme="dark"] .name-input { background: rgba(0,0,0,0.3); }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .topbar { gap: 8px; left: 12px; right: 12px; }
+  .name-input { padding: 12px 16px; font-size: 15px; }
+  .btn-big { padding: 12px 20px; font-size: 15px; }
+}
 </style>
 </head>
 <body>
@@ -161,8 +173,11 @@ html[data-theme="dark"] .name-input { background: rgba(0,0,0,0.3); }
 
 <div id="map"></div>
 
-<div class="topbar glass">
-  <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
+<!-- 將 topbar 拆開，不用外層 glass 包住，避免陰影被 overflow:hidden 裁切 -->
+<div class="topbar">
+  <div class="name-input-wrapper glass">
+    <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
+  </div>
   <button class="btn-big" id="shareBtn">Share</button>
 </div>
 
@@ -228,7 +243,7 @@ html[data-theme="dark"] .name-input { background: rgba(0,0,0,0.3); }
 
   function makeIcon(color, isMe) {
     return L.divIcon({
-      className: 'custom-marker-wrapper', // Use empty class to avoid default styles
+      className: 'custom-marker-wrapper',
       html: `<div class="custom-marker" style="color: ${color};">${isMe ? '⭐' : '📍'}</div>`,
       iconSize: [48, 48], iconAnchor: [24, 24]
     });
@@ -256,7 +271,6 @@ html[data-theme="dark"] .name-input { background: rgba(0,0,0,0.3); }
       } else {
         const marker = L.marker([u.lat, u.lng], { icon: makeIcon(color, isMe) }).addTo(map);
         
-        // Click Marker -> Show Liquid Glass Modal
         marker.on('click', () => {
           document.getElementById('mIcon').textContent = isMe ? '⭐' : '📍';
           document.getElementById('mName').textContent = u.name + (isMe ? ' (You)' : '');
@@ -272,7 +286,6 @@ html[data-theme="dark"] .name-input { background: rgba(0,0,0,0.3); }
       }
     });
 
-    // Remove offline markers
     Object.keys(markers).forEach(id => {
       if (!online[id]) {
         map.removeLayer(markers[id]);
@@ -281,7 +294,7 @@ html[data-theme="dark"] .name-input { background: rgba(0,0,0,0.3); }
     });
   });
 
-  // 6. Wake Lock (Keep screen awake & running in background)
+  // 6. Wake Lock
   async function requestWakeLock() {
     try {
       if ('wakeLock' in navigator) {
@@ -323,7 +336,6 @@ html[data-theme="dark"] .name-input { background: rgba(0,0,0,0.3); }
         shareBtn.classList.add('active');
         statusEl.textContent = 'Live Sharing Active';
         
-        // Request wake lock to keep screen on
         requestWakeLock();
 
         sendLocation(pos);
@@ -374,7 +386,6 @@ html[data-theme="dark"] .name-input { background: rgba(0,0,0,0.3); }
     }
   }
 
-  // Cleanup when closing tab
   window.addEventListener('beforeunload', () => {
     if (sharing) {
       usersRef.child(myId).remove();

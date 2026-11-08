@@ -22,7 +22,7 @@
   --glass-shadow: 0 18px 60px -28px rgba(20,20,40,.35);
   --glass-inset: inset 0 1px 0 0 rgba(255,255,255,.65);
   --radius: 24px; --pill: 999px; --font: "Inter", -apple-system, sans-serif;
-  --ease: cubic-bezier(0.4, 0, 0.2, 1); /* ★ 修正：補上缺失的動畫變數 */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 html[data-theme="dark"] {
   --bg-root: #070711; --text: #f2f3fa; --text-muted: #9ea0b8;
@@ -40,7 +40,7 @@ body {
   height: 100vh; height: 100dvh; display: flex; overflow: hidden; -webkit-font-smoothing: antialiased;
 }
 
-/* Background & Radar */
+/* Background */
 .bg-stage { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--bg-root); }
 .bg-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .6; animation: float 20s infinite alternate; }
 .bg-blob.b1 { left: -20vmax; top: -20vmax; background: radial-gradient(circle, #ff7aa8 0%, transparent 60%); }
@@ -61,17 +61,19 @@ body {
   border-radius: var(--radius); position: relative; overflow: hidden;
 }
 
-/* Sidebar */
+/* Sidebar (獨立圖層，不會擋到 topbar) */
 .sidebar {
-  position: absolute; top: 0; left: 0; bottom: 0; width: 320px; max-width: 85vw;
-  z-index: 1000; transform: translateX(-110%); transition: transform 0.4s var(--ease);
-  display: flex; flex-direction: column; border-radius: 0 24px 24px 0; border-left: none;
+  position: absolute; top: 0; left: 0; bottom: 0; width: 300px; max-width: 80vw;
+  z-index: 1500; /* 高於 topbar 和 map */
+  transform: translateX(-110%); transition: transform 0.4s var(--ease);
+  display: flex; flex-direction: column; border-radius: 0 24px 24px 0; 
+  border-left: none; box-shadow: 20px 0 60px -20px rgba(0,0,0,0.3);
 }
 .sidebar.open { transform: translateX(0); }
-.sidebar-header { padding: 24px 20px 16px; border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; }
 .sidebar-title { font-size: 18px; font-weight: 800; }
 .user-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.user-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: rgba(255,255,255,0.3); border: 1px solid transparent; transition: all 0.2s; cursor: pointer; position: relative; overflow: hidden; }
+.user-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: rgba(255,255,255,0.3); border: 1px solid transparent; transition: all 0.2s; cursor: pointer; }
 html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .user-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.5); }
 .user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 16px; }
@@ -79,19 +81,60 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .user-name { font-weight: 700; font-size: 15px; }
 .user-dist { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
 
+/* 側邊欄遮罩 */
+.sidebar-backdrop {
+  position: absolute; inset: 0; z-index: 1400; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px);
+  display: none; opacity: 0; transition: opacity 0.3s;
+}
+.sidebar-backdrop.show { display: block; opacity: 1; }
+
 /* Top Bar */
 .topbar {
   position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px;
   z-index: 1000; display: flex; gap: 10px; align-items: center; pointer-events: none;
 }
 .topbar > * { pointer-events: auto; }
-.menu-btn { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); backdrop-filter: blur(10px); }
+.menu-btn { 
+  width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+  cursor: pointer; flex-shrink: 0; border: 1px solid var(--glass-border); 
+  background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); backdrop-filter: blur(10px); 
+}
 .menu-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; }
-.name-input-wrapper { flex: 1; display: flex; align-items: center; border-radius: var(--pill); padding: 4px 8px 4px 4px; min-width: 0; }
-.name-input { flex: 1; padding: 12px 16px; border-radius: var(--pill); border: none; background: transparent; color: var(--text); font-size: 15px; outline: none; font-weight: 600; min-width: 0; }
-.color-picker { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); flex-shrink: 0; margin-left: 4px; }
+
+/* ★ 修正：確保輸入框和顏色圓點不會被擠壓 ★ */
+.name-input-wrapper { 
+  flex: 1; 
+  display: flex; 
+  align-items: center; 
+  border-radius: var(--pill); 
+  padding: 4px 6px 4px 4px; 
+  min-width: 0; /* 允許縮小 */
+}
+.name-input { 
+  flex: 1; 
+  padding: 12px 16px; 
+  border-radius: var(--pill); 
+  border: none; 
+  background: transparent; 
+  color: var(--text); 
+  font-size: 15px; 
+  outline: none; 
+  font-weight: 600; 
+  min-width: 0; 
+}
+.color-picker { 
+  width: 28px; 
+  height: 28px; 
+  border-radius: 50%; 
+  cursor: pointer; 
+  border: 2px solid #fff; 
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2); 
+  flex-shrink: 0; /* 確保圓點不會變形消失 */
+  margin-left: 4px;
+}
+
 .btn-big {
-  padding: 0 24px; height: 52px; border-radius: var(--pill); border: none;
+  padding: 0 20px; height: 52px; border-radius: var(--pill); border: none;
   font-size: 15px; font-weight: 800; color: #fff; cursor: pointer;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 8px 24px -6px var(--accent); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
@@ -109,7 +152,7 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .ctrl-btn:active { transform: scale(0.9); }
 .ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; }
 
-/* Markers & Radar */
+/* Markers */
 .marker-container { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
 .marker-dot { width: 14px; height: 14px; border-radius: 50%; }
@@ -158,11 +201,14 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
 <div id="map"></div>
 
-<!-- Sidebar -->
+<!-- 側邊欄遮罩 -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+
+<!-- Sidebar (選單) -->
 <div class="sidebar glass" id="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-title">Live Devices</div>
-    <button class="ctrl-btn" style="width:36px;height:36px;" onclick="document.getElementById('sidebar').classList.remove('open')">
+    <button class="ctrl-btn" style="width:36px;height:36px;background:transparent;border:none;box-shadow:none;" onclick="toggleSidebar(false)">
       <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
   </div>
@@ -171,7 +217,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
 <!-- Top Bar -->
 <div class="topbar">
-  <div class="menu-btn glass" onclick="document.getElementById('sidebar').classList.add('open')">
+  <div class="menu-btn glass" onclick="toggleSidebar(true)">
     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </div>
   <div class="name-input-wrapper glass">
@@ -275,16 +321,29 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   let usersData = {};
   let isMeasuring = false;
   let measureLine = null;
-  let lastRenderedIds = new Set(); // ★ 修正：用來追蹤側邊欄，避免重新渲染卡死
+  let lastRenderedIds = new Set();
 
   const nameInput = document.getElementById('nameInput');
   const shareBtn = document.getElementById('shareBtn');
   const colorPicker = document.getElementById('colorPicker');
   const modeIndicator = document.getElementById('modeIndicator');
   const userListEl = document.getElementById('userList');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
   
   nameInput.value = localStorage.getItem('myName') || '';
   colorPicker.style.background = myColor;
+
+  // ★ 新增：控制側邊欄開關的函數
+  window.toggleSidebar = function(show) {
+    if (show) {
+      sidebar.classList.add('open');
+      sidebarBackdrop.classList.add('show');
+    } else {
+      sidebar.classList.remove('open');
+      sidebarBackdrop.classList.remove('show');
+    }
+  };
 
   if (navigator.getBattery) {
     navigator.getBattery().then(b => {
@@ -370,7 +429,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     if (myMarker) { focusedId = myId; map.flyTo(myMarker.getLatLng(), 17, { duration: 1 }); }
   });
 
-  // 7. Sync & Optimized Render
+  // 7. Sync
   usersRef.on('value', (snap) => {
     usersData = snap.val() || {};
     const now = Date.now();
@@ -380,10 +439,8 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       if (usersData[id] && usersData[id].updatedAt && now - usersData[id].updatedAt < 120000) online[id] = usersData[id];
     });
 
-    // ★ 修正：優化側邊欄渲染，只更新數據不破壞 DOM，防止卡死
+    // 更新側邊欄
     const currentIds = new Set(Object.keys(online));
-    
-    // 移除已離線的卡片
     lastRenderedIds.forEach(id => {
       if (!currentIds.has(id)) {
         const el = document.getElementById('user-card-' + id);
@@ -391,7 +448,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       }
     });
 
-    // 新增或更新卡片
     Object.keys(online).forEach(id => {
       const u = online[id];
       const isMe = id === myId;
@@ -417,13 +473,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         userListEl.appendChild(card);
       }
       
-      // 更新動態數據
       card.querySelector('.user-dist').textContent = distText;
       card.querySelector('.user-avatar').style.background = u.color || '#3b5bdb';
     });
     lastRenderedIds = currentIds;
 
-    // 地圖標記更新
+    // 更新地圖
     Object.keys(markers).forEach(id => {
       if (!online[id]) {
         map.removeLayer(markers[id]);
@@ -470,6 +525,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     document.getElementById('focusBtn').onclick = () => {
       focusedId = id; map.flyTo([u.lat, u.lng], 18, { duration: 1 });
       document.getElementById('infoModal').classList.remove('show');
+      toggleSidebar(false); // 點擊 Focus 後自動收起側邊欄
     };
 
     const gpxBtn = document.getElementById('gpxBtn');

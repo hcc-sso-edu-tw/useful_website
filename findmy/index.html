@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Find My · Liquid Glass Pro</title>
+<title>Find My · Liquid Glass</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-minimap@3.6.1/dist/Control.MiniMap.min.js"></script>
@@ -53,15 +53,8 @@ body {
 #map { flex: 1; width: 100%; height: 100%; z-index: 1; background: transparent; }
 .leaflet-div-icon { background: transparent !important; border: none !important; }
 
-/* 修正小地圖樣式 */
-.leaflet-control-minimap {
-  border: 2px solid rgba(255,255,255,0.8) !important;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
-  border-radius: 16px !important;
-  overflow: hidden;
-  margin-bottom: 20px !important;
-  margin-right: 16px !important;
-}
+/* MiniMap */
+.leaflet-control-minimap { border: 2px solid rgba(255,255,255,0.8) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important; border-radius: 16px !important; overflow: hidden; margin-bottom: 20px !important; margin-right: 16px !important; }
 html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,255,0.2) !important; }
 
 /* Glass Base */
@@ -89,8 +82,7 @@ html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
 .sidebar {
   position: absolute; top: 0; left: 0; bottom: 0; width: 320px; max-width: 85vw;
   z-index: 1500; transform: translateX(-110%); transition: transform 0.4s var(--ease);
-  display: flex; flex-direction: column; border-radius: 0 24px 24px 0; 
-  border-left: none; box-shadow: 20px 0 60px -20px rgba(0,0,0,0.3);
+  display: flex; flex-direction: column; border-radius: 0 24px 24px 0; border-left: none; box-shadow: 20px 0 60px -20px rgba(0,0,0,0.3);
 }
 .sidebar.open { transform: translateX(0); }
 .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; }
@@ -99,8 +91,7 @@ html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
 
 .user-card { 
   display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; 
-  background: rgba(255,255,255,0.3); border: 1px solid transparent; 
-  cursor: pointer; opacity: 0; transform: translateX(-20px); animation: slideIn 0.4s var(--ease) forwards;
+  background: rgba(255,255,255,0.3); border: 1px solid transparent; cursor: pointer; opacity: 0; transform: translateX(-20px); animation: slideIn 0.4s var(--ease) forwards;
 }
 html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .user-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.6); transform: translateX(4px); }
@@ -111,99 +102,43 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .user-name { font-weight: 700; font-size: 15px; }
 .user-dist { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
 
-/* Sidebar Backdrop */
-.sidebar-backdrop {
-  position: absolute; inset: 0; z-index: 1400; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px);
-  display: none; opacity: 0; transition: opacity 0.3s;
-}
+/* Backdrop */
+.sidebar-backdrop { position: absolute; inset: 0; z-index: 1400; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); display: none; opacity: 0; transition: opacity 0.3s; }
 .sidebar-backdrop.show { display: block; opacity: 1; }
 
 /* Top Bar */
-.topbar {
-  position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px;
-  z-index: 1000; display: flex; gap: 10px; align-items: center; pointer-events: none;
-}
+.topbar { position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px; z-index: 1000; display: flex; gap: 10px; align-items: center; pointer-events: none; }
 .topbar > * { pointer-events: auto; }
-.menu-btn { 
-  width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-  flex-shrink: 0; border: 1px solid var(--glass-border); 
-  background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); 
-}
+.menu-btn { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); }
 .menu-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.3s var(--ease); }
 .menu-btn:hover svg { transform: scale(1.1) rotate(90deg); }
 
-.name-input-wrapper { 
-  flex: 1; display: flex; align-items: center; border-radius: var(--pill); 
-  padding: 4px 6px 4px 4px; min-width: 0;
-}
-.name-input { 
-  flex: 1; padding: 12px 16px; border-radius: var(--pill); border: none; 
-  background: transparent; color: var(--text); font-size: 15px; outline: none; font-weight: 600; min-width: 0; 
-}
-.color-picker { 
-  width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; 
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2); flex-shrink: 0; margin-left: 4px;
-  transition: transform 0.2s var(--ease), filter 0.2s;
-}
-.color-picker:hover { transform: scale(1.15) rotate(15deg); filter: brightness(1.1); }
+.name-input-wrapper { flex: 1; display: flex; align-items: center; border-radius: var(--pill); padding: 4px 6px 4px 4px; min-width: 0; }
+.name-input { flex: 1; padding: 12px 16px; border-radius: var(--pill); border: none; background: transparent; color: var(--text); font-size: 15px; outline: none; font-weight: 600; min-width: 0; }
 
-.btn-big {
-  padding: 0 24px; height: 52px; border-radius: var(--pill); border: none;
-  font-size: 15px; font-weight: 800; color: #fff;
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 8px 24px -6px var(--accent); white-space: nowrap; flex-shrink: 0;
-}
-.btn-big.active { 
-  background: var(--err); box-shadow: 0 8px 24px -6px var(--err);
-  animation: breatheRed 2s infinite; 
-}
-@keyframes breatheRed {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(229,72,77, 0.7); }
-  50% { box-shadow: 0 0 0 12px rgba(229,72,77, 0); }
-}
+.btn-big { padding: 0 24px; height: 52px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 8px 24px -6px var(--accent); white-space: nowrap; flex-shrink: 0; }
+.btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); animation: breatheRed 2s infinite; }
+@keyframes breatheRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(229,72,77, 0.7); } 50% { box-shadow: 0 0 0 12px rgba(229,72,77, 0); } }
 
 /* Map Controls */
 .map-controls { position: absolute; right: 16px; bottom: max(100px, env(safe-area-inset-bottom)); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-.ctrl-btn {
-  width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border);
-  display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
-  box-shadow: var(--glass-shadow);
-}
+.ctrl-btn { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); box-shadow: var(--glass-shadow); }
 .ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.4s var(--ease); }
-
 #layerBtn:hover svg { transform: rotate(180deg); }
 #centerBtn:hover svg { transform: scale(1.2); }
-#fullscreenBtn:hover svg { transform: scale(1.2); }
 
-/* 測距按鈕啟動狀態 */
-#measureBtn.active { background: var(--warn); box-shadow: 0 0 15px var(--warn); }
-#measureBtn.active svg { stroke: #fff; animation: pulseIcon 1.5s infinite; }
-@keyframes pulseIcon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-
-/* Markers & Radar */
-.marker-container { 
-  position: relative; display: flex; align-items: center; justify-content: center; 
-  width: 40px; height: 40px; border-radius: 50%; 
-  background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
-}
+/* Markers */
+.marker-container { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
 .marker-dot { width: 14px; height: 14px; border-radius: 50%; }
 .marker-breathe { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0.5; animation: pulse 2s infinite; }
 .marker-label { position: absolute; top: -30px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); transition: transform 0.2s; }
 .marker-container:hover .marker-label { transform: translateY(-2px) scale(1.05); }
 
-/* 方向箭頭 */
-.heading-arrow { position: absolute; top: -8px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--accent); transform-origin: 50% 28px; transition: transform 0.3s; }
-
-/* 集合點大頭針 */
-.meetup-pin { font-size: 32px; text-shadow: 0 4px 8px rgba(0,0,0,0.4); }
-
 /* Modal & Cards */
 .modal-backdrop { position: fixed; inset: 0; z-index: 2000; display: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; }
 .modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
-.modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.5s var(--ease); }
+.modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.5s var(--ease); max-height: 90vh; overflow-y: auto; }
 .modal-avatar { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; font-weight: 800; }
 .modal-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
 .modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; font-weight: 600; }
@@ -213,31 +148,50 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .modal-val { font-size: 14px; font-weight: 700; }
 .modal-btn { width: 100%; padding: 16px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;}
 .btn-focus { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 8px 20px -6px var(--accent); }
-.btn-alert { background: rgba(245, 158, 11, 0.15); color: var(--warn); border: 1px solid rgba(245, 158, 11, 0.3); }
-.btn-alert.active { background: var(--warn); color: #fff; }
+.btn-ping { background: rgba(59, 91, 219, 0.1); color: var(--accent); border: 1px solid rgba(59, 91, 219, 0.3); }
 .btn-close { background: rgba(128,128,128,0.2); color: var(--text); }
-.btn-gpx { background: rgba(16, 185, 129, 0.15); color: var(--ok); border: 1px solid rgba(16, 185, 129, 0.3); }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-/* ★ 距離顯示條 (大字體) ★ */
+/* 距離顯示條 */
 .mode-indicator { 
-  position: absolute; top: 90px; left: 50%; transform: translateX(-50%); 
-  z-index: 1000; padding: 14px 28px; font-size: 18px; font-weight: 800; 
-  display: none; white-space: nowrap; border-radius: var(--pill);
-  background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
-  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-  color: var(--warn); border: 2px solid var(--warn);
+  position: absolute; top: 90px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 14px 28px; font-size: 18px; font-weight: 800; 
+  display: none; white-space: nowrap; border-radius: var(--pill); background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2); color: var(--warn); border: 2px solid var(--warn);
 }
 .mode-indicator.active { display: block; animation: popIn 0.3s; }
+
+/* ★ Ping 視覺提示橫幅 ★ */
+.ping-banner {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+  z-index: 9999; padding: 16px 32px; border-radius: var(--pill);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #fff; font-weight: 800; font-size: 16px;
+  box-shadow: 0 10px 40px rgba(59,91,219,0.5);
+  display: flex; align-items: center; gap: 12px;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ping-banner.show { transform: translateX(-50%) translateY(0); }
+.ping-banner svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 2; }
+
+/* ★ 地圖聲波擴散動畫 ★ */
+.sonar-wave {
+  position: absolute; inset: -20px; border-radius: 50%;
+  border: 2px solid var(--accent);
+  opacity: 0; animation: sonar 1s ease-out 3;
+  pointer-events: none;
+}
+@keyframes sonar {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
 
 @media (max-width: 480px) {
   .topbar { gap: 8px; left: 12px; right: 12px; }
   .name-input { padding: 10px 12px; font-size: 14px; }
   .btn-big { padding: 0 16px; font-size: 14px; height: 48px; }
   .menu-btn { width: 48px; height: 48px; }
-  .color-picker { width: 24px; height: 24px; }
 }
 </style>
 </head>
@@ -249,13 +203,19 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   <div class="bg-blob b3"></div>
 </div>
 
+<!-- Ping 視覺提示橫幅 -->
+<div class="ping-banner" id="pingBanner">
+  <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+  <span id="pingText">Someone pinged you!</span>
+</div>
+
 <div id="map"></div>
 
 <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
 
 <div class="sidebar glass" id="sidebar">
   <div class="sidebar-header">
-    <div class="sidebar-title">Proximity Radar</div>
+    <div class="sidebar-title">Liquid Radar</div>
     <button class="ctrl-btn glass interactive" style="width:36px;height:36px;border:none;box-shadow:none;background:transparent;" onclick="toggleSidebar(false)">
       <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
@@ -269,19 +229,13 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   </div>
   <div class="name-input-wrapper glass">
     <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
-    <div class="color-picker interactive" id="colorPicker" title="Change Color"></div>
   </div>
   <button class="btn-big interactive" id="shareBtn">Share</button>
 </div>
 
-<!-- 距離顯示條 -->
 <div class="mode-indicator" id="modeIndicator"></div>
 
 <div class="map-controls">
-  <button class="ctrl-btn glass interactive" id="meetupBtn" title="Set Meetup Point">
-    <svg viewBox="0 0 24 24"><path d="M12 2L22 22H2L12 2Z"/><circle cx="12" cy="15" r="3" fill="currentColor"/></svg>
-  </button>
-  
   <button class="ctrl-btn glass interactive" id="measureBtn" title="Measure Distance">
     <svg viewBox="0 0 24 24" style="stroke-linecap: round; stroke-linejoin: round;">
       <rect x="4" y="10" width="16" height="4" rx="1" fill="currentColor" stroke="none"/>
@@ -318,14 +272,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       </div>
     </div>
 
-    <button class="modal-btn btn-ping interactive" id="pingBtn" style="background:var(--accent-soft); color:var(--accent); margin-bottom:16px;">
+    <button class="modal-btn btn-ping interactive" id="pingBtn">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg>
       Ping Device
     </button>
 
     <button class="modal-btn btn-focus interactive" id="focusBtn">Focus on Map</button>
-    <button class="modal-btn btn-gpx interactive" id="gpxBtn">Export Track (GPX)</button>
-    <button class="modal-btn btn-alert interactive" id="alertBtn">Watch Proximity</button>
     <button class="modal-btn btn-close interactive" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
   </div>
 </div>
@@ -344,7 +296,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const usersRef = db.ref('users');
-  const meetupRef = db.ref('meetup');
   const pingRef = db.ref('pings');
 
   // 2. Identity
@@ -366,29 +317,21 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true });
   let isSatellite = false;
 
-  // ★ 新增：小地圖 (MiniMap) ★
-  const miniMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true });
-  new L.Control.MiniMap(miniMapLayer, { 
-    toggleDisplay: true, 
-    position: 'bottomright',
-    width: 120, height: 120 
-  }).addTo(map);
+  // 小地圖
+  new L.Control.MiniMap(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true }), { toggleDisplay: true, position: 'bottomright', width: 120, height: 120 }).addTo(map);
 
   // 4. State
   const markers = {};
   const trails = {};
   let myMarker = null;
-  let myHeading = 0;
   let myBattery = null;
   let sharing = false;
   let watchId = null;
-  let lastPos = null;
   let heartbeatTimer = null;
   let wakeLock = null;
   let focusedId = null;
   let usersData = {};
   let lastRenderedIds = new Set();
-  let meetupMarker = null;
 
   // 測距狀態
   let measureMode = 0;
@@ -396,29 +339,23 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   let measureLayerGroup = new L.FeatureGroup().addTo(map);
   let finalMeasureText = '';
 
-  // 警戒狀態
-  let alertTargetId = null;
-
-  const nameInput = document.getElementById('nameInput');
   const shareBtn = document.getElementById('shareBtn');
-  const colorPicker = document.getElementById('colorPicker');
-  const modeIndicator = document.getElementById('modeIndicator');
   const userListEl = document.getElementById('userList');
   const sidebar = document.getElementById('sidebar');
   const sidebarBackdrop = document.getElementById('sidebarBackdrop');
   const measureBtn = document.getElementById('measureBtn');
-  const meetupBtn = document.getElementById('meetupBtn');
   
   nameInput.value = localStorage.getItem('myName') || '';
-  colorPicker.style.background = myColor;
 
   window.toggleSidebar = function(show) {
     if (show) { sidebar.classList.add('open'); sidebarBackdrop.classList.add('show'); }
     else { sidebar.classList.remove('open'); sidebarBackdrop.classList.remove('show'); }
   };
 
+  // 震動與 Ripple 特效
   document.querySelectorAll('.interactive').forEach(el => {
     el.addEventListener('pointerdown', function(e) {
+      if(navigator.vibrate) navigator.vibrate(10);
       const rect = this.getBoundingClientRect();
       const x = e.clientX - rect.left, y = e.clientY - rect.top;
       const size = Math.max(rect.width, rect.height);
@@ -451,15 +388,13 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
   function getInitials(name) { return name.trim().slice(0, 2).toUpperCase() || '?'; }
 
-  function makeIcon(color, name, isMe, heading) {
-    const arrow = heading !== null ? `<div class="heading-arrow" style="transform: rotate(${heading}deg)"></div>` : '';
+  function makeIcon(color, name, isMe) {
     return L.divIcon({
       className: 'custom-marker-wrapper',
       html: `
         <div class="marker-container" style="box-shadow: 0 4px 12px ${color}80;">
           ${isMe ? '<div class="marker-breathe"></div>' : ''}
           <div class="marker-dot" style="background: ${color};"></div>
-          ${arrow}
           <div class="marker-label">${name}${isMe ? ' (You)' : ''}</div>
         </div>
       `,
@@ -467,61 +402,43 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
   }
 
-  // 集合點
-  meetupBtn.addEventListener('click', () => {
-    if (meetupMarker) {
-      meetupMarker.remove(); meetupMarker = null;
-      meetupRef.remove();
-      meetupBtn.classList.remove('active');
-      return;
-    }
-    map.once('click', (e) => {
-      const pos = { lat: e.latlng.lat, lng: e.latlng.lng };
-      meetupRef.set(pos);
-      meetupBtn.classList.add('active');
-    });
-  });
-
-  meetupRef.on('value', (snap) => {
-    if (meetupMarker) { meetupMarker.remove(); meetupMarker = null; }
-    if (snap.exists()) {
-      const pos = snap.val();
-      const icon = L.divIcon({ html: '<div class="meetup-pin">📍</div>', iconSize: [40,40], iconAnchor: [20,40] });
-      meetupMarker = L.marker([pos.lat, pos.lng], { icon }).addTo(map);
-      meetupBtn.classList.add('active');
-    } else {
-      meetupBtn.classList.remove('active');
-    }
-  });
-
-  // Ping
+  // ★ 接收 Ping 的視覺處理 ★
   pingRef.child(myId).on('value', (snap) => {
-    if (snap.exists() && snap.val() > Date.now() - 5000) {
-      if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-      osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    if (snap.exists() && snap.val().time > Date.now() - 5000) {
+      const sender = snap.val().sender || 'Someone';
+      
+      // 1. 顯示頂部橫幅
+      document.getElementById('pingText').textContent = `${sender} is looking for you!`;
+      const banner = document.getElementById('pingBanner');
+      banner.classList.add('show');
+      setTimeout(() => banner.classList.remove('show'), 4000);
+
+      // 2. 手機震動
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
+
+      // 3. 在地圖標記上加入聲波擴散特效
+      if (myMarker) {
+        const el = myMarker.getElement();
+        if (el) {
+          const wave = document.createElement('div');
+          wave.className = 'sonar-wave';
+          el.querySelector('.marker-container').appendChild(wave);
+          setTimeout(() => wave.remove(), 3000);
+        }
+      }
       snap.ref.remove();
     }
   });
 
   document.getElementById('pingBtn').addEventListener('click', () => {
-    if (alertTargetId) pingRef.child(alertTargetId).set(Date.now());
-    document.getElementById('infoModal').classList.remove('show');
-  });
-
-  // 偏離警戒
-  document.getElementById('alertBtn').addEventListener('click', function() {
-    if (alertTargetId === focusedId) {
-      alertTargetId = null;
-      this.classList.remove('active');
-      this.textContent = 'Watch Proximity';
-    } else {
-      alertTargetId = focusedId;
-      this.classList.add('active');
-      this.textContent = 'Watching Proximity...';
+    if (focusedId && focusedId !== myId) {
+      pingRef.child(focusedId).set({ 
+        sender: localStorage.getItem('myName') || 'Anonymous', 
+        time: Date.now() 
+      });
+      if (navigator.vibrate) navigator.vibrate(50);
     }
+    document.getElementById('infoModal').classList.remove('show');
   });
 
   // 6. 測距
@@ -574,17 +491,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   });
 
   // 7. UI Events
-  colorPicker.addEventListener('click', () => {
-    const colors = ['#3b5bdb', '#e5484d', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
-    let idx = colors.indexOf(myColor);
-    myColor = colors[(idx + 1) % colors.length];
-    colorPicker.style.background = myColor;
-    localStorage.setItem('myColor', myColor);
-    if (sharing && myMarker) {
-      sendLocation({ coords: myMarker.getLatLng(), heading: myHeading });
-    }
-  });
-
   document.getElementById('layerBtn').addEventListener('click', () => {
     if (isSatellite) { map.removeLayer(layerSat); map.addLayer(layerOSM); }
     else { map.removeLayer(layerOSM); map.addLayer(layerSat); }
@@ -622,12 +528,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         const p = myMarker.getLatLng();
         const d = calcDist(p.lat, p.lng, u.lat, u.lng);
         distText = isMe ? 'You' : formatDist(d);
-
-        if (alertTargetId === id && !isMe && d > 500) {
-          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-          document.body.style.boxShadow = "inset 0 0 50px rgba(229,72,77,0.5)";
-          setTimeout(() => document.body.style.boxShadow = "", 500);
-        }
       }
       
       let card = document.getElementById('user-card-' + id);
@@ -676,11 +576,9 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         if (pts[pts.length - 1].lat !== pos[0]) { pts.push(L.latLng(pos)); trails[id].setLatLngs(pts); }
       }
 
-      if (markers[id]) {
-        markers[id].setLatLng(pos);
-        if (u.heading !== undefined) markers[id].setIcon(makeIcon(color, u.name, isMe, u.heading));
-      } else {
-        const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe, u.heading) }).addTo(map);
+      if (markers[id]) markers[id].setLatLng(pos);
+      else {
+        const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe) }).addTo(map);
         
         marker.on('click', (e) => {
           if (measureMode === 1) { addMeasurePoint(e.latlng); L.DomEvent.stopPropagation(e); }
@@ -712,36 +610,11 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       toggleSidebar(false);
     };
 
-    const alertBtn = document.getElementById('alertBtn');
-    const gpxBtn = document.getElementById('gpxBtn');
-    
-    // 匯出 GPX
-    if (trails[id] && trails[id].getLatLngs().length > 1) {
-      gpxBtn.style.display = 'flex';
-      gpxBtn.onclick = () => {
-        const pts = trails[id].getLatLngs();
-        let gpx = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="FindMyGlass" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${u.name} Track</name><trkseg>`;
-        pts.forEach(p => { gpx += `<trkpt lat="${p.lat}" lon="${p.lng}"></trkpt>`; });
-        gpx += `</trkseg></trk></gpx>`;
-        const blob = new Blob([gpx], { type: 'application/gpx+xml' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob); a.download = `${u.name}_track.gpx`; a.click();
-      };
-    } else {
-      gpxBtn.style.display = 'none';
-    }
-
+    const pingBtn = document.getElementById('pingBtn');
     if (isMe) {
-      alertBtn.style.display = 'none';
-      document.getElementById('pingBtn').style.display = 'none';
+      pingBtn.style.display = 'none';
     } else {
-      alertBtn.style.display = 'flex';
-      document.getElementById('pingBtn').style.display = 'flex';
-      if (alertTargetId === id) {
-        alertBtn.classList.add('active'); alertBtn.textContent = 'Watching Proximity...';
-      } else {
-        alertBtn.classList.remove('active'); alertBtn.textContent = 'Watch Proximity';
-      }
+      pingBtn.style.display = 'flex';
     }
 
     document.getElementById('infoModal').classList.add('show');
@@ -759,7 +632,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   });
 
   function startSharing() {
-    const myName = nameInput.value.trim() || 'Anonymous';
+    const myName = document.getElementById('nameInput').value.trim() || 'Anonymous';
     localStorage.setItem('myName', myName);
     if (!navigator.geolocation) return alert('Geolocation not supported');
     shareBtn.disabled = true;
@@ -769,20 +642,10 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         sharing = true; shareBtn.disabled = false;
         shareBtn.textContent = 'Stop'; shareBtn.classList.add('active');
         requestWakeLock();
-        lastPos = pos;
         sendLocation(pos);
         map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { duration: 1.5 });
         
-        watchId = navigator.geolocation.watchPosition((newPos) => {
-          if (lastPos) {
-            const y = Math.sin(newPos.coords.longitude - lastPos.coords.longitude) * Math.cos(newPos.coords.latitude);
-            const x = Math.cos(lastPos.coords.latitude) * Math.sin(newPos.coords.latitude) - Math.sin(lastPos.coords.latitude) * Math.cos(newPos.coords.latitude) * Math.cos(newPos.coords.longitude - lastPos.coords.longitude);
-            myHeading = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-          }
-          lastPos = newPos;
-          sendLocation(newPos);
-        }, (err) => console.warn(err), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
-        
+        watchId = navigator.geolocation.watchPosition(sendLocation, (err) => console.warn(err), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
         heartbeatTimer = setInterval(() => { if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() }); }, 15000);
       },
       (err) => { shareBtn.disabled = false; alert('Permission denied or GPS unavailable'); },
@@ -793,7 +656,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   function sendLocation(pos) {
     if (!sharing) return;
     const { latitude: lat, longitude: lng } = pos.coords;
-    usersRef.child(myId).set({ lat, lng, heading: myHeading, name: localStorage.getItem('myName') || 'Anonymous', color: myColor, updatedAt: Date.now() });
+    usersRef.child(myId).set({ lat, lng, name: localStorage.getItem('myName') || 'Anonymous', color: myColor, updatedAt: Date.now() });
   }
 
   function stopSharing() {

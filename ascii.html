@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>CYBER ASCII CAM // Real-Time Matrix Video Camera</title>
+<style>
+  :root{ --c:#00ff9c; --c2:#ff2bd6; --bg:rgba(4,10,14,.72); }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100vw;height:100vh;background:#000;overflow:hidden;
+    font-family:"Courier New",ui-monospace,Menlo,Consolas,monospace;color:var(--c);
+    -webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;}
+  #screen{position:fixed;inset:0;width:100vw;height:100vh;display:block;background:#000}
+  #video{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
+  #sampler{display:none}
+
+  #crt{position:fixed;inset:0;pointer-events:none;z-index:5;
+    background:
+      repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.18) 3px),
+      radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.65) 100%);}
+
+  #hud{position:fixed;top:14px;left:14px;z-index:10;width:300px;max-width:calc(100vw - 28px);
+    padding:14px 14px 12px;background:var(--bg);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    border:1px solid var(--c);box-shadow:0 0 14px rgba(0,255,156,.35),inset 0 0 18px rgba(0,255,156,.08);
+    clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));
+    transition:opacity .25s,transform .25s;
+    max-height:calc(100vh - 28px);overflow-y:auto;overscroll-behavior:contain;}
+  #hud.hidden{opacity:0;pointer-events:none;transform:translateX(-12px)}
+  #hud h1{font-size:13px;letter-spacing:3px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;
+    text-shadow:0 0 8px var(--c);margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed rgba(0,255,156,.45)}
+  #hud h1 span{font-size:10px;color:var(--c2);text-shadow:0 0 8px var(--c2)}
+  .grp{margin-bottom:11px}
+  .lbl{font-size:10px;letter-spacing:2px;opacity:.8;margin-bottom:5px;display:flex;justify-content:space-between}
+  .lbl b{color:var(--c2);font-weight:normal}
+  .row{display:flex;flex-wrap:wrap;gap:5px}
+  button{font:inherit;font-size:11px;letter-spacing:1px;color:var(--c);background:rgba(0,255,156,.06);
+    border:1px solid rgba(0,255,156,.5);padding:8px 10px;cursor:pointer;flex:1 1 auto;transition:.15s;text-transform:uppercase;
+    min-height:40px;touch-action:manipulation;}
+  button:hover{background:rgba(0,255,156,.22);box-shadow:0 0 10px rgba(0,255,156,.5)}
+  button.on{background:var(--c);color:#001a0f;box-shadow:0 0 12px var(--c);font-weight:bold}
+  button.snap{width:100%;margin-top:4px;border-color:var(--c2);color:var(--c2);background:rgba(255,43,214,.07);padding:12px}
+  button.snap:hover{background:rgba(255,43,214,.25);box-shadow:0 0 14px var(--c2)}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;outline:none;touch-action:pan-y;}
+  input[type=range]::-webkit-slider-runnable-track{height:4px;background:rgba(0,255,156,.3);}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-7px;background:var(--c);
+    box-shadow:0 0 10px var(--c);cursor:pointer;border-radius:0;transform:rotate(45deg)}
+  input[type=range]::-moz-range-track{height:4px;background:rgba(0,255,156,.3);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;background:var(--c);border:none;border-radius:0;cursor:pointer}
+  #stats{font-size:10px;opacity:.85;display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(0,255,156,.45)}
+  #hint{font-size:9px;opacity:.55;margin-top:6px;letter-spacing:1px}
+
+  #toggle{position:fixed;top:14px;right:14px;z-index:11;width:auto;flex:none;padding:9px 12px;background:var(--bg);min-height:40px;}
+
+  #overlay{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .6s}
+  #overlay.gone{opacity:0;pointer-events:none}
+  #overlay .ring{width:120px;height:120px;border:2px solid transparent;border-top-color:var(--c);border-bottom-color:var(--c2);
+    border-radius:50%;animation:spin 1.4s linear infinite;box-shadow:0 0 25px rgba(0,255,156,.4);position:relative;margin-bottom:34px}
+  #overlay .ring::after{content:"";position:absolute;inset:14px;border:1px dashed var(--c);border-radius:50%;animation:spin 3s linear infinite reverse}
+  #overlay h2{font-size:clamp(20px,4vw,34px);letter-spacing:6px;text-shadow:0 0 12px var(--c),2px 0 var(--c2),-2px 0 #00e5ff;
+    animation:glitch 2.4s infinite}
+  #overlay p{margin-top:14px;font-size:clamp(12px,1.8vw,15px);opacity:.8;letter-spacing:2px;line-height:1.8}
+  #overlay .err{color:#ff4466;text-shadow:0 0 8px #ff4466;min-height:22px;margin-top:10px;font-size:13px;max-width:600px}
+  #overlay button{flex:none;margin-top:26px;padding:12px 28px;font-size:13px;letter-spacing:3px;min-height:44px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes glitch{0%,90%,100%{transform:none}92%{transform:translate(3px,-1px) skewX(6deg)}94%{transform:translate(-3px,1px)}96%{transform:translate(2px,0) skewX(-5deg)}}
+  .blink{animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:0}}
+  #flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:30}
+  #flash.go{animation:fl .35s ease-out}
+  @keyframes fl{0%{opacity:.85}100%{opacity:0}}
+
+  /* 手機版調整 */
+  @media (max-width: 600px) {
+    #hud{top:8px;left:8px;width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);
+      padding:10px 10px 8px;}
+    #hud h1{font-size:11px;letter-spacing:2px;margin-bottom:8px;padding-bottom:6px}
+    #hud h1 span{font-size:9px}
+    .grp{margin-bottom:8px}
+    .lbl{font-size:9px;letter-spacing:1px;margin-bottom:4px}
+    button{font-size:10px;padding:9px 6px;min-height:42px}
+    button.snap{padding:12px}
+    #toggle{top:8px;right:8px;padding:8px 10px;font-size:10px;min-height:42px}
+    #hint{font-size:8px}
+    #stats{font-size:9px}
+    #overlay .ring{width:90px;height:90px;margin-bottom:24px}
+    #overlay h2{letter-spacing:3px}
+    #overlay p{letter-spacing:1px;line-height:1.6}
+  }
+
+  /* 矮螢幕（橫向手機） */
+  @media (max-height: 520px) {
+    #hud{top:6px;left:6px;max-height:calc(100vh - 12px);padding:8px}
+    #hud h1{margin-bottom:6px;padding-bottom:4px;font-size:10px}
+    .grp{margin-bottom:6px}
+    .lbl{margin-bottom:3px}
+    button{padding:6px;min-height:36px;font-size:10px}
+    button.snap{padding:8px}
+    #toggle{top:6px;right:6px;padding:6px 8px;min-height:36px}
+    #stats{margin-top:5px;padding-top:5px}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="screen"></canvas>
+<video id="video" playsinline muted autoplay></video>
+<canvas id="sampler"></canvas>
+<div id="crt"></div>
+<div id="flash"></div>
+
+<button id="toggle" title="Toggle HUD (H)">[ HUD ]</button>
+
+<div id="hud">
+  <h1>ASCII//CAM <span>v2.078</span></h1>
+
+  <div class="grp">
+    <div class="lbl"><span>CHARSET / DENSITY</span></div>
+    <div class="row" id="setBtns">
+      <button data-i="0" class="on">Standard</button>
+      <button data-i="1">Binary</button>
+      <button data-i="2">Blocks</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>COLOR MODE</span></div>
+    <div class="row" id="colBtns">
+      <button data-i="0" class="on">Matrix</button>
+      <button data-i="1">Amber</button>
+      <button data-i="2">Neon</button>
+      <button data-i="3">True RGB</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>FONT SIZE / RESOLUTION</span><b id="sizeVal">12px</b></div>
+    <input type="range" id="size" min="8" max="24" step="1" value="12">
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>CONTRAST / BRIGHTNESS</span><b id="conVal">1.45</b></div>
+    <input type="range" id="con" min="0.5" max="3.0" step="0.05" value="1.45">
+  </div>
+
+  <button class="snap" id="snap">◉ SNAPSHOT / SAVE PNG</button>
+
+  <div id="stats"><span id="fps">FPS --</span><span id="grid">GRID --</span></div>
+  <div id="hint">H: toggle panel · SPACE: snapshot</div>
+</div>
+
+<div id="overlay">
+  <div class="ring"></div>
+  <h2>AWAITING NEURAL LINK<span class="blink">_</span></h2>
+  <p>PLEASE ALLOW CAMERA ACCESS TO SYNC VISUAL CORTEX</p>
+  <div class="err" id="err"></div>
+  <button id="retry">INITIATE LINK</button>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- DOM ----------
+  const screen  = document.getElementById('screen');
+  const ctx     = screen.getContext('2d', { alpha: false });
+  const video   = document.getElementById('video');
+  const sampler = document.getElementById('sampler');
+  const sctx    = sampler.getContext('2d', { willReadFrequently: true });
+  const overlay = document.getElementById('overlay');
+  const errEl   = document.getElementById('err');
+  const hud     = document.getElementById('hud');
+  const flashEl = document.getElementById('flash');
+
+  // ---------- Config ----------
+  const CHARSETS = [
+    '@#$%=+*:-. ',
+    '10 ',
+    '█▓▒░#+*:. '
+  ];
+  const AMBER = '#ffb000', GREEN = '#00ff9c';
+  const TARGET_FPS = 30;
+  const FRAME_MS = 1000 / TARGET_FPS;
+  const FONT_FAMILY = '"Courier New", ui-monospace, Menlo, Consolas, monospace';
+  const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+                     (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && window.innerWidth < 900);
+
+  const state = {
+    set: 0, color: 0, size: 12, contrast: 1.45,
+    cols: 0, rows: 0, charW: 8, lineH: 12, W: 0, H: 0, dpr: 1
+  };
+
+  let neonPalette = [];
+  const rgbCache = new Array(4096);
+  let stream = null;
+  let started = false;
+  let facingMode = IS_MOBILE ? 'environment' : 'user';
+
+  // ---------- Layout / Grid ----------
+  function setupGrid() {
+    const dpr = Math.min(window.devicePixelRatio || 1, IS_MOBILE ? 2 : 2);
+    const W = window.innerWidth, H = window.innerHeight;
+    state.dpr = dpr; state.W = W; state.H = H;
+
+    screen.width = Math.floor(W * dpr);
+    screen.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const s = state.size;
+    ctx.font = s + 'px ' + FONT_FAMILY;
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    state.charW = Math.max(1, ctx.measureText('M').width);
+    state.lineH = s;
+    state.cols = Math.ceil(W / state.charW);
+    state.rows = Math.ceil(H / state.lineH);
+
+    sampler.width = state.cols;
+    sampler.height = state.rows;
+    sctx.imageSmoothingEnabled = true;
+    sctx.imageSmoothingQuality = 'high';
+
+    document.getElementById('grid').textContent = 'GRID ' + state.cols + '×' + state.rows;
+  }
+
+  // Neon palette
+  function buildNeonPalette() {
+    neonPalette = [];
+    for (let cb = 0; cb < 16; cb++) {
+      const hue = 330 - (cb / 15) * 55;
+      for (let lb = 0; lb < 8; lb++) {
+        const light = 42 + (lb / 7) * 42; // 稍微提亮
+        neonPalette.push('hsl(' + hue.toFixed(0) + ',100%,' + light.toFixed(0) + '%)');
+      }
+    }
+  }
+
+  function rgbString(r, g, b) {
+    const k = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+    let s = rgbCache[k];
+    if (!s) {
+      // 亮度補償：避免 True RGB 模式過暗
+      const boost = 1.12;
+      const rr = Math.min(255, Math.round((((r >> 4) << 4) + 8) * boost));
+      const gg = Math.min(255, Math.round((((g >> 4) << 4) + 8) * boost));
+      const bb = Math.min(255, Math.round((((b >> 4) << 4) + 8) * boost));
+      s = 'rgb(' + rr + ',' + gg + ',' + bb + ')';
+      rgbCache[k] = s;
+    }
+    return s;
+  }
+
+  // ---------- Sampling ----------
+  function sampleVideo() {
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return null;
+
+    const dstAspect = (state.cols * state.charW) / (state.rows * state.lineH);
+    const srcAspect = vw / vh;
+    let sx, sy, sw, sh;
+    if (srcAspect > dstAspect) {
+      sh = vh; sw = vh * dstAspect; sx = (vw - sw) / 2; sy = 0;
+    } else {
+      sw = vw; sh = vw / dstAspect; sx = 0; sy = (vh - sh) / 2;
+    }
+
+    sctx.save();
+    sctx.translate(state.cols, 0);
+    sctx.scale(-1, 1);
+    sctx.drawImage(video, sx, sy, sw, sh, 0, 0, state.cols, state.rows);
+    sctx.restore();
+
+    return sctx.getImageData(0, 0, state.cols, state.rows).data;
+  }
+
+  // ---------- Render ----------
+  function render() {
+    const data = sampleVideo();
+    if (!data) return;
+
+    const { cols, rows, charW, lineH, W, H, color, contrast } = state;
+    const chars = CHARSETS[state.set];
+    const n = chars.length;
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+
+    // 亮度提高：gamma 校正 + 對比
+    const gamma = 0.85;
+
+    if (color === 0) {
+      ctx.fillStyle = GREEN;
+      ctx.shadowColor = 'rgba(0,255,156,0.55)';
+      ctx.shadowBlur = 4;
+    } else if (color === 1) {
+      ctx.fillStyle = AMBER;
+      ctx.shadowColor = 'rgba(255,176,0,0.55)';
+      ctx.shadowBlur = 4;
+    } else {
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
+    }
+
+    let lastStyle = '';
+    let p = 0;
+
+    for (let y = 0; y < rows; y++) {
+      const py = y * lineH;
+      for (let x = 0; x < cols; x++, p += 4) {
+        const r = data[p], g = data[p + 1], b = data[p + 2];
+
+        let l = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+        // Gamma 提亮暗部
+        l = Math.pow(l, gamma);
+        l = (l - 0.5) * contrast + 0.5;
+        l = l < 0 ? 0 : l > 1 ? 1 : l;
+
+        // 非線性密度映射：亮部更容易出現高密度字元
+        const idx = Math.round(Math.pow(1 - l, 0.9) * (n - 1));
+        const ch = chars[idx];
+        if (ch === ' ') continue;
+
+        if (color === 2) {
+          const cb = Math.min(15, ((x / cols) * 0.6 + (y / rows) * 0.4) * 16 | 0);
+          const lb = Math.min(7, (l * 8) | 0);
+          const st = neonPalette[cb * 8 + lb];
+          if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
+        } else if (color === 3) {
+          const st = rgbString(r, g, b);
+          if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
+        }
+
+        ctx.fillText(ch, x * charW, py);
+      }
+    }
+
+    // 重置 shadow，避免影響其他繪製
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+  }
+
+  // ---------- Main loop ----------
+  let lastT = 0, frames = 0, fpsT = performance.now();
+  function loop(now) {
+    requestAnimationFrame(loop);
+    if (!started) return;
+    if (now - lastT < FRAME_MS - 1) return;
+    lastT = now;
+
+    render();
+
+    frames++;
+    if (now - fpsT >= 500) {
+      document.getElementById('fps').textContent = 'FPS ' + Math.round(frames * 1000 / (now - fpsT));
+      frames = 0; fpsT = now;
+    }
+  }
+
+  // ---------- Camera ----------
+  async function startCamera() {
+    errEl.textContent = '';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      errEl.textContent = 'ERROR: Camera API unavailable. Use HTTPS or localhost in a modern browser.';
+      return;
+    }
+    try {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+
+      // 手機優先後鏡頭，失敗則回退前鏡頭
+      const attempts = IS_MOBILE
+        ? [{ facingMode: { ideal: 'environment' } }, { facingMode: 'user' }]
+        : [{ facingMode: 'user' }];
+
+      let lastErr = null;
+      for (const videoConstraints of attempts) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: Object.assign({
+              width: { ideal: IS_MOBILE ? 1920 : 1280 },
+              height: { ideal: IS_MOBILE ? 1080 : 720 }
+            }, videoConstraints),
+            audio: false
+          });
+          facingMode = videoConstraints.facingMode && videoConstraints.facingMode.ideal
+            ? videoConstraints.facingMode.ideal
+            : videoConstraints.facingMode;
+          break;
+        } catch (e) {
+          lastErr = e;
+          stream = null;
+        }
+      }
+      if (!stream) throw lastErr || new Error('No camera');
+
+      video.srcObject = stream;
+      await video.play();
+      started = true;
+      overlay.classList.add('gone');
+    } catch (e) {
+      started = false;
+      overlay.classList.remove('gone');
+      let msg = 'LINK FAILED: ' + (e && e.name ? e.name : 'Unknown error');
+      if (e && e.name === 'NotAllowedError') msg = 'ACCESS DENIED: Please allow camera permission, then retry.';
+      else if (e && e.name === 'NotFoundError') msg = 'NO CAMERA DETECTED: Connect a camera, then retry.';
+      else if (e && e.name === 'NotReadableError') msg = 'CAMERA BUSY: Another application is using the camera.';
+      else if (e && e.name === 'OverconstrainedError') msg = 'CAMERA CONSTRAINT FAILED: Try a different device.';
+      errEl.textContent = msg;
+    }
+  }
+
+  // ---------- Snapshot ----------
+  function snapshot() {
+    if (!started) return;
+    flashEl.classList.remove('go');
+    void flashEl.offsetWidth;
+    flashEl.classList.add('go');
+
+    render();
+    screen.toBlob(blob => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const d = new Date();
+      const pad = v => String(v).padStart(2, '0');
+      a.href = url;
+      a.download = 'ascii-cam-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
+                   '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + '.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }, 'image/png');
+  }
+
+  // ---------- UI wiring ----------
+  function bindGroup(id, key) {
+    const wrap = document.getElementById(id);
+    wrap.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      state[key] = +b.dataset.i;
+      wrap.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+      b.blur();
+    });
+  }
+  bindGroup('setBtns', 'set');
+  bindGroup('colBtns', 'color');
+
+  const sizeEl = document.getElementById('size');
+  const conEl = document.getElementById('con');
+  sizeEl.addEventListener('input', () => {
+    state.size = +sizeEl.value;
+    document.getElementById('sizeVal').textContent = state.size + 'px';
+    setupGrid();
+  });
+  conEl.addEventListener('input', () => {
+    state.contrast = +conEl.value;
+    document.getElementById('conVal').textContent = state.contrast.toFixed(2);
+  });
+
+  document.getElementById('snap').addEventListener('click', e => { snapshot(); e.target.blur(); });
+  document.getElementById('retry').addEventListener('click', startCamera);
+  document.getElementById('toggle').addEventListener('click', e => { hud.classList.toggle('hidden'); e.target.blur(); });
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'h' || e.key === 'H') hud.classList.toggle('hidden');
+    else if (e.code === 'Space') { e.preventDefault(); snapshot(); }
+  });
+
+  let rt;
+  const onResize = () => { clearTimeout(rt); rt = setTimeout(setupGrid, 120); };
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', () => {
+    clearTimeout(rt);
+    rt = setTimeout(setupGrid, 250);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (video.srcObject && !video.paused) video.pause();
+    } else if (video.srcObject && video.paused) {
+      video.play().catch(() => {});
+    }
+  });
+
+  // ---------- Boot ----------
+  buildNeonPalette();
+  setupGrid();
+  requestAnimationFrame(loop);
+  startCamera();
+})();
+</script>
+</body>
+</html>

@@ -41,6 +41,7 @@ body {
   touch-action: manipulation;
 }
 
+/* 背景 */
 .bg-stage { position: fixed; inset: 0; z-index: -3; overflow: hidden; background: var(--bg-root); }
 .bg-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .6; animation: float 20s infinite alternate; }
 .bg-blob.b1 { left: -20vmax; top: -20vmax; background: radial-gradient(circle, #ff7aa8 0%, transparent 60%); }
@@ -48,12 +49,15 @@ body {
 .bg-blob.b3 { left: 30vw; top: 30vh; background: radial-gradient(circle, #ffce5c 0%, transparent 60%); animation-duration: 25s; }
 @keyframes float { 100% { transform: translate(5vw, 5vh) scale(1.1); } }
 
+/* 地圖 */
 #map { flex: 1; width: 100%; height: 100%; z-index: 1; background: transparent; }
 .leaflet-div-icon { background: transparent !important; border: none !important; }
 
+/* 小地圖 */
 .leaflet-control-minimap { border: 2px solid rgba(255,255,255,0.8) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important; border-radius: 16px !important; overflow: hidden; margin-bottom: 20px !important; margin-right: 16px !important; }
 html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,255,0.2) !important; }
 
+/* 毛玻璃 */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -61,6 +65,7 @@ html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,25
   border-radius: var(--radius); position: relative; overflow: hidden;
 }
 
+/* 互動 */
 .interactive {
   cursor: pointer; position: relative; overflow: hidden; user-select: none;
   transition: transform 0.2s var(--ease), box-shadow 0.3s var(--ease), background 0.3s;
@@ -73,6 +78,7 @@ html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,25
 html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
 @keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
 
+/* 側邊欄 */
 .sidebar {
   position: absolute; top: 0; left: 0; bottom: 0; width: 360px; max-width: 90vw;
   z-index: 1500; transform: translateX(-110%); transition: transform 0.4s var(--ease);
@@ -100,6 +106,7 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .sidebar-backdrop { position: absolute; inset: 0; z-index: 1400; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); display: none; opacity: 0; transition: opacity 0.3s; }
 .sidebar-backdrop.show { display: block; opacity: 1; }
 
+/* 頂部欄 */
 .topbar { position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px; z-index: 1000; display: flex; gap: 10px; align-items: center; pointer-events: none; }
 .topbar > * { pointer-events: auto; }
 .menu-btn { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); position: relative; }
@@ -115,19 +122,26 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); animation: breatheRed 2s infinite; }
 @keyframes breatheRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(229,72,77, 0.7); } 50% { box-shadow: 0 0 0 12px rgba(229,72,77, 0); } }
 
+/* 地圖控制 */
 .map-controls { position: absolute; right: 16px; bottom: max(100px, env(safe-area-inset-bottom)); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
 .ctrl-btn { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); box-shadow: var(--glass-shadow); }
 .ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.4s var(--ease); }
 
+/* 標記 */
 .marker-container { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
 .marker-dot { width: 14px; height: 14px; border-radius: 50%; }
 .marker-breathe { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0.5; animation: pulse 2s infinite; }
 .marker-label { position: absolute; top: -30px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); transition: transform 0.2s; }
 
+/* 模態框通用 */
 .modal-backdrop { position: fixed; inset: 0; z-index: 2000; display: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; }
 .modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
 .modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.5s var(--ease); max-height: 90vh; overflow-y: auto; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+/* 使用者資訊框 */
 .modal-avatar { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; font-weight: 800; }
 .modal-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
 .modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; font-weight: 600; }
@@ -142,9 +156,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .btn-route { background: rgba(16, 185, 129, 0.15); color: var(--ok); border: 1px solid rgba(16, 185, 129, 0.3); }
 .btn-close { background: rgba(128,128,128,0.2); color: var(--text); }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-
+/* 模式指示 */
 .mode-indicator {
   position: absolute; top: 90px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 14px 28px; font-size: 18px; font-weight: 800;
   display: none; white-space: nowrap; border-radius: var(--pill); background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
@@ -152,6 +164,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 }
 .mode-indicator.active { display: block; animation: popIn 0.3s; }
 
+/* Ping */
 .ping-banner {
   position: fixed; top: max(20px, env(safe-area-inset-top)); left: 50%;
   transform: translate(-50%, -200px);
@@ -165,15 +178,18 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 }
 .ping-banner.show { transform: translate(-50%, 0); opacity: 1; }
 
+/* 聊天 */
 .chat-container { display: flex; flex-direction: column; height: 100%; min-height: 200px; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
 .chat-input-area { padding: 12px; display: flex; gap: 8px; border-top: 1px solid rgba(128,128,128,0.2); flex-shrink: 0; }
 .chat-input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid var(--glass-border); background: transparent; color: var(--text); outline: none; }
 
+/* SOS */
 .sos-overlay { position: fixed; inset: 0; z-index: 10000; display: none; background: rgba(229,72,77,0.4); backdrop-filter: blur(10px); align-items: center; justify-content: center; flex-direction: column; gap: 20px; animation: flashRed 1s infinite; }
 .sos-overlay.show { display: flex; }
 @keyframes flashRed { 0%, 100% { background: rgba(229,72,77,0.2); } 50% { background: rgba(229,72,77,0.6); } }
 
+/* 比例尺 */
 .custom-scale {
   position: absolute; left: 16px; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000;
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
@@ -185,24 +201,30 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 }
 .custom-scale .bar { height: 3px; background: var(--text); border-radius: 2px; }
 
+/* 核心功能網格（精簡版） */
 .func-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; border-top: 1px solid rgba(128,128,128,0.15); background: rgba(255,255,255,0.05); flex-shrink: 0; }
-.func-btn { width: 100%; aspect-ratio: 1; border-radius: 14px; border: 1px solid var(--glass-border); background: var(--glass-1-a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 10px; font-weight: 700; color: var(--text); transition: all 0.2s; }
-.func-btn svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
+.func-btn { width: 100%; aspect-ratio: 1; border-radius: 14px; border: 1px solid var(--glass-border); background: var(--glass-1-a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--text); transition: all 0.2s; }
+.func-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; }
 .func-btn:hover { background: var(--glass-2-a); border-color: var(--accent); transform: translateY(-2px); }
 .func-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
 .func-btn.active svg { stroke: #fff; }
 
+/* 開關列 */
 .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; font-size: 13px; font-weight: 600; border-bottom: 1px solid rgba(128,128,128,0.1); flex-shrink: 0; }
 .toggle-switch { width: 40px; height: 22px; border-radius: 20px; background: rgba(128,128,128,0.3); position: relative; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
 .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.3s; }
 .toggle-switch.on { background: var(--accent); }
 .toggle-switch.on::after { transform: translateX(18px); }
 
-.feature-menu { padding: 12px 16px; border-top: 1px solid rgba(128,128,128,0.15); background: rgba(255,255,255,0.03); flex-shrink: 0; }
-.feature-menu-title { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.feature-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-.feature-menu-btn { padding: 8px 10px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--glass-1-a); font-size: 11px; font-weight: 600; color: var(--text); text-align: left; cursor: pointer; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.feature-menu-btn:hover { background: var(--glass-2-a); border-color: var(--accent); }
+/* 工具面板 (Tools Modal) */
+.tools-modal-content { max-width: 500px; padding: 20px; text-align: left; }
+.tools-header { font-size: 20px; font-weight: 800; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.tools-section { margin-bottom: 20px; }
+.tools-section-title { font-size: 12px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid rgba(128,128,128,0.2); padding-bottom: 4px; }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.tools-btn { padding: 10px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass-1-a); font-size: 12px; font-weight: 600; color: var(--text); cursor: pointer; transition: all 0.2s; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tools-btn:hover { background: var(--glass-2-a); border-color: var(--accent); transform: translateY(-2px); }
+.tools-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 @media (max-width: 480px) {
   .topbar { gap: 8px; left: 12px; right: 12px; }
@@ -266,20 +288,17 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     </div>
   </div>
 
+  <!-- 精簡且分類明確的網格 -->
   <div class="func-grid">
     <button class="func-btn interactive" id="funcTheme" title="Theme">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       Theme
     </button>
-    <button class="func-btn interactive" id="funcScreenshot" title="Screenshot">
-      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      Shot
+    <button class="func-btn interactive" id="funcTools" title="Tools">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      Tools
     </button>
-    <button class="func-btn interactive" id="funcCopyPos" title="Copy Position">
-      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      Copy
-    </button>
-    <button class="func-btn interactive" id="funcToggleSat" title="Satellite">
+    <button class="func-btn interactive" id="funcSat" title="Satellite">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
       Sat
     </button>
@@ -295,9 +314,13 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
       Compass
     </button>
-    <button class="func-btn interactive" id="funcHeat" title="Heatmap">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-      Heat
+    <button class="func-btn interactive" id="funcCopyPos" title="Copy Position">
+      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy
+    </button>
+    <button class="func-btn interactive" id="funcShot" title="Screenshot">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Shot
     </button>
   </div>
 
@@ -312,19 +335,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   <div class="toggle-row">
     <span>Night mode</span>
     <div class="toggle-switch" id="toggleNight"></div>
-  </div>
-  <div class="toggle-row">
-    <span>Sound alerts</span>
-    <div class="toggle-switch" id="toggleSound"></div>
-  </div>
-  <div class="toggle-row">
-    <span>Large markers</span>
-    <div class="toggle-switch" id="toggleLargeMarkers"></div>
-  </div>
-
-  <div class="feature-menu">
-    <div class="feature-menu-title">100+ Features</div>
-    <div class="feature-menu-grid" id="featureMenuGrid"></div>
   </div>
 </div>
 
@@ -355,14 +365,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       <path d="M9 9l1.5 1.5M12 6l1.5 1.5M15 9l1.5 1.5"/>
     </svg>
   </button>
-  <button class="ctrl-btn glass interactive" id="layerBtn" title="Change Map Layer">
-    <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-  </button>
   <button class="ctrl-btn glass interactive" id="centerBtn" title="Center My Location">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
   </button>
 </div>
 
+<!-- 使用者資訊模態框 -->
 <div class="modal-backdrop" id="infoModal">
   <div class="modal-content glass">
     <div class="modal-avatar" id="mAvatar">A</div>
@@ -389,6 +397,52 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     <button class="modal-btn btn-route interactive" id="routeBtn">Get Directions</button>
     <button class="modal-btn btn-alert interactive" id="alertBtn">Watch Proximity</button>
     <button class="modal-btn btn-close interactive" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
+  </div>
+</div>
+
+<!-- 工具面板模態框 -->
+<div class="modal-backdrop" id="toolsModal">
+  <div class="modal-content glass tools-modal-content">
+    <div class="tools-header">
+      <span>Tools & Features</span>
+      <button class="ctrl-btn glass interactive" style="width:32px;height:32px;border:none;box-shadow:none;background:transparent;" onclick="document.getElementById('toolsModal').classList.remove('show')">
+        <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    
+    <div class="tools-section">
+      <div class="tools-section-title">Navigation</div>
+      <div class="tools-grid">
+        <button class="tools-btn" onclick="map.zoomIn()">Zoom In</button>
+        <button class="tools-btn" onclick="map.zoomOut()">Zoom Out</button>
+        <button class="tools-btn" onclick="map.setZoom(15)">Zoom 15</button>
+        <button class="tools-btn" onclick="map.setZoom(30)">Zoom 30</button>
+        <button class="tools-btn" onclick="map.setZoom(50)">Zoom 50</button>
+        <button class="tools-btn" onclick="if(myMarker) map.flyTo(myMarker.getLatLng(),19)">Fly to Me</button>
+        <button class="tools-btn" onclick="map.setView([25.033,121.5654],15)">Center</button>
+      </div>
+    </div>
+
+    <div class="tools-section">
+      <div class="tools-section-title">Data & Export</div>
+      <div class="tools-grid">
+        <button class="tools-btn" onclick="navigator.clipboard.writeText(myId).then(()=>alert('ID Copied'))">Copy ID</button>
+        <button class="tools-btn" onclick="if(myMarker){var p=myMarker.getLatLng();navigator.clipboard.writeText(p.lat+', '+p.lng).then(()=>alert('Pos Copied'))}">Copy Coords</button>
+        <button class="tools-btn" onclick="var s=JSON.stringify(usersData);navigator.clipboard.writeText(s).then(()=>alert('Users JSON Copied'))">Export Users</button>
+        <button class="tools-btn" onclick="var msgs=[];document.querySelectorAll('#chatMessages>div').forEach(d=>msgs.push(d.innerText));navigator.clipboard.writeText(msgs.join('\n')).then(()=>alert('Chat Copied'))">Export Chat</button>
+      </div>
+    </div>
+
+    <div class="tools-section">
+      <div class="tools-section-title">Debug & Utilities</div>
+      <div class="tools-grid">
+        <button class="tools-btn" onclick="document.getElementById('pingText').textContent='Test Ping';document.getElementById('pingBanner').classList.add('show');setTimeout(()=>document.getElementById('pingBanner').classList.remove('show'),3000)">Simulate Ping</button>
+        <button class="tools-btn" onclick="document.getElementById('sosSender').textContent='Test SOS';document.getElementById('sosOverlay').classList.add('show')">Simulate SOS</button>
+        <button class="tools-btn" onclick="document.querySelectorAll('#chatMessages>div').forEach(e=>e.remove())">Clear Chat</button>
+        <button class="tools-btn" onclick="if(confirm('Clear local storage?')){localStorage.clear();location.reload()}">Clear Data</button>
+        <button class="tools-btn" onclick="location.reload()">Reload App</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -452,7 +506,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   ).addTo(map);
 
   // ============================================
-  // 比例尺（3m 步長，最大 15m）
+  // 比例尺
   // ============================================
   var scaleBarEl = document.getElementById('scaleBar');
   var scaleTextEl = document.getElementById('scaleText');
@@ -506,8 +560,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   var gridLayer = null;
   var compassMarker = null;
   var nightMode = false;
-  var soundAlerts = true;
-  var largeMarkers = false;
 
   var shareBtn = document.getElementById('shareBtn');
   var userListEl = document.getElementById('userList');
@@ -612,7 +664,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     document.getElementById('chatInput').value = '';
   };
 
-  // Ripple
+  // 震動與 Ripple
   document.querySelectorAll('.interactive').forEach(function(el) {
     el.addEventListener('pointerdown', function(e) {
       if (navigator.vibrate) navigator.vibrate(10);
@@ -669,12 +721,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   }
 
   function makeIcon(color, name, isMe) {
-    var size = largeMarkers ? 50 : 40;
+    var size = 40;
     return L.divIcon({
       className: 'custom-marker-wrapper',
       html: '<div class="marker-container" style="width:' + size + 'px;height:' + size + 'px;box-shadow: 0 4px 12px ' + color + '80;">' +
         (isMe ? '<div class="marker-breathe"></div>' : '') +
-        '<div class="marker-dot" style="background: ' + color + ';width:' + (largeMarkers ? 18 : 14) + 'px;height:' + (largeMarkers ? 18 : 14) + 'px;"></div>' +
+        '<div class="marker-dot" style="background: ' + color + ';width:14px;height:14px;"></div>' +
         '<div class="marker-label">' + name + (isMe ? ' (You)' : '') + '</div>' +
         '</div>',
       iconSize: [size, size],
@@ -817,19 +869,8 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   });
 
   // ============================================
-  // 圖層 / 中央
+  // 中心按鈕
   // ============================================
-  document.getElementById('layerBtn').addEventListener('click', function() {
-    if (isSatellite) {
-      map.removeLayer(layerSat);
-      map.addLayer(layerOSM);
-    } else {
-      map.removeLayer(layerOSM);
-      map.addLayer(layerSat);
-    }
-    isSatellite = !isSatellite;
-  });
-
   document.getElementById('centerBtn').addEventListener('click', function() {
     if (myMarker) {
       focusedId = myId;
@@ -1101,15 +1142,90 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   }
 
   // ============================================
-  // 功能網格按鈕
+  // UI 按鈕綁定
   // ============================================
   document.getElementById('funcTheme').onclick = function() {
     var html = document.documentElement;
     html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+    // 同步 toggle
+    document.getElementById('toggleNight').classList.toggle('on', html.dataset.theme === 'dark');
   };
 
-  document.getElementById('funcScreenshot').onclick = function() {
-    alert('Use device screenshot.');
+  document.getElementById('funcTools').onclick = function() {
+    document.getElementById('toolsModal').classList.add('show');
+  };
+
+  document.getElementById('funcSat').onclick = function() {
+    if (isSatellite) {
+      map.removeLayer(layerSat);
+      map.addLayer(layerOSM);
+    } else {
+      map.removeLayer(layerOSM);
+      map.addLayer(layerSat);
+    }
+    isSatellite = !isSatellite;
+    this.classList.toggle('active', isSatellite);
+  };
+
+  document.getElementById('funcLock').onclick = function() {
+    if (map.dragging.enabled()) {
+      map.dragging.disable();
+      map.touchZoom.disable();
+      map.doubleClickZoom.disable();
+      map.scrollWheelZoom.disable();
+      this.classList.add('active');
+    } else {
+      map.dragging.enable();
+      map.touchZoom.enable();
+      map.doubleClickZoom.enable();
+      map.scrollWheelZoom.enable();
+      this.classList.remove('active');
+    }
+  };
+
+  document.getElementById('funcGrid').onclick = function() {
+    if (gridLayer) {
+      map.removeLayer(gridLayer);
+      gridLayer = null;
+      this.classList.remove('active');
+      return;
+    }
+    var bounds = map.getBounds();
+    var step = 0.01;
+    var lines = [];
+    var south = Math.floor(bounds.getSouth());
+    var north = bounds.getNorth();
+    var west = Math.floor(bounds.getWest());
+    var east = bounds.getEast();
+    for (var lat = south; lat < north; lat += step) {
+      var p1 = L.latLng(lat, west);
+      var p2 = L.latLng(lat, east);
+      lines.push(L.polyline([p1, p2], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
+    }
+    for (var lng = west; lng < east; lng += step) {
+      var q1 = L.latLng(bounds.getSouth(), lng);
+      var q2 = L.latLng(bounds.getNorth(), lng);
+      lines.push(L.polyline([q1, q2], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
+    }
+    gridLayer = L.layerGroup(lines).addTo(map);
+    this.classList.add('active');
+  };
+
+  document.getElementById('funcCompass').onclick = function() {
+    if (compassMarker) {
+      map.removeLayer(compassMarker);
+      compassMarker = null;
+      this.classList.remove('active');
+      return;
+    }
+    var center = map.getCenter();
+    var icon = L.divIcon({
+      html: '<div style="font-size:32px;color:var(--accent);font-weight:800;">N</div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+    compassMarker = L.marker(center, { icon: icon }).addTo(map);
+    this.classList.add('active');
   };
 
   document.getElementById('funcCopyPos').onclick = function() {
@@ -1123,82 +1239,11 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     }
   };
 
-  document.getElementById('funcToggleSat').onclick = function() {
-    if (isSatellite) {
-      map.removeLayer(layerSat);
-      map.addLayer(layerOSM);
-    } else {
-      map.removeLayer(layerOSM);
-      map.addLayer(layerSat);
-    }
-    isSatellite = !isSatellite;
+  document.getElementById('funcShot').onclick = function() {
+    alert('Use device screenshot.');
   };
 
-  document.getElementById('funcLock').onclick = function() {
-    if (map.dragging.enabled()) {
-      map.dragging.disable();
-      map.touchZoom.disable();
-      map.doubleClickZoom.disable();
-      map.scrollWheelZoom.disable();
-      alert('Map locked');
-    } else {
-      map.dragging.enable();
-      map.touchZoom.enable();
-      map.doubleClickZoom.enable();
-      map.scrollWheelZoom.enable();
-      alert('Map unlocked');
-    }
-  };
-
-  document.getElementById('funcGrid').onclick = function() {
-    if (gridLayer) {
-      map.removeLayer(gridLayer);
-      gridLayer = null;
-      return;
-    }
-    var bounds = map.getBounds();
-    var step = 0.01;
-    var lines = [];
-    var south = Math.floor(bounds.getSouth());
-    var north = bounds.getNorth();
-    var west = Math.floor(bounds.getWest());
-    var east = bounds.getEast();
-    var lat, lng;
-    for (lat = south; lat < north; lat += step) {
-      var p1 = L.latLng(lat, west);
-      var p2 = L.latLng(lat, east);
-      lines.push(L.polyline([p1, p2], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
-    }
-    for (lng = west; lng < east; lng += step) {
-      var q1 = L.latLng(bounds.getSouth(), lng);
-      var q2 = L.latLng(bounds.getNorth(), lng);
-      lines.push(L.polyline([q1, q2], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
-    }
-    gridLayer = L.layerGroup(lines).addTo(map);
-  };
-
-  document.getElementById('funcCompass').onclick = function() {
-    if (compassMarker) {
-      map.removeLayer(compassMarker);
-      compassMarker = null;
-      return;
-    }
-    var center = map.getCenter();
-    var icon = L.divIcon({
-      html: '<div style="font-size:32px;color:var(--accent);font-weight:800;">N</div>',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    });
-    compassMarker = L.marker(center, { icon: icon }).addTo(map);
-  };
-
-  document.getElementById('funcHeat').onclick = function() {
-    alert('Heatmap feature coming soon.');
-  };
-
-  // ============================================
   // 開關
-  // ============================================
   function setupToggle(id, initial, onChange) {
     var el = document.getElementById(id);
     if (!el) return;
@@ -1223,168 +1268,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     nightMode = v;
     document.documentElement.dataset.theme = v ? 'dark' : 'light';
   });
-  setupToggle('toggleSound', soundAlerts, function(v) { soundAlerts = v; });
-  setupToggle('toggleLargeMarkers', largeMarkers, function(v) {
-    largeMarkers = v;
-    Object.keys(markers).forEach(function(id) {
-      if (markers[id] && usersData[id]) {
-        map.removeLayer(markers[id]);
-        var u = usersData[id];
-        var isMe = id === myId;
-        var marker = L.marker([u.lat, u.lng], { icon: makeIcon(u.color || '#3b5bdb', u.name, isMe) }).addTo(map);
-        marker.on('click', (function(uid) {
-          return function(e) {
-            if (measureMode === 1) {
-              addMeasurePoint(e.latlng);
-              L.DomEvent.stopPropagation(e);
-            } else {
-              openUserInfo(uid, usersData[uid]);
-            }
-          };
-        })(id));
-        if (isMe) myMarker = marker;
-        markers[id] = marker;
-      }
-    });
-  });
-
-  // ============================================
-  // 100+ 功能清單
-  // ============================================
-  var featureList = [
-    { name: 'Zoom In', fn: function() { map.zoomIn(); } },
-    { name: 'Zoom Out', fn: function() { map.zoomOut(); } },
-    { name: 'Set Zoom 15', fn: function() { map.setZoom(15); } },
-    { name: 'Set Zoom 30', fn: function() { map.setZoom(30); } },
-    { name: 'Set Zoom 50', fn: function() { map.setZoom(50); } },
-    { name: 'Fly to Me', fn: function() { if (myMarker) map.flyTo(myMarker.getLatLng(), 19); } },
-    { name: 'Fly to Center', fn: function() { map.flyTo([25.033, 121.5654], 15); } },
-    { name: 'Pan North', fn: function() { map.panBy([0, -100]); } },
-    { name: 'Pan South', fn: function() { map.panBy([0, 100]); } },
-    { name: 'Pan East', fn: function() { map.panBy([100, 0]); } },
-    { name: 'Pan West', fn: function() { map.panBy([-100, 0]); } },
-    { name: 'Recenter Map', fn: function() { map.setView([25.033, 121.5654], 15); } },
-    { name: 'Toggle OSM', fn: function() { if (isSatellite) { map.removeLayer(layerSat); map.addLayer(layerOSM); isSatellite = false; } } },
-    { name: 'Toggle Satellite', fn: function() { if (!isSatellite) { map.removeLayer(layerOSM); map.addLayer(layerSat); isSatellite = true; } } },
-    { name: 'Toggle MiniMap', fn: function() { var mm = document.querySelector('.leaflet-control-minimap'); if (mm) mm.style.display = mm.style.display === 'none' ? 'block' : 'none'; } },
-    { name: 'Toggle Scale', fn: function() { var s = document.getElementById('customScale'); s.style.display = s.style.display === 'none' ? 'flex' : 'none'; } },
-    { name: 'Toggle Grid', fn: function() { document.getElementById('funcGrid').click(); } },
-    { name: 'Toggle Compass', fn: function() { document.getElementById('funcCompass').click(); } },
-    { name: 'Lock/Unlock Map', fn: function() { document.getElementById('funcLock').click(); } },
-    { name: 'Fit Bounds All', fn: function() { var pts = Object.values(usersData).map(function(u) { return [u.lat, u.lng]; }); if (pts.length) map.fitBounds(pts); } },
-    { name: 'List Users', fn: function() { alert('Online: ' + Object.keys(usersData).length); } },
-    { name: 'Copy My ID', fn: function() { navigator.clipboard.writeText(myId).then(function() { alert('ID copied'); }); } },
-    { name: 'Copy My Color', fn: function() { navigator.clipboard.writeText(myColor).then(function() { alert('Color copied'); }); } },
-    { name: 'Random Name', fn: function() { var n = 'User' + Math.floor(Math.random() * 1000); document.getElementById('nameInput').value = n; } },
-    { name: 'Random Color', fn: function() { var cs = ['#3b5bdb', '#e5484d', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899']; myColor = cs[Math.floor(Math.random() * cs.length)]; colorPicker.style.background = myColor; localStorage.setItem('myColor', myColor); } },
-    { name: 'Show My Battery', fn: function() { alert('Battery: ' + (myBattery || 'Unknown')); } },
-    { name: 'Show My Coords', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); alert(p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)); } } },
-    { name: 'Distance to Center', fn: function() { if (myMarker) alert(formatDist(calcDist(myMarker.getLatLng().lat, myMarker.getLatLng().lng, 25.033, 121.5654))); } },
-    { name: 'Clear My Chat', fn: function() { document.getElementById('chatMessages').innerHTML = ''; } },
-    { name: 'Send Test Message', fn: function() { chatRef.push({ sender: localStorage.getItem('myName') || 'Me', text: 'Test', time: Date.now() }); } },
-    { name: 'Open Chat Tab', fn: function() { document.getElementById('tabChat').click(); } },
-    { name: 'Open Radar Tab', fn: function() { document.getElementById('tabRadar').click(); } },
-    { name: 'Clear Unread', fn: function() { unreadCount = 0; document.getElementById('unreadDot').style.display = 'none'; } },
-    { name: 'Start Measuring', fn: function() { if (measureMode !== 1) measureBtn.click(); } },
-    { name: 'Clear Measure', fn: function() { if (measureMode !== 0) { measureMode = 2; measureBtn.click(); } } },
-    { name: 'Stop Measure', fn: function() { if (measureMode !== 0) { measureMode = 0; modeIndicator.classList.remove('active'); measureLayerGroup.clearLayers(); measurePoints = []; finalMeasureText = ''; } } },
-    { name: 'Set Meetup', fn: function() { meetupBtn.click(); } },
-    { name: 'Clear Meetup', fn: function() { if (meetupMarker) { meetupMarker.remove(); meetupMarker = null; meetupRef.remove(); meetupBtn.classList.remove('active'); } } },
-    { name: 'Copy Meetup Coords', fn: function() { if (meetupMarker) { var p = meetupMarker.getLatLng(); navigator.clipboard.writeText(p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)).then(function() { alert('Copied'); }); } } },
-    { name: 'SOS Alert', fn: function() { document.getElementById('sosBtn').click(); } },
-    { name: 'Ping Selected', fn: function() { document.getElementById('pingBtn').click(); } },
-    { name: 'Watch Selected', fn: function() { document.getElementById('alertBtn').click(); } },
-    { name: 'Dark Theme', fn: function() { document.documentElement.dataset.theme = 'dark'; nightMode = true; document.getElementById('toggleNight').classList.add('on'); } },
-    { name: 'Light Theme', fn: function() { document.documentElement.dataset.theme = 'light'; nightMode = false; document.getElementById('toggleNight').classList.remove('on'); } },
-    { name: 'Start Sharing', fn: function() { if (!sharing) shareBtn.click(); } },
-    { name: 'Stop Sharing', fn: function() { if (sharing) shareBtn.click(); } },
-    { name: 'Toggle Sharing', fn: function() { shareBtn.click(); } },
-    { name: 'Copy App URL', fn: function() { navigator.clipboard.writeText(location.href).then(function() { alert('URL copied'); }); } },
-    { name: 'Reload App', fn: function() { location.reload(); } },
-    { name: 'Clear LocalStorage', fn: function() { if (confirm('Clear local data?')) { localStorage.clear(); location.reload(); } } },
-    { name: 'Show Online Count', fn: function() { alert('Online users: ' + Object.keys(usersData).length); } },
-    { name: 'Show My Name', fn: function() { alert('Name: ' + (localStorage.getItem('myName') || 'Not set')); } },
-    { name: 'Show My ID', fn: function() { alert('ID: ' + myId); } },
-    { name: 'Show App Version', fn: function() { alert('Find My Ultimate v2.0'); } },
-    { name: 'Toggle Sidebar', fn: function() { toggleSidebar(!sidebar.classList.contains('open')); } },
-    { name: 'Close Sidebar', fn: function() { toggleSidebar(false); } },
-    { name: 'Open Sidebar', fn: function() { toggleSidebar(true); } },
-    { name: 'Toggle Auto Follow', fn: function() { document.getElementById('toggleAutoFollow').click(); } },
-    { name: 'Toggle Trails', fn: function() { document.getElementById('toggleTrails').click(); } },
-    { name: 'Toggle Night Mode', fn: function() { document.getElementById('toggleNight').click(); } },
-    { name: 'Toggle Sound', fn: function() { document.getElementById('toggleSound').click(); } },
-    { name: 'Toggle Large Markers', fn: function() { document.getElementById('toggleLargeMarkers').click(); } },
-    { name: 'Toggle Satellite', fn: function() { document.getElementById('funcToggleSat').click(); } },
-    { name: 'Toggle Map Lock', fn: function() { document.getElementById('funcLock').click(); } },
-    { name: 'Toggle Grid', fn: function() { document.getElementById('funcGrid').click(); } },
-    { name: 'Toggle Compass', fn: function() { document.getElementById('funcCompass').click(); } },
-    { name: 'Show Scale Info', fn: function() { alert(document.getElementById('scaleText').textContent); } },
-    { name: 'Copy Scale', fn: function() { navigator.clipboard.writeText(document.getElementById('scaleText').textContent).then(function() { alert('Scale copied'); }); } },
-    { name: 'Simulate Ping', fn: function() { document.getElementById('pingText').textContent = 'Test ping!'; document.getElementById('pingBanner').classList.add('show'); setTimeout(function() { document.getElementById('pingBanner').classList.remove('show'); }, 3000); } },
-    { name: 'Simulate SOS', fn: function() { document.getElementById('sosSender').textContent = 'Test SOS'; document.getElementById('sosOverlay').classList.add('show'); } },
-    { name: 'Dismiss SOS', fn: function() { document.getElementById('sosOverlay').classList.remove('show'); } },
-    { name: 'Dismiss Ping', fn: function() { document.getElementById('pingBanner').classList.remove('show'); } },
-    { name: 'Dismiss Modal', fn: function() { document.getElementById('infoModal').classList.remove('show'); } },
-    { name: 'Show Modal', fn: function() { document.getElementById('infoModal').classList.add('show'); } },
-    { name: 'Set Name Test', fn: function() { document.getElementById('nameInput').value = 'Tester'; localStorage.setItem('myName', 'Tester'); } },
-    { name: 'Clear Chat Messages', fn: function() { chatRef.remove(); document.getElementById('chatMessages').innerHTML = ''; } },
-    { name: 'Reset Color', fn: function() { myColor = '#3b5bdb'; colorPicker.style.background = myColor; localStorage.setItem('myColor', myColor); } },
-    { name: 'Reset Name', fn: function() { document.getElementById('nameInput').value = ''; localStorage.removeItem('myName'); } },
-    { name: 'Clear All Trails', fn: function() { Object.keys(trails).forEach(function(id) { map.removeLayer(trails[id]); delete trails[id]; }); } },
-    { name: 'Clear All Markers', fn: function() { Object.keys(markers).forEach(function(id) { map.removeLayer(markers[id]); delete markers[id]; }); } },
-    { name: 'Reset Map View', fn: function() { map.setView([25.033, 121.5654], 15); } },
-    { name: 'Recenter to Me', fn: function() { if (myMarker) map.setView(myMarker.getLatLng(), 17); } },
-    { name: 'Export Users JSON', fn: function() { var s = JSON.stringify(usersData); navigator.clipboard.writeText(s).then(function() { alert('Users JSON copied'); }); } },
-    { name: 'Export My Position', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); navigator.clipboard.writeText(JSON.stringify({ lat: p.lat, lng: p.lng })); alert('Position JSON copied'); } } },
-    { name: 'Export Chat', fn: function() { var msgs = []; document.querySelectorAll('#chatMessages > div').forEach(function(d) { msgs.push(d.innerText); }); navigator.clipboard.writeText(msgs.join('\n')).then(function() { alert('Chat copied'); }); } },
-    { name: 'Logout (Clear ID)', fn: function() { if (confirm('Logout?')) { localStorage.removeItem('findMyId'); location.reload(); } } },
-    { name: 'Reset All Settings', fn: function() { if (confirm('Reset all?')) { localStorage.clear(); location.reload(); } } },
-    { name: 'Show Leaflet Version', fn: function() { alert('Leaflet ' + L.version); } },
-    { name: 'Show Zoom Level', fn: function() { alert('Zoom: ' + map.getZoom()); } },
-    { name: 'Show Center', fn: function() { var c = map.getCenter(); alert(c.lat.toFixed(4) + ', ' + c.lng.toFixed(4)); } },
-    { name: 'Show Bounds', fn: function() { var b = map.getBounds(); alert(b.toBBoxString()); } },
-    { name: 'Invalidate Size', fn: function() { map.invalidateSize(); } },
-    { name: 'Force Refresh', fn: function() { location.reload(); } },
-    { name: 'Toggle All Features', fn: function() { alert('Feature panel visible in sidebar'); } },
-    { name: 'Show Marker Count', fn: function() { alert('Markers: ' + Object.keys(markers).length); } },
-    { name: 'Show Trail Count', fn: function() { alert('Trails: ' + Object.keys(trails).length); } },
-    { name: 'Show Meetup Status', fn: function() { alert(meetupMarker ? 'Meetup set' : 'No meetup'); } },
-    { name: 'Show Alert Target', fn: function() { alert(alertTargetId ? 'Watching: ' + alertTargetId : 'No target'); } },
-    { name: 'Clear Alert Target', fn: function() { alertTargetId = null; } },
-    { name: 'Set Zoom 20', fn: function() { map.setZoom(20); } },
-    { name: 'Set Zoom 40', fn: function() { map.setZoom(40); } },
-    { name: 'Pan Random', fn: function() { map.panBy([Math.random() * 200 - 100, Math.random() * 200 - 100]); } },
-    { name: 'Zoom Random', fn: function() { map.setZoom(Math.floor(Math.random() * 49) + 2); } },
-    { name: 'Count Online', fn: function() { alert('Online: ' + Object.keys(usersData).length); } },
-    { name: 'Add Marker at Center', fn: function() { var c = map.getCenter(); L.marker([c.lat, c.lng]).addTo(map); } },
-    { name: 'Drop Test Marker', fn: function() { var c = map.getCenter(); L.circle([c.lat, c.lng], { radius: 50, color: 'var(--warn)' }).addTo(map); } },
-    { name: 'Open Fullscreen', fn: function() { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } },
-    { name: 'Exit Fullscreen', fn: function() { if (document.exitFullscreen) document.exitFullscreen(); } },
-    { name: 'Copy Current Time', fn: function() { navigator.clipboard.writeText(new Date().toISOString()).then(function() { alert('Time copied'); }); } },
-    { name: 'Show User Agent', fn: function() { alert(navigator.userAgent); } },
-    { name: 'Show Screen Size', fn: function() { alert(screen.width + ' x ' + screen.height); } },
-    { name: 'Show Geolocation Support', fn: function() { alert('Geolocation: ' + !!navigator.geolocation); } },
-    { name: 'Vibrate Test', fn: function() { if (navigator.vibrate) navigator.vibrate([100, 50, 100]); else alert('No vibration'); } },
-    { name: 'Copy Location URL', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); var url = 'https://www.openstreetmap.org/?mlat=' + p.lat + '&mlon=' + p.lng; navigator.clipboard.writeText(url).then(function() { alert('OSM URL copied'); }); } } },
-    { name: 'Open in OSM', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); window.open('https://www.openstreetmap.org/?mlat=' + p.lat + '&mlon=' + p.lng + '#map=19/' + p.lat + '/' + p.lng); } } },
-    { name: 'Open in Google Maps', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); window.open('https://www.google.com/maps?q=' + p.lat + ',' + p.lng); } } }
-  ];
-
-  (function buildFeatureMenu() {
-    var grid = document.getElementById('featureMenuGrid');
-    featureList.forEach(function(f) {
-      var btn = document.createElement('button');
-      btn.className = 'feature-menu-btn interactive';
-      btn.textContent = f.name;
-      btn.onclick = f.fn;
-      btn.addEventListener('pointerdown', function() {
-        if (navigator.vibrate) navigator.vibrate(8);
-      });
-      grid.appendChild(btn);
-    });
-  })();
-
-  console.log('Find My Ultimate loaded with ' + featureList.length + ' features');
 </script>
 </body>
 </html>

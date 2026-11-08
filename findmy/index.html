@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Find My · Live Location</title>
+  <!-- Leaflet Map Library -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Firebase SDK (Compat version for easy HTML usage) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body { height: 100vh; display: flex; flex-direction: column; background: #f2f2f7; }
+    #map { flex: 1; }
+    
+    .topbar {
+      position: absolute; top: 12px; left: 12px; right: 12px; z-index: 1000;
+      display: flex; gap: 8px; align-items: center;
+    }
+    
+    .name-input {
+      flex: 1; padding: 10px 14px; border-radius: 12px; border: none;
+      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+      font-size: 15px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); outline: none;
+    }
+    
+    .btn {
+      padding: 10px 16px; border-radius: 12px; border: none; font-size: 15px;
+      font-weight: 600; cursor: pointer; background: #007aff; color: white;
+      box-shadow: 0 2px 12px rgba(0, 122, 255, 0.3); white-space: nowrap;
+      transition: background 0.2s;
+    }
+    
+    .btn:disabled { background: #c6c6c8; box-shadow: none; cursor: default; }
+    .btn.active { background: #34c759; }
+    
+    .status {
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 1000; background: rgba(0, 0, 0, 0.75); color: white; padding: 8px 16px;
+      border-radius: 30px; font-size: 13px; backdrop-filter: blur(10px);
+      white-space: nowrap; max-width: 90%; text-align: center;
+    }
+    
+    .count {
+      position: absolute; top: 12px; right: 12px; z-index: 1001;
+      background: rgba(0, 0, 0, 0.6); color: white; padding: 6px 12px;
+      border-radius: 20px; font-size: 13px; backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="map"></div>
+  
+  <div class="topbar">
+    <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
+    <button class="btn" id="shareBtn">Start Sharing</button>
+  </div>
+  
+  <div class="count" id="count">0 Online</div>
+  <div class="status" id="status">Click "Start Sharing" to share your location</div>
+
+  <script>
+    // ========== 1. Your Firebase Configuration ==========
+    const firebaseConfig = {
+      apiKey: "AIzaSyAsjmJUkoK-_OkNsKgDyo133JcV6030UIM",
+      authDomain: "my-find-my.firebaseapp.com",
+      databaseURL: "https://my-find-my-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "my-find-my",
+      storageBucket: "my-find-my.firebasestorage.app",
+      messagingSenderId: "933833406253",
+      appId: "1:933833406253:web:941c72724247cadb61c5a4",
+      measurementId: "G-WRMNC43BF9"
+    };
+    // =====================================================
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const usersRef = db.ref('users'); // We store user locations under the 'users' node
+
+    // Generate a unique ID for this user (saved in localStorage so it persists on refresh)
+    let myId = localStorage.getItem('findMyId');
+    if (!myId) {
+      myId = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('findMyId', myId);
+    }
+
+    // ---------- Map Initialization ----------
+    const map = L.map('map', { zoomControl: false }).setView([25.033, 121.5654], 13); // Default center: Taipei
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap', maxZoom: 19
+    }).addTo(map);
+
+    const markers = {};
+    let sharing = false;
+    let watchId = null;
+    let myName = '';
+    let heartbeatTimer = null;
+    let sendTimer = null;
+    let hasCentered = false;
+
+    const nameInput = document.getElementById('nameInput');
+    const shareBtn = document.getElementById('shareBtn');
+    const statusEl = document.getElementById('status');
+    const countEl = document.getElementById('count');
+
+    // Restore name from local storage if it exists
+    nameInput.value = localStorage.getItem('myName') || '';
+
+    // Function to generate a consistent color based on user ID
+    function colorFor(id) {
+      const colors = ['#007aff','#ff3b30','#ff9500','#34c759','#5856d6','#af52de','#ff2d55'];
+      let hash = 0;
+      for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+      return colors[hash % colors.length];
+    }
+
+    // Create a custom map marker
+    function makeIcon(color, isMe) {
+      return L.divIcon({
+        html: `<div style="width:20px;height:20px;border-radius:50%;background:${color};
+          border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);
+          ${isMe ? 'outline:3px solid '+color+'40;' : ''}"></div>`,
+        iconSize: [20,20], iconAnchor: [10,10], popupAnchor: [0,-10]
+      });
+    }
+
+    // ---------- Listen to Database for All Users ----------
+    usersRef.on('value', (snap) => {
+      const users = snap.val() || {};
+      const now = Date.now();
+      const ids = Object.keys(users);
+
+      // Filter out users who haven't updated in the last 2 minutes (offline)
+      const online = {};
+      ids.forEach(id => {
+        if (users[id] && users[id].updatedAt && now - users[id].updatedAt < 120000) {
+          online[id] = users[id];
+        }
+      });
+      
+      countEl.textContent = `${Object.keys(online).length} Online`;
+
+      // Add or update markers
+      Object.keys(online).forEach(id => {
+        const u = online[id];
+        const isMe = id === myId;
+        const color = colorFor(id);
+        
+        if (markers[id]) {
+          markers[id].setLatLng([u.lat, u.lng]);
+          markers[id].getPopup().setContent(`<b>${u.name}${isMe ? ' (You)' : ''}</b>`);
+        } else {
+          markers[id] = L.marker([u.lat, u.lng], { icon: makeIcon(color, isMe) })
+            .addTo(map).bindPopup(`<b>${u.name}${isMe ? ' (You)' : ''}</b>`);
+        }
+      });
+
+      // Remove markers for users who went offline
+      Object.keys(markers).forEach(id => {
+        if (!online[id]) {
+          map.removeLayer(markers[id]);
+          delete markers[id];
+        }
+      });
+    });
+
+    // ---------- Start / Stop Sharing ----------
+    shareBtn.addEventListener('click', () => {
+      if (!sharing) startSharing(); else stopSharing();
+    });
+
+    function startSharing() {
+      myName = nameInput.value.trim() || 'Anonymous';
+      localStorage.setItem('myName', myName);
+
+      if (!navigator.geolocation) {
+        statusEl.textContent = 'Geolocation is not supported by your browser';
+        return;
+      }
+      
+      statusEl.textContent = 'Getting location...';
+      shareBtn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          sharing = true;
+          shareBtn.disabled = false;
+          shareBtn.textContent = 'Stop Sharing';
+          shareBtn.classList.add('active');
+          statusEl.textContent = 'Sharing location · Updates every 5s';
+
+          sendLocation(pos);
+          
+          if (!hasCentered) { 
+            hasCentered = true; 
+            map.flyTo([pos.coords.latitude, pos.coords.longitude], 16, { duration: 1 }); 
+          }
+
+          // Watch for position changes
+          watchId = navigator.geolocation.watchPosition(
+            sendLocation,
+            (err) => { statusEl.textContent = 'Location error: ' + err.message; },
+            { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+          );
+
+          // Fallback interval to ensure updates
+          sendTimer = setInterval(() => {
+            if (sharing) navigator.geolocation.getCurrentPosition(sendLocation, ()=>{});
+          }, 5000);
+          
+          // Heartbeat to keep user "online" in DB
+          heartbeatTimer = setInterval(() => {
+            if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() });
+          }, 15000);
+        },
+        (err) => {
+          shareBtn.disabled = false;
+          statusEl.textContent = 'Location failed: ' + err.message + ' (Requires HTTPS or localhost)';
+        },
+        { enableHighAccuracy: true, timeout: 15000 }
+      );
+    }
+
+    function sendLocation(pos) {
+      if (!sharing) return;
+      const { latitude: lat, longitude: lng } = pos.coords;
+      usersRef.child(myId).set({ lat, lng, name: myName, updatedAt: Date.now() });
+    }
+
+    function stopSharing() {
+      sharing = false;
+      if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+      clearInterval(sendTimer); 
+      clearInterval(heartbeatTimer);
+      
+      shareBtn.textContent = 'Start Sharing';
+      shareBtn.classList.remove('active');
+      statusEl.textContent = 'Stopped sharing. Your location has been removed.';
+      
+      // Remove from database
+      usersRef.child(myId).remove();
+      
+      // Remove marker immediately
+      if (markers[myId]) { map.removeLayer(markers[myId]); delete markers[myId]; }
+    }
+
+    // Clean up when closing the page
+    window.addEventListener('beforeunload', () => {
+      if (sharing) usersRef.child(myId).remove();
+    });
+
+    // Every 30 seconds, clean up the database of expired users (clients do this together)
+    setInterval(() => {
+      usersRef.once('value', (snap) => {
+        const users = snap.val() || {};
+        const now = Date.now();
+        Object.keys(users).forEach(id => {
+          if (users[id] && users[id].updatedAt && now - users[id].updatedAt > 120000) {
+            usersRef.child(id).remove();
+          }
+        });
+      });
+    }, 30000);
+
+  </script>
+</body>
+</html>

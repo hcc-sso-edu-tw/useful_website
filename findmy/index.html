@@ -22,7 +22,7 @@
   --glass-shadow: 0 18px 60px -28px rgba(20,20,40,.35);
   --glass-inset: inset 0 1px 0 0 rgba(255,255,255,.65);
   --radius: 24px; --pill: 999px; --font: "Inter", -apple-system, sans-serif;
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 html[data-theme="dark"] {
   --bg-root: #070711; --text: #f2f3fa; --text-muted: #9ea0b8;
@@ -51,7 +51,6 @@ body {
 /* Map */
 #map { flex: 1; width: 100%; height: 100%; z-index: 1; background: transparent; }
 .leaflet-div-icon { background: transparent !important; border: none !important; }
-.leaflet-control-scale-line { background: rgba(255,255,255,0.6) !important; color: #000 !important; backdrop-filter: blur(4px); border-color: rgba(0,0,0,0.2) !important; }
 
 /* Glass Base */
 .glass {
@@ -61,11 +60,23 @@ body {
   border-radius: var(--radius); position: relative; overflow: hidden;
 }
 
-/* Sidebar (獨立圖層，不會擋到 topbar) */
+/* 互動動畫核心 */
+.interactive {
+  cursor: pointer; position: relative; overflow: hidden; user-select: none;
+  transition: transform 0.2s var(--ease), box-shadow 0.3s var(--ease), background 0.3s;
+}
+.interactive:active { transform: scale(0.94); }
+.ripple {
+  position: absolute; border-radius: 50%; transform: scale(0);
+  background: rgba(255, 255, 255, 0.5); animation: rippleAnim 0.6s linear; pointer-events: none;
+}
+html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
+@keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
+
+/* Sidebar */
 .sidebar {
   position: absolute; top: 0; left: 0; bottom: 0; width: 300px; max-width: 80vw;
-  z-index: 1500; /* 高於 topbar 和 map */
-  transform: translateX(-110%); transition: transform 0.4s var(--ease);
+  z-index: 1500; transform: translateX(-110%); transition: transform 0.4s var(--ease);
   display: flex; flex-direction: column; border-radius: 0 24px 24px 0; 
   border-left: none; box-shadow: 20px 0 60px -20px rgba(0,0,0,0.3);
 }
@@ -73,15 +84,22 @@ body {
 .sidebar-header { padding: 20px; border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; }
 .sidebar-title { font-size: 18px; font-weight: 800; }
 .user-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.user-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: rgba(255,255,255,0.3); border: 1px solid transparent; transition: all 0.2s; cursor: pointer; }
+
+.user-card { 
+  display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; 
+  background: rgba(255,255,255,0.3); border: 1px solid transparent; 
+  cursor: pointer; opacity: 0; transform: translateX(-20px); animation: slideIn 0.4s var(--ease) forwards;
+}
 html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
-.user-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.5); }
+.user-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.6); transform: translateX(4px); }
+@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+
 .user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 16px; }
 .user-info { flex: 1; }
 .user-name { font-weight: 700; font-size: 15px; }
 .user-dist { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
 
-/* 側邊欄遮罩 */
+/* Sidebar Backdrop */
 .sidebar-backdrop {
   position: absolute; inset: 0; z-index: 1400; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px);
   display: none; opacity: 0; transition: opacity 0.3s;
@@ -96,74 +114,79 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .topbar > * { pointer-events: auto; }
 .menu-btn { 
   width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-  cursor: pointer; flex-shrink: 0; border: 1px solid var(--glass-border); 
-  background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); backdrop-filter: blur(10px); 
+  flex-shrink: 0; border: 1px solid var(--glass-border); 
+  background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); 
 }
-.menu-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; }
+.menu-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.3s var(--ease); }
+.menu-btn:hover svg { transform: scale(1.1) rotate(90deg); }
 
-/* ★ 修正：確保輸入框和顏色圓點不會被擠壓 ★ */
 .name-input-wrapper { 
-  flex: 1; 
-  display: flex; 
-  align-items: center; 
-  border-radius: var(--pill); 
-  padding: 4px 6px 4px 4px; 
-  min-width: 0; /* 允許縮小 */
+  flex: 1; display: flex; align-items: center; border-radius: var(--pill); 
+  padding: 4px 6px 4px 4px; min-width: 0;
 }
 .name-input { 
-  flex: 1; 
-  padding: 12px 16px; 
-  border-radius: var(--pill); 
-  border: none; 
-  background: transparent; 
-  color: var(--text); 
-  font-size: 15px; 
-  outline: none; 
-  font-weight: 600; 
-  min-width: 0; 
+  flex: 1; padding: 12px 16px; border-radius: var(--pill); border: none; 
+  background: transparent; color: var(--text); font-size: 15px; outline: none; font-weight: 600; min-width: 0; 
 }
 .color-picker { 
-  width: 28px; 
-  height: 28px; 
-  border-radius: 50%; 
-  cursor: pointer; 
-  border: 2px solid #fff; 
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2); 
-  flex-shrink: 0; /* 確保圓點不會變形消失 */
-  margin-left: 4px;
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid #fff; 
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2); flex-shrink: 0; margin-left: 4px;
+  transition: transform 0.2s var(--ease), filter 0.2s;
 }
+.color-picker:hover { transform: scale(1.15) rotate(15deg); filter: brightness(1.1); }
 
 .btn-big {
-  padding: 0 20px; height: 52px; border-radius: var(--pill); border: none;
-  font-size: 15px; font-weight: 800; color: #fff; cursor: pointer;
+  padding: 0 24px; height: 52px; border-radius: var(--pill); border: none;
+  font-size: 15px; font-weight: 800; color: #fff;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 8px 24px -6px var(--accent); transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+  box-shadow: 0 8px 24px -6px var(--accent); white-space: nowrap; flex-shrink: 0;
 }
-.btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); }
+.btn-big.active { 
+  background: var(--err); box-shadow: 0 8px 24px -6px var(--err);
+  animation: breatheRed 2s infinite; 
+}
+@keyframes breatheRed {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229,72,77, 0.7); }
+  50% { box-shadow: 0 0 0 12px rgba(229,72,77, 0); }
+}
 
 /* Map Controls */
 .map-controls { position: absolute; right: 16px; bottom: max(24px, env(safe-area-inset-bottom)); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
 .ctrl-btn {
   width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border);
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
-  backdrop-filter: blur(10px); box-shadow: var(--glass-shadow); transition: transform 0.2s;
+  box-shadow: var(--glass-shadow);
 }
-.ctrl-btn:active { transform: scale(0.9); }
-.ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; }
+.ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.4s var(--ease); }
+#layerBtn:hover svg { transform: rotate(180deg); }
+#centerBtn:hover svg { transform: scale(1.2); }
+#fullscreenBtn:hover svg { transform: scale(1.2); }
 
-/* Markers */
+/* 測距按鈕啟動狀態 */
+#measureBtn.active { background: var(--warn); box-shadow: 0 0 15px var(--warn); }
+#measureBtn.active svg { stroke: #fff; animation: pulseIcon 1.5s infinite; }
+@keyframes pulseIcon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+/* Markers & Radar */
 .marker-container { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
 .marker-dot { width: 14px; height: 14px; border-radius: 50%; }
-.marker-label { position: absolute; top: -26px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); }
+.marker-label { position: absolute; top: -26px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); transition: transform 0.2s; }
+.marker-container:hover .marker-label { transform: translateY(-2px) scale(1.05); }
 .radar-ring { position: absolute; inset: -15px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: pulse 2s infinite; }
 @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2); opacity: 0; } }
+
+/* ★ 測距用的橘色小圓點樣式 ★ */
+.measure-point {
+  width: 14px; height: 14px; background: var(--warn); border-radius: 50%;
+  border: 2px solid #fff; box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+}
 
 /* Modal */
 .modal-backdrop { position: fixed; inset: 0; z-index: 2000; display: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; }
 .modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
-.modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.4s var(--ease); }
+.modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.5s var(--ease); }
 .modal-avatar { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; font-weight: 800; }
 .modal-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
 .modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; font-weight: 600; }
@@ -171,15 +194,15 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .modal-box { background: rgba(128,128,128,0.1); border-radius: 12px; padding: 12px; text-align: left; }
 .modal-label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px; margin-bottom: 4px; }
 .modal-val { font-size: 14px; font-weight: 700; }
-.modal-btn { width: 100%; padding: 16px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+.modal-btn { width: 100%; padding: 16px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
 .btn-focus { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 8px 20px -6px var(--accent); }
 .btn-close { background: rgba(128,128,128,0.2); color: var(--text); }
 .btn-gpx { background: var(--warn); color: #fff; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
 /* Mode Indicator */
-.mode-indicator { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; font-size: 14px; font-weight: 700; display: none; }
+.mode-indicator { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; font-size: 14px; font-weight: 700; display: none; white-space: nowrap; }
 .mode-indicator.active { display: block; animation: fadeIn 0.3s; }
 
 @media (max-width: 480px) {
@@ -201,51 +224,46 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
 <div id="map"></div>
 
-<!-- 側邊欄遮罩 -->
 <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
 
-<!-- Sidebar (選單) -->
 <div class="sidebar glass" id="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-title">Live Devices</div>
-    <button class="ctrl-btn" style="width:36px;height:36px;background:transparent;border:none;box-shadow:none;" onclick="toggleSidebar(false)">
+    <button class="ctrl-btn glass interactive" style="width:36px;height:36px;border:none;box-shadow:none;background:transparent;" onclick="toggleSidebar(false)">
       <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
   </div>
   <div class="user-list" id="userList"></div>
 </div>
 
-<!-- Top Bar -->
 <div class="topbar">
-  <div class="menu-btn glass" onclick="toggleSidebar(true)">
+  <div class="menu-btn glass interactive" onclick="toggleSidebar(true)">
     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </div>
   <div class="name-input-wrapper glass">
     <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
-    <div class="color-picker" id="colorPicker" title="Change Color"></div>
+    <div class="color-picker interactive" id="colorPicker" title="Change Color"></div>
   </div>
-  <button class="btn-big" id="shareBtn">Share</button>
+  <button class="btn-big interactive" id="shareBtn">Share</button>
 </div>
 
 <div class="mode-indicator glass" id="modeIndicator"></div>
 
-<!-- Map Controls -->
 <div class="map-controls">
-  <button class="ctrl-btn glass" id="measureBtn" title="Measure Distance">
+  <button class="ctrl-btn glass interactive" id="measureBtn" title="Measure Distance">
     <svg viewBox="0 0 24 24"><path d="M2 22l1-1h3l-1 1H2zM6 22l1-1h3l-1 1H6zM10 22l1-1h3l-1 1h-3zM14 22l1-1h3l-1 1h-3zM18 22l1-1h3l-1 1h-3zM22 22V12l-2 2v6h-6l-2 2h10zM14 2v8l2 2V6h6l2-2H14zM2 14v8h8l2-2H6v-4l-2-2zM2 2v8l2-2V6h4l2-2H2z"/></svg>
   </button>
-  <button class="ctrl-btn glass" id="layerBtn" title="Change Map Layer">
+  <button class="ctrl-btn glass interactive" id="layerBtn" title="Change Map Layer">
     <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
   </button>
-  <button class="ctrl-btn glass" id="centerBtn" title="Center My Location">
+  <button class="ctrl-btn glass interactive" id="centerBtn" title="Center My Location">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
   </button>
-  <button class="ctrl-btn glass" id="fullscreenBtn" title="Fullscreen">
+  <button class="ctrl-btn glass interactive" id="fullscreenBtn" title="Fullscreen">
     <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
   </button>
 </div>
 
-<!-- User Info Modal -->
 <div class="modal-backdrop" id="infoModal">
   <div class="modal-content glass">
     <div class="modal-avatar" id="mAvatar">A</div>
@@ -267,9 +285,9 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       </div>
     </div>
 
-    <button class="modal-btn btn-focus" id="focusBtn">Focus on Map</button>
-    <button class="modal-btn btn-gpx" id="gpxBtn" style="display:none;">Export GPX Track</button>
-    <button class="modal-btn btn-close" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
+    <button class="modal-btn btn-focus interactive" id="focusBtn">Focus on Map</button>
+    <button class="modal-btn btn-gpx interactive" id="gpxBtn" style="display:none;">Export GPX Track</button>
+    <button class="modal-btn btn-close interactive" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
   </div>
 </div>
 
@@ -305,7 +323,8 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
   const layerOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', noWrap: true }).addTo(map);
   const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true });
-  const layerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', noWrap: true });
+  // ★ 修正：替換為免 Key 的 Stadia 深色圖層 ★
+  const layerDark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', { attribution: '&copy; Stadia Maps', noWrap: true });
   let currentLayer = 0;
 
   // 4. State
@@ -319,9 +338,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   let wakeLock = null;
   let focusedId = null;
   let usersData = {};
-  let isMeasuring = false;
-  let measureLine = null;
   let lastRenderedIds = new Set();
+
+  // 測距狀態
+  let isMeasuring = false;
+  let measurePoints = [];
+  let measureLayerGroup = new L.FeatureGroup().addTo(map);
 
   const nameInput = document.getElementById('nameInput');
   const shareBtn = document.getElementById('shareBtn');
@@ -330,11 +352,11 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   const userListEl = document.getElementById('userList');
   const sidebar = document.getElementById('sidebar');
   const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  const measureBtn = document.getElementById('measureBtn');
   
   nameInput.value = localStorage.getItem('myName') || '';
   colorPicker.style.background = myColor;
 
-  // ★ 新增：控制側邊欄開關的函數
   window.toggleSidebar = function(show) {
     if (show) {
       sidebar.classList.add('open');
@@ -344,6 +366,25 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       sidebarBackdrop.classList.remove('show');
     }
   };
+
+  // 互動特效
+  document.querySelectorAll('.interactive').forEach(el => {
+    el.addEventListener('pointerdown', function(e) {
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left, y = e.clientY - rect.top;
+      const size = Math.max(rect.width, rect.height);
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = x - size/2 + 'px'; ripple.style.top = y - size/2 + 'px';
+      this.appendChild(ripple); setTimeout(() => ripple.remove(), 600);
+    });
+    el.addEventListener('pointermove', function(e) {
+      const rect = this.getBoundingClientRect();
+      this.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+      this.style.setProperty('--my', `${e.clientY - rect.top}px`);
+    });
+  });
 
   if (navigator.getBattery) {
     navigator.getBattery().then(b => {
@@ -358,7 +399,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
     const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
     const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return d > 1000 ? (d/1000).toFixed(1) + ' km' : Math.round(d) + ' m';
+    return d > 1000 ? (d/1000).toFixed(2) + ' km' : Math.round(d) + ' m';
   }
 
   function getInitials(name) { return name.trim().slice(0, 2).toUpperCase() || '?'; }
@@ -377,6 +418,53 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
   }
 
+  // ★ 測距核心邏輯 ★
+  const measureDotIcon = L.divIcon({
+    className: 'measure-dot-wrapper',
+    html: '<div class="measure-point"></div>',
+    iconSize: [14, 14], iconAnchor: [7, 7]
+  });
+
+  function addMeasurePoint(latlng) {
+    if (!isMeasuring) return;
+    measurePoints.push(latlng);
+    L.marker(latlng, { icon: measureDotIcon, interactive: false }).addTo(measureLayerGroup);
+    
+    if (measurePoints.length > 1) {
+      // 畫線
+      L.polyline(measurePoints, { color: '#f59e0b', dashArray: '5, 8', weight: 3 }).addTo(measureLayerGroup);
+      // 計算總距離
+      let total = 0;
+      for (let i = 0; i < measurePoints.length - 1; i++) {
+        total += calcDist(measurePoints[i].lat, measurePoints[i].lng, measurePoints[i+1].lat, measurePoints[i+1].lng);
+      }
+      modeIndicator.textContent = `Total Distance: ${total.toFixed(2)} km`;
+    } else {
+      modeIndicator.textContent = 'Point set. Tap map to add another.';
+    }
+  }
+
+  // 攔截地圖點擊事件
+  map.on('click', (e) => {
+    addMeasurePoint(e.latlng);
+  });
+
+  measureBtn.addEventListener('click', () => {
+    isMeasuring = !isMeasuring;
+    modeIndicator.classList.toggle('active', isMeasuring);
+    measureBtn.classList.toggle('active', isMeasuring);
+    if (isMeasuring) {
+      modeIndicator.textContent = 'Tap map or a person to start measuring.';
+      map.getContainer().style.cursor = 'crosshair'; // 改變游標
+    } else {
+      modeIndicator.textContent = '';
+      map.getContainer().style.cursor = ''; // 恢復游標
+      // 清除所有測距痕跡
+      measureLayerGroup.clearLayers();
+      measurePoints = [];
+    }
+  });
+
   // 6. UI Events
   colorPicker.addEventListener('click', () => {
     const colors = ['#3b5bdb', '#e5484d', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
@@ -388,7 +476,10 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       sendLocation({ coords: myMarker.getLatLng() });
       map.removeLayer(markers[myId]);
       const marker = L.marker(myMarker.getLatLng(), { icon: makeIcon(myColor, localStorage.getItem('myName') || 'You', true) }).addTo(map);
-      marker.on('click', () => openUserInfo(myId, usersData[myId]));
+      marker.on('click', (e) => {
+        if (isMeasuring) { addMeasurePoint(e.latlng); L.DomEvent.stopPropagation(e); }
+        else openUserInfo(myId, usersData[myId]);
+      });
       markers[myId] = marker;
       myMarker = marker;
     }
@@ -398,26 +489,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     map.removeLayer([layerOSM, layerSat, layerDark][currentLayer]);
     currentLayer = (currentLayer + 1) % 3;
     map.addLayer([layerOSM, layerSat, layerDark][currentLayer]);
-  });
-
-  document.getElementById('measureBtn').addEventListener('click', () => {
-    isMeasuring = !isMeasuring;
-    modeIndicator.classList.toggle('active', isMeasuring);
-    modeIndicator.textContent = isMeasuring ? 'Tap map to measure. Tap button again to stop.' : '';
-    if (!isMeasuring && measureLine) { map.removeLayer(measureLine); measureLine = null; }
-  });
-
-  map.on('click', (e) => {
-    if (!isMeasuring) return;
-    if (!measureLine) {
-      measureLine = L.polyline([e.latlng], { color: '#f59e0b', dashArray: '5, 5', weight: 3 }).addTo(map);
-    } else {
-      const pts = measureLine.getLatLngs();
-      pts.push(e.latlng);
-      measureLine.setLatLngs(pts);
-      const dist = calcDist(pts[0].lat, pts[0].lng, e.latlng.lat, e.latlng.lng);
-      modeIndicator.textContent = `Distance: ${dist}`;
-    }
   });
 
   document.getElementById('fullscreenBtn').addEventListener('click', () => {
@@ -439,7 +510,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       if (usersData[id] && usersData[id].updatedAt && now - usersData[id].updatedAt < 120000) online[id] = usersData[id];
     });
 
-    // 更新側邊欄
     const currentIds = new Set(Object.keys(online));
     lastRenderedIds.forEach(id => {
       if (!currentIds.has(id)) {
@@ -448,6 +518,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       }
     });
 
+    let index = 0;
     Object.keys(online).forEach(id => {
       const u = online[id];
       const isMe = id === myId;
@@ -460,8 +531,9 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       let card = document.getElementById('user-card-' + id);
       if (!card) {
         card = document.createElement('div');
-        card.className = 'user-card';
+        card.className = 'user-card interactive';
         card.id = 'user-card-' + id;
+        card.style.animationDelay = (index * 0.05) + 's';
         card.innerHTML = `
           <div class="user-avatar" style="background: ${u.color || '#3b5bdb'};">${getInitials(u.name)}</div>
           <div class="user-info">
@@ -469,16 +541,31 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
             <div class="user-dist">--</div>
           </div>
         `;
-        card.onclick = () => openUserInfo(id, usersData[id]);
+        card.onclick = () => {
+          // 若在測距模式點側邊欄，直接將該人位置作為測距點
+          if (isMeasuring) { addMeasurePoint(L.latLng(u.lat, u.lng)); toggleSidebar(false); }
+          else openUserInfo(id, usersData[id]);
+        };
+        // Ripple for new cards
+        card.addEventListener('pointerdown', function(e) {
+          const rect = this.getBoundingClientRect();
+          const x = e.clientX - rect.left, y = e.clientY - rect.top;
+          const size = Math.max(rect.width, rect.height);
+          const ripple = document.createElement('span');
+          ripple.className = 'ripple';
+          ripple.style.width = ripple.style.height = size + 'px';
+          ripple.style.left = x - size/2 + 'px'; ripple.style.top = y - size/2 + 'px';
+          this.appendChild(ripple); setTimeout(() => ripple.remove(), 600);
+        });
         userListEl.appendChild(card);
       }
       
       card.querySelector('.user-dist').textContent = distText;
       card.querySelector('.user-avatar').style.background = u.color || '#3b5bdb';
+      index++;
     });
     lastRenderedIds = currentIds;
 
-    // 更新地圖
     Object.keys(markers).forEach(id => {
       if (!online[id]) {
         map.removeLayer(markers[id]);
@@ -502,7 +589,17 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       if (markers[id]) markers[id].setLatLng(pos);
       else {
         const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe) }).addTo(map);
-        marker.on('click', () => openUserInfo(id, usersData[id]));
+        
+        // ★ 核心修改：點擊 Marker 時的行為判斷 ★
+        marker.on('click', (e) => {
+          if (isMeasuring) {
+            addMeasurePoint(e.latlng);
+            L.DomEvent.stopPropagation(e); // 阻止地圖的點擊事件被二次觸發
+          } else {
+            openUserInfo(id, usersData[id]);
+          }
+        });
+        
         if (isMe) myMarker = marker;
         markers[id] = marker;
       }
@@ -525,7 +622,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     document.getElementById('focusBtn').onclick = () => {
       focusedId = id; map.flyTo([u.lat, u.lng], 18, { duration: 1 });
       document.getElementById('infoModal').classList.remove('show');
-      toggleSidebar(false); // 點擊 Focus 後自動收起側邊欄
+      toggleSidebar(false);
     };
 
     const gpxBtn = document.getElementById('gpxBtn');

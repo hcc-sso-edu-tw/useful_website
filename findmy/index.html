@@ -6,8 +6,7 @@
 <title>Find My · Liquid Glass Pro</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet-minimap@3.6.1/dist/Control.MiniMap.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
@@ -53,6 +52,17 @@ body {
 /* Map */
 #map { flex: 1; width: 100%; height: 100%; z-index: 1; background: transparent; }
 .leaflet-div-icon { background: transparent !important; border: none !important; }
+
+/* 修正小地圖樣式 */
+.leaflet-control-minimap {
+  border: 2px solid rgba(255,255,255,0.8) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  margin-bottom: 20px !important;
+  margin-right: 16px !important;
+}
+html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,255,0.2) !important; }
 
 /* Glass Base */
 .glass {
@@ -153,7 +163,7 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 }
 
 /* Map Controls */
-.map-controls { position: absolute; right: 16px; bottom: max(24px, env(safe-area-inset-bottom)); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+.map-controls { position: absolute; right: 16px; bottom: max(100px, env(safe-area-inset-bottom)); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
 .ctrl-btn {
   width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border);
   display: flex; align-items: center; justify-content: center;
@@ -206,6 +216,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .btn-alert { background: rgba(245, 158, 11, 0.15); color: var(--warn); border: 1px solid rgba(245, 158, 11, 0.3); }
 .btn-alert.active { background: var(--warn); color: #fff; }
 .btn-close { background: rgba(128,128,128,0.2); color: var(--text); }
+.btn-gpx { background: rgba(16, 185, 129, 0.15); color: var(--ok); border: 1px solid rgba(16, 185, 129, 0.3); }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
@@ -271,7 +282,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     <svg viewBox="0 0 24 24"><path d="M12 2L22 22H2L12 2Z"/><circle cx="12" cy="15" r="3" fill="currentColor"/></svg>
   </button>
   
-  <!-- ★ 全新的簡約尺圖示 ★ -->
   <button class="ctrl-btn glass interactive" id="measureBtn" title="Measure Distance">
     <svg viewBox="0 0 24 24" style="stroke-linecap: round; stroke-linejoin: round;">
       <rect x="4" y="10" width="16" height="4" rx="1" fill="currentColor" stroke="none"/>
@@ -285,6 +295,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   <button class="ctrl-btn glass interactive" id="layerBtn" title="Change Map Layer">
     <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
   </button>
+  
   <button class="ctrl-btn glass interactive" id="centerBtn" title="Center My Location">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
   </button>
@@ -313,6 +324,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     </button>
 
     <button class="modal-btn btn-focus interactive" id="focusBtn">Focus on Map</button>
+    <button class="modal-btn btn-gpx interactive" id="gpxBtn">Export Track (GPX)</button>
     <button class="modal-btn btn-alert interactive" id="alertBtn">Watch Proximity</button>
     <button class="modal-btn btn-close interactive" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
   </div>
@@ -332,7 +344,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const usersRef = db.ref('users');
-  const drawRef = db.ref('drawings');
   const meetupRef = db.ref('meetup');
   const pingRef = db.ref('pings');
 
@@ -355,26 +366,13 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true });
   let isSatellite = false;
 
-  // 地圖塗鴉功能
-  const drawnItems = new L.FeatureGroup().addTo(map);
-  const drawControl = new L.Control.Draw({
-    position: 'topright',
-    draw: { polyline: { shapeOptions: { color: '#e5484d', weight: 4 } }, polygon: false, circle: false, marker: false, circlemarker: false },
-    edit: { featureGroup: drawnItems, remove: true }
-  });
-  map.addControl(drawControl);
-
-  map.on(L.Draw.Event.CREATED, (e) => {
-    const layer = e.layer;
-    drawnItems.addLayer(layer);
-    const latlngs = layer.getLatLngs().map(p => ({ lat: p.lat, lng: p.lng }));
-    drawRef.push(latlngs);
-  });
-
-  drawRef.on('child_added', (snap) => {
-    const latlngs = snap.val().map(p => L.latLng(p.lat, p.lng));
-    L.polyline(latlngs, { color: '#e5484d', weight: 4, opacity: 0.7 }).addTo(map);
-  });
+  // ★ 新增：小地圖 (MiniMap) ★
+  const miniMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true });
+  new L.Control.MiniMap(miniMapLayer, { 
+    toggleDisplay: true, 
+    position: 'bottomright',
+    width: 120, height: 120 
+  }).addTo(map);
 
   // 4. State
   const markers = {};
@@ -393,7 +391,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   let meetupMarker = null;
 
   // 測距狀態
-  let measureMode = 0; // 0: 關閉, 1: 測距中, 2: 顯示結果
+  let measureMode = 0;
   let measurePoints = [];
   let measureLayerGroup = new L.FeatureGroup().addTo(map);
   let finalMeasureText = '';
@@ -526,7 +524,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     }
   });
 
-  // ★ 6. 全新測距邏輯 ★
+  // 6. 測距
   const measureDotIcon = L.divIcon({ className: 'measure-dot-wrapper', html: '<div style="width:14px;height:14px;background:var(--warn);border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(245,158,11,0.8);"></div>', iconSize: [14, 14], iconAnchor: [7, 7] });
 
   function addMeasurePoint(latlng) {
@@ -541,7 +539,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         total += calcDist(measurePoints[i].lat, measurePoints[i].lng, measurePoints[i+1].lat, measurePoints[i+1].lng);
       }
       finalMeasureText = `Total Distance: ${formatDist(total)}`;
-      // 每次點擊立刻更新顯示條
       modeIndicator.textContent = finalMeasureText;
     } else {
       modeIndicator.textContent = 'Point set. Tap map to add another.';
@@ -552,14 +549,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
   measureBtn.addEventListener('click', () => {
     if (measureMode === 0) {
-      // 啟動測距
       measureMode = 1;
       measureBtn.classList.add('active');
       modeIndicator.classList.add('active');
       modeIndicator.textContent = 'Tap map or a person to start measuring.';
       map.getContainer().style.cursor = 'crosshair';
     } else if (measureMode === 1) {
-      // 鎖定結果，不再新增點
       measureMode = 2;
       measureBtn.classList.remove('active');
       map.getContainer().style.cursor = '';
@@ -570,7 +565,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         modeIndicator.textContent = finalMeasureText;
       }
     } else {
-      // 清除並重置
       measureMode = 0;
       modeIndicator.classList.remove('active');
       measureLayerGroup.clearLayers();
@@ -719,6 +713,24 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     };
 
     const alertBtn = document.getElementById('alertBtn');
+    const gpxBtn = document.getElementById('gpxBtn');
+    
+    // 匯出 GPX
+    if (trails[id] && trails[id].getLatLngs().length > 1) {
+      gpxBtn.style.display = 'flex';
+      gpxBtn.onclick = () => {
+        const pts = trails[id].getLatLngs();
+        let gpx = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="FindMyGlass" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${u.name} Track</name><trkseg>`;
+        pts.forEach(p => { gpx += `<trkpt lat="${p.lat}" lon="${p.lng}"></trkpt>`; });
+        gpx += `</trkseg></trk></gpx>`;
+        const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = `${u.name}_track.gpx`; a.click();
+      };
+    } else {
+      gpxBtn.style.display = 'none';
+    }
+
     if (isMe) {
       alertBtn.style.display = 'none';
       document.getElementById('pingBtn').style.display = 'none';

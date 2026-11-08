@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Find My · Liquid Glass</title>
+<title>Find My · Liquid Glass Pro</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
@@ -52,6 +54,10 @@ body {
 #map { flex: 1; width: 100%; height: 100%; z-index: 1; background: transparent; }
 .leaflet-div-icon { background: transparent !important; border: none !important; }
 
+/* Leaflet Draw Customization for Glass */
+.leaflet-draw-toolbar a { background-color: rgba(255,255,255,0.9) !important; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(38,40,62,0.9) !important; }
+
 /* Glass Base */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
@@ -75,7 +81,7 @@ html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
 
 /* Sidebar */
 .sidebar {
-  position: absolute; top: 0; left: 0; bottom: 0; width: 300px; max-width: 80vw;
+  position: absolute; top: 0; left: 0; bottom: 0; width: 320px; max-width: 85vw;
   z-index: 1500; transform: translateX(-110%); transition: transform 0.4s var(--ease);
   display: flex; flex-direction: column; border-radius: 0 24px 24px 0; 
   border-left: none; box-shadow: 20px 0 60px -20px rgba(0,0,0,0.3);
@@ -94,7 +100,7 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .user-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.6); transform: translateX(4px); }
 @keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
 
-.user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 16px; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 16px; position: relative; }
 .user-info { flex: 1; }
 .user-name { font-weight: 700; font-size: 15px; }
 .user-dist { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
@@ -169,21 +175,25 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 @keyframes pulseIcon { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
 /* Markers & Radar */
-.marker-container { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.marker-container { 
+  position: relative; display: flex; align-items: center; justify-content: center; 
+  width: 40px; height: 40px; border-radius: 50%; 
+  background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+}
 html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
 .marker-dot { width: 14px; height: 14px; border-radius: 50%; }
-.marker-label { position: absolute; top: -26px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); transition: transform 0.2s; }
+.marker-breathe { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0.5; animation: pulse 2s infinite; }
+.marker-label { position: absolute; top: -30px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); transition: transform 0.2s; }
 .marker-container:hover .marker-label { transform: translateY(-2px) scale(1.05); }
-.radar-ring { position: absolute; inset: -15px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: pulse 2s infinite; }
-@keyframes pulse { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2); opacity: 0; } }
 
-/* ★ 測距用的橘色小圓點樣式 ★ */
-.measure-point {
-  width: 14px; height: 14px; background: var(--warn); border-radius: 50%;
-  border: 2px solid #fff; box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
-}
+/* 方向箭頭 */
+.heading-arrow { position: absolute; top: -8px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--accent); transform-origin: 50% 28px; transition: transform 0.3s; }
 
-/* Modal */
+/* 集合點大頭針 */
+.meetup-pin { font-size: 32px; text-shadow: 0 4px 8px rgba(0,0,0,0.4); }
+
+/* Modal & Cards */
 .modal-backdrop { position: fixed; inset: 0; z-index: 2000; display: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; }
 .modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
 .modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.5s var(--ease); }
@@ -194,10 +204,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .modal-box { background: rgba(128,128,128,0.1); border-radius: 12px; padding: 12px; text-align: left; }
 .modal-label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px; margin-bottom: 4px; }
 .modal-val { font-size: 14px; font-weight: 700; }
-.modal-btn { width: 100%; padding: 16px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.modal-btn { width: 100%; padding: 16px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;}
 .btn-focus { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 8px 20px -6px var(--accent); }
+.btn-alert { background: rgba(245, 158, 11, 0.15); color: var(--warn); border: 1px solid rgba(245, 158, 11, 0.3); }
+.btn-alert.active { background: var(--warn); color: #fff; }
 .btn-close { background: rgba(128,128,128,0.2); color: var(--text); }
-.btn-gpx { background: var(--warn); color: #fff; }
+
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
@@ -228,7 +240,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
 <div class="sidebar glass" id="sidebar">
   <div class="sidebar-header">
-    <div class="sidebar-title">Live Devices</div>
+    <div class="sidebar-title">Proximity Radar</div>
     <button class="ctrl-btn glass interactive" style="width:36px;height:36px;border:none;box-shadow:none;background:transparent;" onclick="toggleSidebar(false)">
       <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
@@ -250,26 +262,17 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 <div class="mode-indicator glass" id="modeIndicator"></div>
 
 <div class="map-controls">
-  <!-- 重新設計的簡約尺圖示 -->
+  <button class="ctrl-btn glass interactive" id="meetupBtn" title="Set Meetup Point">
+    <svg viewBox="0 0 24 24"><path d="M12 2L22 22H2L12 2Z"/><circle cx="12" cy="15" r="3" fill="currentColor"/></svg>
+  </button>
   <button class="ctrl-btn glass interactive" id="measureBtn" title="Measure Distance">
-    <svg viewBox="0 0 24 24">
-      <path d="M2 17h20v3H2z" fill="currentColor" stroke="none"/>
-      <line x1="5" y1="17" x2="5" y2="14"/>
-      <line x1="8" y1="17" x2="8" y2="15"/>
-      <line x1="11" y1="17" x2="11" y2="14"/>
-      <line x1="14" y1="17" x2="14" y2="15"/>
-      <line x1="17" y1="17" x2="17" y2="14"/>
-      <line x1="20" y1="17" x2="20" y2="15"/>
-    </svg>
+    <svg viewBox="0 0 24 24"><path d="M2 17h20v3H2z" fill="currentColor" stroke="none"/><line x1="5" y1="17" x2="5" y2="14"/><line x1="8" y1="17" x2="8" y2="15"/><line x1="11" y1="17" x2="11" y2="14"/><line x1="14" y1="17" x2="14" y2="15"/><line x1="17" y1="17" x2="17" y2="14"/><line x1="20" y1="17" x2="20" y2="15"/></svg>
   </button>
   <button class="ctrl-btn glass interactive" id="layerBtn" title="Change Map Layer">
     <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
   </button>
   <button class="ctrl-btn glass interactive" id="centerBtn" title="Center My Location">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
-  </button>
-  <button class="ctrl-btn glass interactive" id="fullscreenBtn" title="Fullscreen">
-    <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
   </button>
 </div>
 
@@ -288,14 +291,16 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         <div class="modal-label">Battery</div>
         <div class="modal-val" id="mBatt">--</div>
       </div>
-      <div class="modal-box" style="grid-column: 1 / -1;">
-        <div class="modal-label">Last Updated</div>
-        <div class="modal-val" id="mTime">--</div>
-      </div>
     </div>
 
+    <!-- 新增：Ping 找人按鈕 -->
+    <button class="modal-btn btn-ping interactive" id="pingBtn" style="background:var(--accent-soft); color:var(--accent); margin-bottom:16px;">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/></svg>
+      Ping Device
+    </button>
+
     <button class="modal-btn btn-focus interactive" id="focusBtn">Focus on Map</button>
-    <button class="modal-btn btn-gpx interactive" id="gpxBtn" style="display:none;">Export GPX Track</button>
+    <button class="modal-btn btn-alert interactive" id="alertBtn">Watch Proximity</button>
     <button class="modal-btn btn-close interactive" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
   </div>
 </div>
@@ -314,6 +319,9 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const usersRef = db.ref('users');
+  const drawRef = db.ref('drawings');
+  const meetupRef = db.ref('meetup');
+  const pingRef = db.ref('pings');
 
   // 2. Identity
   let myId = localStorage.getItem('findMyId');
@@ -334,24 +342,53 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true });
   let isSatellite = false;
 
+  // ★ 新增：地圖塗鴉功能 ★
+  const drawnItems = new L.FeatureGroup().addTo(map);
+  const drawControl = new L.Control.Draw({
+    position: 'topright',
+    draw: { polyline: { shapeOptions: { color: '#e5484d', weight: 4 } }, polygon: false, circle: false, marker: false, circlemarker: false },
+    edit: { featureGroup: drawnItems, remove: true }
+  });
+  map.addControl(drawControl);
+
+  // 將畫好的線同步到 Firebase
+  map.on(L.Draw.Event.CREATED, (e) => {
+    const layer = e.layer;
+    drawnItems.addLayer(layer);
+    const latlngs = layer.getLatLngs().map(p => ({ lat: p.lat, lng: p.lng }));
+    drawRef.push(latlngs);
+  });
+
+  // 接收別人的塗鴉
+  drawRef.on('child_added', (snap) => {
+    const latlngs = snap.val().map(p => L.latLng(p.lat, p.lng));
+    L.polyline(latlngs, { color: '#e5484d', weight: 4, opacity: 0.7 }).addTo(map);
+  });
+
   // 4. State
   const markers = {};
   const trails = {};
   let myMarker = null;
+  let myHeading = 0;
   let myBattery = null;
   let sharing = false;
   let watchId = null;
+  let lastPos = null;
   let heartbeatTimer = null;
   let wakeLock = null;
   let focusedId = null;
   let usersData = {};
   let lastRenderedIds = new Set();
+  let meetupMarker = null;
 
   // 測距狀態
-  let measureMode = 0; // 0: 關閉, 1: 測距中, 2: 顯示結果
+  let measureMode = 0;
   let measurePoints = [];
   let measureLayerGroup = new L.FeatureGroup().addTo(map);
   let finalMeasureText = '';
+
+  // 警戒狀態
+  let alertTargetId = null;
 
   const nameInput = document.getElementById('nameInput');
   const shareBtn = document.getElementById('shareBtn');
@@ -361,6 +398,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   const sidebar = document.getElementById('sidebar');
   const sidebarBackdrop = document.getElementById('sidebarBackdrop');
   const measureBtn = document.getElementById('measureBtn');
+  const meetupBtn = document.getElementById('meetupBtn');
   
   nameInput.value = localStorage.getItem('myName') || '';
   colorPicker.style.background = myColor;
@@ -387,11 +425,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       ripple.style.left = x - size/2 + 'px'; ripple.style.top = y - size/2 + 'px';
       this.appendChild(ripple); setTimeout(() => ripple.remove(), 600);
     });
-    el.addEventListener('pointermove', function(e) {
-      const rect = this.getBoundingClientRect();
-      this.style.setProperty('--mx', `${e.clientX - rect.left}px`);
-      this.style.setProperty('--my', `${e.clientY - rect.top}px`);
-    });
   });
 
   if (navigator.getBattery) {
@@ -406,19 +439,24 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     const R = 6371e3, p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
     const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
     const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-    const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return d > 1000 ? (d/1000).toFixed(2) + ' km' : Math.round(d) + ' m';
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+  
+  function formatDist(meters) {
+    return meters > 1000 ? (meters/1000).toFixed(2) + ' km' : Math.round(meters) + ' m';
   }
 
   function getInitials(name) { return name.trim().slice(0, 2).toUpperCase() || '?'; }
 
-  function makeIcon(color, name, isMe) {
+  function makeIcon(color, name, isMe, heading) {
+    const arrow = heading !== null ? `<div class="heading-arrow" style="transform: rotate(${heading}deg)"></div>` : '';
     return L.divIcon({
       className: 'custom-marker-wrapper',
       html: `
         <div class="marker-container" style="box-shadow: 0 4px 12px ${color}80;">
-          ${isMe ? '<div class="radar-ring"></div>' : ''}
+          ${isMe ? '<div class="marker-breathe"></div>' : ''}
           <div class="marker-dot" style="background: ${color};"></div>
+          ${arrow}
           <div class="marker-label">${name}${isMe ? ' (You)' : ''}</div>
         </div>
       `,
@@ -426,12 +464,65 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
   }
 
-  // ★ 測距核心邏輯 ★
-  const measureDotIcon = L.divIcon({
-    className: 'measure-dot-wrapper',
-    html: '<div class="measure-point"></div>',
-    iconSize: [14, 14], iconAnchor: [7, 7]
+  // ★ 集合點邏輯 ★
+  meetupBtn.addEventListener('click', () => {
+    if (meetupMarker) {
+      meetupMarker.remove(); meetupMarker = null;
+      meetupRef.remove();
+      meetupBtn.classList.remove('active');
+      return;
+    }
+    map.once('click', (e) => {
+      const pos = { lat: e.latlng.lat, lng: e.latlng.lng };
+      meetupRef.set(pos);
+      meetupBtn.classList.add('active');
+    });
   });
+
+  meetupRef.on('value', (snap) => {
+    if (meetupMarker) { meetupMarker.remove(); meetupMarker = null; }
+    if (snap.exists()) {
+      const pos = snap.val();
+      const icon = L.divIcon({ html: '<div class="meetup-pin">📍</div>', iconSize: [40,40], iconAnchor: [20,40] });
+      meetupMarker = L.marker([pos.lat, pos.lng], { icon }).addTo(map);
+      meetupBtn.classList.add('active');
+    } else {
+      meetupBtn.classList.remove('active');
+    }
+  });
+
+  // ★ Ping 震動邏輯 ★
+  pingRef.child(myId).on('value', (snap) => {
+    if (snap.exists() && snap.val() > Date.now() - 5000) {
+      if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 500]);
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+      snap.ref.remove();
+    }
+  });
+
+  document.getElementById('pingBtn').addEventListener('click', () => {
+    if (alertTargetId) pingRef.child(alertTargetId).set(Date.now());
+    document.getElementById('infoModal').classList.remove('show');
+  });
+
+  // ★ 偏離警戒邏輯 ★
+  document.getElementById('alertBtn').addEventListener('click', function() {
+    if (alertTargetId === focusedId) {
+      alertTargetId = null;
+      this.classList.remove('active');
+      this.textContent = 'Watch Proximity';
+    } else {
+      alertTargetId = focusedId;
+      this.classList.add('active');
+      this.textContent = 'Watching Proximity...';
+    }
+  });
+
+  // 6. 測距
+  const measureDotIcon = L.divIcon({ className: 'measure-dot-wrapper', html: '<div class="measure-point"></div>', iconSize: [14, 14], iconAnchor: [7, 7] });
 
   function addMeasurePoint(latlng) {
     if (measureMode !== 1) return;
@@ -444,7 +535,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       for (let i = 0; i < measurePoints.length - 1; i++) {
         total += calcDist(measurePoints[i].lat, measurePoints[i].lng, measurePoints[i+1].lat, measurePoints[i+1].lng);
       }
-      finalMeasureText = `Total Distance: ${total.toFixed(2)} km`;
+      finalMeasureText = `Total Distance: ${formatDist(total)}`;
       modeIndicator.textContent = finalMeasureText;
     } else {
       modeIndicator.textContent = 'Point set. Tap map to add another.';
@@ -455,14 +546,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
   measureBtn.addEventListener('click', () => {
     if (measureMode === 0) {
-      // 狀態 0 -> 1: 開始測距
       measureMode = 1;
       measureBtn.classList.add('active');
       modeIndicator.classList.add('active');
       modeIndicator.textContent = 'Tap map or a person to start measuring.';
       map.getContainer().style.cursor = 'crosshair';
     } else if (measureMode === 1) {
-      // 狀態 1 -> 2: 結束測距，顯示結果
       measureMode = 2;
       measureBtn.classList.remove('active');
       map.getContainer().style.cursor = '';
@@ -473,7 +562,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         modeIndicator.textContent = finalMeasureText;
       }
     } else {
-      // 狀態 2 -> 0: 清除並關閉
       measureMode = 0;
       modeIndicator.classList.remove('active');
       measureLayerGroup.clearLayers();
@@ -482,7 +570,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     }
   });
 
-  // 6. UI Events
+  // 7. UI Events
   colorPicker.addEventListener('click', () => {
     const colors = ['#3b5bdb', '#e5484d', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
     let idx = colors.indexOf(myColor);
@@ -490,39 +578,21 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     colorPicker.style.background = myColor;
     localStorage.setItem('myColor', myColor);
     if (sharing && myMarker) {
-      sendLocation({ coords: myMarker.getLatLng() });
-      map.removeLayer(markers[myId]);
-      const marker = L.marker(myMarker.getLatLng(), { icon: makeIcon(myColor, localStorage.getItem('myName') || 'You', true) }).addTo(map);
-      marker.on('click', (e) => {
-        if (measureMode === 1) { addMeasurePoint(e.latlng); L.DomEvent.stopPropagation(e); }
-        else openUserInfo(myId, usersData[myId]);
-      });
-      markers[myId] = marker;
-      myMarker = marker;
+      sendLocation({ coords: myMarker.getLatLng(), heading: myHeading });
     }
   });
 
   document.getElementById('layerBtn').addEventListener('click', () => {
-    if (isSatellite) {
-      map.removeLayer(layerSat);
-      map.addLayer(layerOSM);
-    } else {
-      map.removeLayer(layerOSM);
-      map.addLayer(layerSat);
-    }
+    if (isSatellite) { map.removeLayer(layerSat); map.addLayer(layerOSM); }
+    else { map.removeLayer(layerOSM); map.addLayer(layerSat); }
     isSatellite = !isSatellite;
-  });
-
-  document.getElementById('fullscreenBtn').addEventListener('click', () => {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else document.exitFullscreen();
   });
 
   document.getElementById('centerBtn').addEventListener('click', () => {
     if (myMarker) { focusedId = myId; map.flyTo(myMarker.getLatLng(), 17, { duration: 1 }); }
   });
 
-  // 7. Sync
+  // 8. Sync
   usersRef.on('value', (snap) => {
     usersData = snap.val() || {};
     const now = Date.now();
@@ -532,6 +602,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       if (usersData[id] && usersData[id].updatedAt && now - usersData[id].updatedAt < 120000) online[id] = usersData[id];
     });
 
+    // 更新側邊欄
     const currentIds = new Set(Object.keys(online));
     lastRenderedIds.forEach(id => {
       if (!currentIds.has(id)) {
@@ -547,7 +618,15 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       let distText = '--';
       if (myMarker) {
         const p = myMarker.getLatLng();
-        distText = isMe ? 'You' : calcDist(p.lat, p.lng, u.lat, u.lng);
+        const d = calcDist(p.lat, p.lng, u.lat, u.lng);
+        distText = isMe ? 'You' : formatDist(d);
+
+        // ★ 警戒觸發 ★
+        if (alertTargetId === id && !isMe && d > 500) {
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          document.body.style.boxShadow = "inset 0 0 50px rgba(229,72,77,0.5)";
+          setTimeout(() => document.body.style.boxShadow = "", 500);
+        }
       }
       
       let card = document.getElementById('user-card-' + id);
@@ -567,16 +646,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
           if (measureMode === 1) { addMeasurePoint(L.latLng(u.lat, u.lng)); toggleSidebar(false); }
           else openUserInfo(id, usersData[id]);
         };
-        card.addEventListener('pointerdown', function(e) {
-          const rect = this.getBoundingClientRect();
-          const x = e.clientX - rect.left, y = e.clientY - rect.top;
-          const size = Math.max(rect.width, rect.height);
-          const ripple = document.createElement('span');
-          ripple.className = 'ripple';
-          ripple.style.width = ripple.style.height = size + 'px';
-          ripple.style.left = x - size/2 + 'px'; ripple.style.top = y - size/2 + 'px';
-          this.appendChild(ripple); setTimeout(() => ripple.remove(), 600);
-        });
         userListEl.appendChild(card);
       }
       
@@ -586,6 +655,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
     lastRenderedIds = currentIds;
 
+    // 更新地圖
     Object.keys(markers).forEach(id => {
       if (!online[id]) {
         map.removeLayer(markers[id]);
@@ -606,17 +676,15 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         if (pts[pts.length - 1].lat !== pos[0]) { pts.push(L.latLng(pos)); trails[id].setLatLngs(pts); }
       }
 
-      if (markers[id]) markers[id].setLatLng(pos);
-      else {
-        const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe) }).addTo(map);
+      if (markers[id]) {
+        markers[id].setLatLng(pos);
+        if (u.heading !== undefined) markers[id].setIcon(makeIcon(color, u.name, isMe, u.heading));
+      } else {
+        const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe, u.heading) }).addTo(map);
         
         marker.on('click', (e) => {
-          if (measureMode === 1) {
-            addMeasurePoint(e.latlng);
-            L.DomEvent.stopPropagation(e);
-          } else {
-            openUserInfo(id, usersData[id]);
-          }
+          if (measureMode === 1) { addMeasurePoint(e.latlng); L.DomEvent.stopPropagation(e); }
+          else openUserInfo(id, usersData[id]);
         });
         
         if (isMe) myMarker = marker;
@@ -629,42 +697,39 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
   function openUserInfo(id, u) {
     if (!u) return;
+    focusedId = id;
     const isMe = id === myId;
     document.getElementById('mAvatar').textContent = getInitials(u.name);
     document.getElementById('mAvatar').style.background = u.color || '#3b5bdb';
     document.getElementById('mName').textContent = u.name;
     document.getElementById('mSub').textContent = isMe ? 'Sharing active' : 'Online now';
-    document.getElementById('mDist').textContent = myMarker ? calcDist(myMarker.getLatLng().lat, myMarker.getLatLng().lng, u.lat, u.lng) : '--';
+    document.getElementById('mDist').textContent = myMarker ? formatDist(calcDist(myMarker.getLatLng().lat, myMarker.getLatLng().lng, u.lat, u.lng)) : '--';
     document.getElementById('mBatt').textContent = isMe ? (myBattery || 'Unknown') : 'Unknown';
-    document.getElementById('mTime').textContent = new Date(u.updatedAt).toLocaleTimeString();
     
     document.getElementById('focusBtn').onclick = () => {
-      focusedId = id; map.flyTo([u.lat, u.lng], 18, { duration: 1 });
+      map.flyTo([u.lat, u.lng], 18, { duration: 1 });
       document.getElementById('infoModal').classList.remove('show');
       toggleSidebar(false);
     };
 
-    const gpxBtn = document.getElementById('gpxBtn');
-    if (trails[id] && trails[id].getLatLngs().length > 1) {
-      gpxBtn.style.display = 'block';
-      gpxBtn.onclick = () => exportGPX(id, u.name);
+    const alertBtn = document.getElementById('alertBtn');
+    if (isMe) {
+      alertBtn.style.display = 'none';
+      document.getElementById('pingBtn').style.display = 'none';
     } else {
-      gpxBtn.style.display = 'none';
+      alertBtn.style.display = 'flex';
+      document.getElementById('pingBtn').style.display = 'flex';
+      if (alertTargetId === id) {
+        alertBtn.classList.add('active'); alertBtn.textContent = 'Watching Proximity...';
+      } else {
+        alertBtn.classList.remove('active'); alertBtn.textContent = 'Watch Proximity';
+      }
     }
+
     document.getElementById('infoModal').classList.add('show');
   }
 
-  function exportGPX(id, name) {
-    const pts = trails[id].getLatLngs();
-    let gpx = `<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="FindMyGlass" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${name} Track</name><trkseg>`;
-    pts.forEach(p => { gpx += `<trkpt lat="${p.lat}" lon="${p.lng}"></trkpt>`; });
-    gpx += `</trkseg></trk></gpx>`;
-    const blob = new Blob([gpx], { type: 'application/gpx+xml' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = `${name}_track.gpx`; a.click();
-  }
-
-  // 8. Cleanup & Sharing
+  // 9. Cleanup & Sharing
   usersRef.child(myId).onDisconnect().remove();
   window.addEventListener('beforeunload', () => usersRef.child(myId).remove());
 
@@ -686,9 +751,20 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         sharing = true; shareBtn.disabled = false;
         shareBtn.textContent = 'Stop'; shareBtn.classList.add('active');
         requestWakeLock();
+        lastPos = pos;
         sendLocation(pos);
         map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { duration: 1.5 });
-        watchId = navigator.geolocation.watchPosition(sendLocation, (err) => console.warn(err), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+        
+        watchId = navigator.geolocation.watchPosition((newPos) => {
+          if (lastPos) {
+            const y = Math.sin(newPos.coords.longitude - lastPos.coords.longitude) * Math.cos(newPos.coords.latitude);
+            const x = Math.cos(lastPos.coords.latitude) * Math.sin(newPos.coords.latitude) - Math.sin(lastPos.coords.latitude) * Math.cos(newPos.coords.latitude) * Math.cos(newPos.coords.longitude - lastPos.coords.longitude);
+            myHeading = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+          }
+          lastPos = newPos;
+          sendLocation(newPos);
+        }, (err) => console.warn(err), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+        
         heartbeatTimer = setInterval(() => { if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() }); }, 15000);
       },
       (err) => { shareBtn.disabled = false; alert('Permission denied or GPS unavailable'); },
@@ -699,7 +775,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   function sendLocation(pos) {
     if (!sharing) return;
     const { latitude: lat, longitude: lng } = pos.coords;
-    usersRef.child(myId).set({ lat, lng, name: localStorage.getItem('myName') || 'Anonymous', color: myColor, updatedAt: Date.now() });
+    usersRef.child(myId).set({ lat, lng, heading: myHeading, name: localStorage.getItem('myName') || 'Anonymous', color: myColor, updatedAt: Date.now() });
   }
 
   function stopSharing() {

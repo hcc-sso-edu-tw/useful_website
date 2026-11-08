@@ -19,8 +19,8 @@
 
   #crt{position:fixed;inset:0;pointer-events:none;z-index:5;
     background:
-      repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.18) 3px),
-      radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.65) 100%);}
+      repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.14) 3px),
+      radial-gradient(ellipse at center,rgba(0,0,0,0) 58%,rgba(0,0,0,.55) 100%);}
 
   #scan{position:fixed;inset:0;pointer-events:none;z-index:6;display:none;
     background:linear-gradient(to bottom,transparent 0%,rgba(0,255,156,.06) 48%,rgba(0,255,156,.14) 50%,rgba(0,255,156,.06) 52%,transparent 100%);
@@ -62,7 +62,6 @@
   #hint{font-size:9px;opacity:.55;margin-top:6px;letter-spacing:1px;line-height:1.5}
 
   #toggle{position:fixed;top:14px;right:14px;z-index:11;width:auto;flex:none;padding:9px 12px;background:var(--bg);min-height:40px;}
-  #fstoggle{position:fixed;top:14px;right:70px;z-index:11;width:auto;flex:none;padding:9px 12px;background:var(--bg);min-height:40px;}
 
   #overlay{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .6s}
@@ -99,7 +98,6 @@
     button{font-size:10px;padding:9px 6px;min-height:42px}
     button.snap{padding:12px}
     #toggle{top:8px;right:8px;padding:8px 10px;font-size:10px;min-height:42px}
-    #fstoggle{top:8px;right:72px;padding:8px 10px;font-size:10px;min-height:42px}
     #hint{font-size:8px}
     #stats{font-size:9px}
     #overlay .ring{width:90px;height:90px;margin-bottom:24px}
@@ -114,7 +112,6 @@
     button{padding:6px;min-height:36px;font-size:10px}
     button.snap{padding:8px}
     #toggle{top:6px;right:6px;padding:6px 8px;min-height:36px}
-    #fstoggle{top:6px;right:66px;padding:6px 8px;min-height:36px}
     #stats{margin-top:5px;padding-top:5px}
   }
 </style>
@@ -129,11 +126,10 @@
 <div id="flash"></div>
 <div id="toast"></div>
 
-<button id="fstoggle" title="Fullscreen (F)">[ ⛶ ]</button>
 <button id="toggle" title="Toggle HUD (H)">[ HUD ]</button>
 
 <div id="hud">
-  <h1>ASCII//CAM <span>v2.1</span></h1>
+  <h1>ASCII//CAM <span>v2.2</span></h1>
 
   <div class="grp">
     <div class="lbl"><span>CHARSET / DENSITY</span></div>
@@ -164,13 +160,13 @@
   </div>
 
   <div class="grp">
-    <div class="lbl"><span>CONTRAST</span><b id="conVal">1.45</b></div>
-    <input type="range" id="con" min="0.5" max="3.0" step="0.05" value="1.45">
+    <div class="lbl"><span>CONTRAST</span><b id="conVal">1.30</b></div>
+    <input type="range" id="con" min="0.5" max="3.0" step="0.05" value="1.30">
   </div>
 
   <div class="grp">
-    <div class="lbl"><span>BRIGHTNESS (GAMMA)</span><b id="briVal">0.85</b></div>
-    <input type="range" id="bri" min="0.4" max="1.4" step="0.05" value="0.85">
+    <div class="lbl"><span>BRIGHTNESS (GAMMA)</span><b id="briVal">0.70</b></div>
+    <input type="range" id="bri" min="0.4" max="1.4" step="0.05" value="0.70">
   </div>
 
   <div class="grp">
@@ -210,7 +206,7 @@
   <button class="rec" id="rec">● RECORD / STOP (WEBM)</button>
 
   <div id="stats"><span id="fps">FPS --</span><span id="grid">GRID --</span></div>
-  <div id="hint">H: HUD · F: fullscreen · SPACE: snap · R: record · C: cam · M: mirror · 1-5: charset · Q/W/E/R/T/Y: color</div>
+  <div id="hint">H: HUD · SPACE: snap · R: record · C: cam · M: mirror · 1-5: charset · Q/W/E/R/T/Y: color</div>
 </div>
 
 <div id="overlay">
@@ -251,8 +247,10 @@
   const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
                      (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && window.innerWidth < 900);
 
+  const LUM_GAIN = 1.18;
+
   const state = {
-    set: 0, color: 0, size: 12, contrast: 1.45, brightness: 0.85, glitch: 0,
+    set: 0, color: 0, size: 12, contrast: 1.30, brightness: 0.70, glitch: 0,
     fpsCap: 30,
     mirror: true, scan: false, invert: false, autoLevel: false, watermark: false,
     cols: 0, rows: 0, charW: 8, lineH: 12, W: 0, H: 0, dpr: 1
@@ -268,7 +266,7 @@
   let recording = false;
 
   // ---------- Persistence ----------
-  const PERSIST_KEY = 'ascii-cam-v2.1';
+  const PERSIST_KEY = 'ascii-cam-v2.2';
   function loadState() {
     try {
       const raw = localStorage.getItem(PERSIST_KEY);
@@ -329,7 +327,7 @@
     for (let cb = 0; cb < 16; cb++) {
       const hue = 330 - (cb / 15) * 55;
       for (let lb = 0; lb < 8; lb++) {
-        const light = 42 + (lb / 7) * 42;
+        const light = 48 + (lb / 7) * 42;
         neonPalette.push('hsl(' + hue.toFixed(0) + ',100%,' + light.toFixed(0) + '%)');
       }
     }
@@ -339,7 +337,7 @@
     const k = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
     let s = rgbCache[k];
     if (!s) {
-      const boost = 1.12;
+      const boost = 1.22;
       const rr = Math.min(255, Math.round((((r >> 4) << 4) + 8) * boost));
       const gg = Math.min(255, Math.round((((g >> 4) << 4) + 8) * boost));
       const bb = Math.min(255, Math.round((((b >> 4) << 4) + 8) * boost));
@@ -360,7 +358,7 @@
       if (l > max) max = l;
     }
     autoLumMin = min / 255;
-    autoLumMax = Math.max(0.05, max / 255);
+    autoLumMax = Math.max(0.35, max / 255);
   }
 
   // ---------- Sampling ----------
@@ -409,14 +407,14 @@
     if (color === 0 || color === 4) {
       ctx.fillStyle = state.invert ? '#000' : GREEN;
       if (!state.invert) {
-        ctx.shadowColor = 'rgba(0,255,156,0.55)';
-        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(0,255,156,0.7)';
+        ctx.shadowBlur = 6;
       }
     } else if (color === 1) {
       ctx.fillStyle = state.invert ? '#000' : AMBER;
       if (!state.invert) {
-        ctx.shadowColor = 'rgba(255,176,0,0.55)';
-        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(255,176,0,0.7)';
+        ctx.shadowBlur = 6;
       }
     } else {
       ctx.shadowBlur = 0;
@@ -434,7 +432,8 @@
       for (let x = 0; x < cols; x++, p += 4) {
         const r = data[p], g = data[p + 1], b = data[p + 2];
 
-        let l = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+        let l = ((0.2126 * r + 0.7152 * g + 0.0722 * b) / 255) * LUM_GAIN;
+        if (l > 1) l = 1;
 
         if (state.autoLevel) {
           l = (l - aMin) / aRange;
@@ -449,7 +448,7 @@
           l = 1 - l;
         }
 
-        let idx = Math.round(Math.pow(1 - l, 0.9) * (n - 1));
+        let idx = Math.round(Math.pow(1 - l, 1.05) * (n - 1));
         let ch = chars[idx];
         if (ch === ' ') continue;
 
@@ -467,7 +466,7 @@
           if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
         } else if (color === 5) {
           const hue = (x / cols) * 300 + (y / rows) * 60 + performance.now() * 0.05;
-          const light = 40 + l * 45;
+          const light = 48 + l * 42;
           const st = 'hsl(' + (hue % 360).toFixed(0) + ',100%,' + light.toFixed(0) + '%)';
           if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
         }
@@ -492,7 +491,7 @@
                  pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
       ctx.font = Math.max(10, state.size * 0.8) + 'px ' + FONT_FAMILY;
       ctx.textBaseline = 'bottom';
-      ctx.fillStyle = 'rgba(0,255,156,0.65)';
+      ctx.fillStyle = 'rgba(0,255,156,0.75)';
       ctx.fillText('ASCII//CAM · ' + ts, 12, state.H - 12);
       ctx.textBaseline = 'top';
     }
@@ -656,18 +655,6 @@
     }
   }
 
-  // ---------- Fullscreen ----------
-  function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      const el = document.documentElement;
-      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-      if (req) req.call(el).catch(() => toast('FULLSCREEN FAILED'));
-    } else {
-      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
-      if (exit) exit.call(document);
-    }
-  }
-
   // ---------- UI wiring ----------
   function bindGroup(id, key, cast = Number) {
     const wrap = document.getElementById(id);
@@ -728,14 +715,12 @@
   document.getElementById('retry').addEventListener('click', startCamera);
   document.getElementById('switchCam').addEventListener('click', e => { switchCamera(); e.target.blur(); });
   document.getElementById('toggle').addEventListener('click', e => { hud.classList.toggle('hidden'); e.target.blur(); });
-  document.getElementById('fstoggle').addEventListener('click', e => { toggleFullscreen(); e.target.blur(); });
 
   // ---------- Keyboard ----------
   window.addEventListener('keydown', e => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     const k = e.key.toLowerCase();
     if (k === 'h') hud.classList.toggle('hidden');
-    else if (k === 'f') toggleFullscreen();
     else if (e.code === 'Space') { e.preventDefault(); snapshot(); }
     else if (k === 'r') toggleRecording();
     else if (k === 'c') switchCamera();

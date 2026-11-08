@@ -6,8 +6,6 @@
 <title>Find My · Liquid Glass</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
@@ -88,9 +86,39 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .topbar > * { pointer-events: auto; }
 .menu-btn { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); backdrop-filter: blur(10px); }
 .menu-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; }
-.name-input-wrapper { flex: 1; padding: 4px; border-radius: var(--pill); display: flex; align-items: center; padding-right: 12px; }
-.name-input { flex: 1; padding: 12px 20px; border-radius: var(--pill); border: none; background: transparent; color: var(--text); font-size: 15px; outline: none; font-weight: 600; }
-.color-picker { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+
+/* ★ 修正：輸入框與顏色選擇器的佈局 ★ */
+.name-input-wrapper { 
+  flex: 1; 
+  display: flex; 
+  align-items: center; 
+  border-radius: var(--pill); 
+  padding: 4px 8px 4px 4px; /* 右邊留一點空間給圓點 */
+  min-width: 0; /* 防止 flex 子元素撐破容器 */
+}
+.name-input { 
+  flex: 1; 
+  padding: 12px 16px; 
+  border-radius: var(--pill); 
+  border: none; 
+  background: transparent; 
+  color: var(--text); 
+  font-size: 15px; 
+  outline: none; 
+  font-weight: 600; 
+  min-width: 0; /* 重要：允許輸入框縮小 */
+}
+.color-picker { 
+  width: 28px; 
+  height: 28px; 
+  border-radius: 50%; 
+  cursor: pointer; 
+  border: 2px solid #fff; 
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2); 
+  flex-shrink: 0; /* 防止被壓縮 */
+  margin-left: 4px;
+}
+
 .btn-big {
   padding: 0 24px; height: 52px; border-radius: var(--pill); border: none;
   font-size: 15px; font-weight: 800; color: #fff; cursor: pointer;
@@ -140,9 +168,13 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .mode-indicator { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 10px 20px; font-size: 14px; font-weight: 700; display: none; }
 .mode-indicator.active { display: block; animation: fadeIn 0.3s; }
 
-/* Draw Tool Override */
-.leaflet-draw-toolbar a { background-color: rgba(255,255,255,0.8) !important; border: 1px solid var(--glass-border) !important; backdrop-filter: blur(10px); }
-html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,30,0.8) !important; }
+@media (max-width: 480px) {
+  .topbar { gap: 8px; left: 12px; right: 12px; }
+  .name-input { padding: 10px 12px; font-size: 14px; }
+  .btn-big { padding: 0 16px; font-size: 14px; height: 48px; }
+  .menu-btn { width: 48px; height: 48px; }
+  .color-picker { width: 24px; height: 24px; }
+}
 </style>
 </head>
 <body>
@@ -173,6 +205,7 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
   </div>
   <div class="name-input-wrapper glass">
     <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
+    <!-- 顏色選擇器現在正確顯示了 -->
     <div class="color-picker" id="colorPicker" title="Change Color"></div>
   </div>
   <button class="btn-big" id="shareBtn">Share</button>
@@ -259,12 +292,6 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
   const layerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CARTO', noWrap: true });
   let currentLayer = 0;
 
-  // Drawing Tools
-  const drawnItems = new L.FeatureGroup();
-  map.addLayer(drawnItems);
-  new L.Control.Draw({ position: 'bottomleft', draw: { polyline: true, polygon: true, circle: false, marker: false, circlemarker: false }, edit: { featureGroup: drawnItems } }).addTo(map);
-  map.on(L.Draw.Event.CREATED, (e) => { drawnItems.addLayer(e.layer); });
-
   // 4. State
   const markers = {};
   const trails = {};
@@ -325,7 +352,15 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
     myColor = colors[(idx + 1) % colors.length];
     colorPicker.style.background = myColor;
     localStorage.setItem('myColor', myColor);
-    if (sharing) sendLocation({ coords: myMarker.getLatLng() });
+    if (sharing && myMarker) {
+      sendLocation({ coords: myMarker.getLatLng() });
+      // 重新繪製標記以套用新顏色
+      map.removeLayer(markers[myId]);
+      const marker = L.marker(myMarker.getLatLng(), { icon: makeIcon(myColor, localStorage.getItem('myName') || 'You', true) }).addTo(map);
+      marker.on('click', () => openUserInfo(myId, usersData[myId]));
+      markers[myId] = marker;
+      myMarker = marker;
+    }
   });
 
   document.getElementById('layerBtn').addEventListener('click', () => {
@@ -429,6 +464,7 @@ html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,3
   });
 
   function openUserInfo(id, u) {
+    if (!u) return;
     const isMe = id === myId;
     document.getElementById('mAvatar').textContent = getInitials(u.name);
     document.getElementById('mAvatar').style.background = u.color || '#3b5bdb';

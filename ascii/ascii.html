@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>CYBER ASCII CAM // Real-Time Matrix Video Camera</title>
+<link href="ascii.png" rel="apple-touch-icon" type="image/png">
 <style>
   :root{ --c:#00ff9c; --c2:#ff2bd6; --bg:rgba(4,10,14,.72); }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -21,7 +22,13 @@
       repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.18) 3px),
       radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(0,0,0,.65) 100%);}
 
-  #hud{position:fixed;top:14px;left:14px;z-index:10;width:300px;max-width:calc(100vw - 28px);
+  #scan{position:fixed;inset:0;pointer-events:none;z-index:6;display:none;
+    background:linear-gradient(to bottom,transparent 0%,rgba(0,255,156,.06) 48%,rgba(0,255,156,.14) 50%,rgba(0,255,156,.06) 52%,transparent 100%);
+    background-size:100% 200px;animation:scanMove 3s linear infinite;mix-blend-mode:screen;}
+  #scan.on{display:block}
+  @keyframes scanMove{0%{background-position:0 -200px}100%{background-position:0 100vh}}
+
+  #hud{position:fixed;top:14px;left:14px;z-index:10;width:320px;max-width:calc(100vw - 28px);
     padding:14px 14px 12px;background:var(--bg);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
     border:1px solid var(--c);box-shadow:0 0 14px rgba(0,255,156,.35),inset 0 0 18px rgba(0,255,156,.08);
     clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,16px 100%,0 calc(100% - 16px));
@@ -42,6 +49,9 @@
   button.on{background:var(--c);color:#001a0f;box-shadow:0 0 12px var(--c);font-weight:bold}
   button.snap{width:100%;margin-top:4px;border-color:var(--c2);color:var(--c2);background:rgba(255,43,214,.07);padding:12px}
   button.snap:hover{background:rgba(255,43,214,.25);box-shadow:0 0 14px var(--c2)}
+  button.rec{width:100%;margin-top:4px;border-color:#ff4466;color:#ff4466;background:rgba(255,68,102,.07);padding:12px}
+  button.rec:hover{background:rgba(255,68,102,.25);box-shadow:0 0 14px #ff4466}
+  button.rec.recording{background:#ff4466;color:#fff;animation:blink 1s steps(2) infinite}
   input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;outline:none;touch-action:pan-y;}
   input[type=range]::-webkit-slider-runnable-track{height:4px;background:rgba(0,255,156,.3);}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-7px;background:var(--c);
@@ -49,9 +59,10 @@
   input[type=range]::-moz-range-track{height:4px;background:rgba(0,255,156,.3);}
   input[type=range]::-moz-range-thumb{width:16px;height:16px;background:var(--c);border:none;border-radius:0;cursor:pointer}
   #stats{font-size:10px;opacity:.85;display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px dashed rgba(0,255,156,.45)}
-  #hint{font-size:9px;opacity:.55;margin-top:6px;letter-spacing:1px}
+  #hint{font-size:9px;opacity:.55;margin-top:6px;letter-spacing:1px;line-height:1.5}
 
   #toggle{position:fixed;top:14px;right:14px;z-index:11;width:auto;flex:none;padding:9px 12px;background:var(--bg);min-height:40px;}
+  #fstoggle{position:fixed;top:14px;right:70px;z-index:11;width:auto;flex:none;padding:9px 12px;background:var(--bg);min-height:40px;}
 
   #overlay{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .6s}
@@ -72,7 +83,12 @@
   #flash.go{animation:fl .35s ease-out}
   @keyframes fl{0%{opacity:.85}100%{opacity:0}}
 
-  /* 手機版調整 */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:40;
+    padding:10px 18px;background:rgba(0,0,0,.88);border:1px solid var(--c);color:var(--c);
+    font-size:12px;letter-spacing:2px;opacity:0;pointer-events:none;transition:.3s;
+    box-shadow:0 0 14px rgba(0,255,156,.5);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
   @media (max-width: 600px) {
     #hud{top:8px;left:8px;width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);
       padding:10px 10px 8px;}
@@ -83,14 +99,13 @@
     button{font-size:10px;padding:9px 6px;min-height:42px}
     button.snap{padding:12px}
     #toggle{top:8px;right:8px;padding:8px 10px;font-size:10px;min-height:42px}
+    #fstoggle{top:8px;right:72px;padding:8px 10px;font-size:10px;min-height:42px}
     #hint{font-size:8px}
     #stats{font-size:9px}
     #overlay .ring{width:90px;height:90px;margin-bottom:24px}
     #overlay h2{letter-spacing:3px}
     #overlay p{letter-spacing:1px;line-height:1.6}
   }
-
-  /* 矮螢幕（橫向手機） */
   @media (max-height: 520px) {
     #hud{top:6px;left:6px;max-height:calc(100vh - 12px);padding:8px}
     #hud h1{margin-bottom:6px;padding-bottom:4px;font-size:10px}
@@ -99,6 +114,7 @@
     button{padding:6px;min-height:36px;font-size:10px}
     button.snap{padding:8px}
     #toggle{top:6px;right:6px;padding:6px 8px;min-height:36px}
+    #fstoggle{top:6px;right:66px;padding:6px 8px;min-height:36px}
     #stats{margin-top:5px;padding-top:5px}
   }
 </style>
@@ -109,12 +125,15 @@
 <video id="video" playsinline muted autoplay></video>
 <canvas id="sampler"></canvas>
 <div id="crt"></div>
+<div id="scan"></div>
 <div id="flash"></div>
+<div id="toast"></div>
 
+<button id="fstoggle" title="Fullscreen (F)">[ ⛶ ]</button>
 <button id="toggle" title="Toggle HUD (H)">[ HUD ]</button>
 
 <div id="hud">
-  <h1>ASCII//CAM <span>v2.078</span></h1>
+  <h1>ASCII//CAM <span>v2.1</span></h1>
 
   <div class="grp">
     <div class="lbl"><span>CHARSET / DENSITY</span></div>
@@ -122,6 +141,8 @@
       <button data-i="0" class="on">Standard</button>
       <button data-i="1">Binary</button>
       <button data-i="2">Blocks</button>
+      <button data-i="3">Dots</button>
+      <button data-i="4">Matrix</button>
     </div>
   </div>
 
@@ -132,23 +153,64 @@
       <button data-i="1">Amber</button>
       <button data-i="2">Neon</button>
       <button data-i="3">True RGB</button>
+      <button data-i="4">Invert</button>
+      <button data-i="5">Rainbow</button>
     </div>
   </div>
 
   <div class="grp">
     <div class="lbl"><span>FONT SIZE / RESOLUTION</span><b id="sizeVal">12px</b></div>
-    <input type="range" id="size" min="8" max="24" step="1" value="12">
+    <input type="range" id="size" min="6" max="28" step="1" value="12">
   </div>
 
   <div class="grp">
-    <div class="lbl"><span>CONTRAST / BRIGHTNESS</span><b id="conVal">1.45</b></div>
+    <div class="lbl"><span>CONTRAST</span><b id="conVal">1.45</b></div>
     <input type="range" id="con" min="0.5" max="3.0" step="0.05" value="1.45">
   </div>
 
+  <div class="grp">
+    <div class="lbl"><span>BRIGHTNESS (GAMMA)</span><b id="briVal">0.85</b></div>
+    <input type="range" id="bri" min="0.4" max="1.4" step="0.05" value="0.85">
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>GLITCH INTENSITY</span><b id="gliVal">0%</b></div>
+    <input type="range" id="gli" min="0" max="100" step="1" value="0">
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>EFFECTS</span></div>
+    <div class="row" id="fxBtns">
+      <button data-i="mirror" class="on">Mirror</button>
+      <button data-i="scan">Scanline</button>
+      <button data-i="invert">Invert</button>
+      <button data-i="auto">Auto-Lvl</button>
+      <button data-i="watermark">Watermark</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>FPS CAP</span></div>
+    <div class="row" id="fpsBtns">
+      <button data-i="15">15</button>
+      <button data-i="24">24</button>
+      <button data-i="30" class="on">30</button>
+      <button data-i="60">60</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>CAMERA</span></div>
+    <div class="row">
+      <button id="switchCam">Switch Cam</button>
+    </div>
+  </div>
+
   <button class="snap" id="snap">◉ SNAPSHOT / SAVE PNG</button>
+  <button class="rec" id="rec">● RECORD / STOP (WEBM)</button>
 
   <div id="stats"><span id="fps">FPS --</span><span id="grid">GRID --</span></div>
-  <div id="hint">H: toggle panel · SPACE: snapshot</div>
+  <div id="hint">H: HUD · F: fullscreen · SPACE: snap · R: record · C: cam · M: mirror · 1-5: charset · Q/W/E/R/T/Y: color</div>
 </div>
 
 <div id="overlay">
@@ -173,22 +235,26 @@
   const errEl   = document.getElementById('err');
   const hud     = document.getElementById('hud');
   const flashEl = document.getElementById('flash');
+  const scanEl  = document.getElementById('scan');
+  const toastEl = document.getElementById('toast');
 
   // ---------- Config ----------
   const CHARSETS = [
-    '@#$%=+*:-. ',
-    '10 ',
-    '█▓▒░#+*:. '
+    '@#$%=+*:-. ',          // standard
+    '10 ',                   // binary
+    '█▓▒░#+*:. ',            // blocks
+    '●◉◎○·. ',               // dots
+    'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉ ' // katakana matrix
   ];
   const AMBER = '#ffb000', GREEN = '#00ff9c';
-  const TARGET_FPS = 30;
-  const FRAME_MS = 1000 / TARGET_FPS;
   const FONT_FAMILY = '"Courier New", ui-monospace, Menlo, Consolas, monospace';
   const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
                      (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && window.innerWidth < 900);
 
   const state = {
-    set: 0, color: 0, size: 12, contrast: 1.45,
+    set: 0, color: 0, size: 12, contrast: 1.45, brightness: 0.85, glitch: 0,
+    fpsCap: 30,
+    mirror: true, scan: false, invert: false, autoLevel: false, watermark: false,
     cols: 0, rows: 0, charW: 8, lineH: 12, W: 0, H: 0, dpr: 1
   };
 
@@ -197,10 +263,43 @@
   let stream = null;
   let started = false;
   let facingMode = IS_MOBILE ? 'environment' : 'user';
+  let recorder = null;
+  let recChunks = [];
+  let recording = false;
+
+  // ---------- Persistence ----------
+  const PERSIST_KEY = 'ascii-cam-v2.1';
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(PERSIST_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      Object.keys(saved).forEach(k => {
+        if (k in state && typeof state[k] !== 'undefined') state[k] = saved[k];
+      });
+    } catch (e) { /* ignore */ }
+  }
+  function saveState() {
+    try {
+      const toSave = {};
+      ['set','color','size','contrast','brightness','glitch','fpsCap',
+       'mirror','scan','invert','autoLevel','watermark'].forEach(k => toSave[k] = state[k]);
+      localStorage.setItem(PERSIST_KEY, JSON.stringify(toSave));
+    } catch (e) { /* ignore */ }
+  }
+
+  // ---------- Toast ----------
+  let toastTimer = null;
+  function toast(msg, ms = 1600) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
+  }
 
   // ---------- Layout / Grid ----------
   function setupGrid() {
-    const dpr = Math.min(window.devicePixelRatio || 1, IS_MOBILE ? 2 : 2);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const W = window.innerWidth, H = window.innerHeight;
     state.dpr = dpr; state.W = W; state.H = H;
 
@@ -225,13 +324,12 @@
     document.getElementById('grid').textContent = 'GRID ' + state.cols + '×' + state.rows;
   }
 
-  // Neon palette
   function buildNeonPalette() {
     neonPalette = [];
     for (let cb = 0; cb < 16; cb++) {
       const hue = 330 - (cb / 15) * 55;
       for (let lb = 0; lb < 8; lb++) {
-        const light = 42 + (lb / 7) * 42; // 稍微提亮
+        const light = 42 + (lb / 7) * 42;
         neonPalette.push('hsl(' + hue.toFixed(0) + ',100%,' + light.toFixed(0) + '%)');
       }
     }
@@ -241,7 +339,6 @@
     const k = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
     let s = rgbCache[k];
     if (!s) {
-      // 亮度補償：避免 True RGB 模式過暗
       const boost = 1.12;
       const rr = Math.min(255, Math.round((((r >> 4) << 4) + 8) * boost));
       const gg = Math.min(255, Math.round((((g >> 4) << 4) + 8) * boost));
@@ -250,6 +347,20 @@
       rgbCache[k] = s;
     }
     return s;
+  }
+
+  // ---------- Auto-level ----------
+  let autoLumMin = 0, autoLumMax = 1;
+  function updateAutoLevel(data) {
+    let min = 255, max = 0;
+    const step = 16;
+    for (let p = 0; p < data.length; p += 4 * step) {
+      const l = 0.2126 * data[p] + 0.7152 * data[p+1] + 0.0722 * data[p+2];
+      if (l < min) min = l;
+      if (l > max) max = l;
+    }
+    autoLumMin = min / 255;
+    autoLumMax = Math.max(0.05, max / 255);
   }
 
   // ---------- Sampling ----------
@@ -267,8 +378,10 @@
     }
 
     sctx.save();
-    sctx.translate(state.cols, 0);
-    sctx.scale(-1, 1);
+    if (state.mirror) {
+      sctx.translate(state.cols, 0);
+      sctx.scale(-1, 1);
+    }
     sctx.drawImage(video, sx, sy, sw, sh, 0, 0, state.cols, state.rows);
     sctx.restore();
 
@@ -280,24 +393,31 @@
     const data = sampleVideo();
     if (!data) return;
 
-    const { cols, rows, charW, lineH, W, H, color, contrast } = state;
+    if (state.autoLevel) updateAutoLevel(data);
+
+    const { cols, rows, charW, lineH, W, H, color, contrast, brightness, glitch } = state;
     const chars = CHARSETS[state.set];
     const n = chars.length;
 
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = state.invert ? '#ffffff' : '#000';
     ctx.fillRect(0, 0, W, H);
 
-    // 亮度提高：gamma 校正 + 對比
-    const gamma = 0.85;
+    const gamma = brightness;
+    const glitchActive = glitch > 0;
+    const glitchProb = glitch / 100 * 0.35;
 
-    if (color === 0) {
-      ctx.fillStyle = GREEN;
-      ctx.shadowColor = 'rgba(0,255,156,0.55)';
-      ctx.shadowBlur = 4;
+    if (color === 0 || color === 4) {
+      ctx.fillStyle = state.invert ? '#000' : GREEN;
+      if (!state.invert) {
+        ctx.shadowColor = 'rgba(0,255,156,0.55)';
+        ctx.shadowBlur = 4;
+      }
     } else if (color === 1) {
-      ctx.fillStyle = AMBER;
-      ctx.shadowColor = 'rgba(255,176,0,0.55)';
-      ctx.shadowBlur = 4;
+      ctx.fillStyle = state.invert ? '#000' : AMBER;
+      if (!state.invert) {
+        ctx.shadowColor = 'rgba(255,176,0,0.55)';
+        ctx.shadowBlur = 4;
+      }
     } else {
       ctx.shadowBlur = 0;
       ctx.shadowColor = 'transparent';
@@ -306,21 +426,36 @@
     let lastStyle = '';
     let p = 0;
 
+    const aMin = autoLumMin, aMax = autoLumMax;
+    const aRange = Math.max(0.0001, aMax - aMin);
+
     for (let y = 0; y < rows; y++) {
       const py = y * lineH;
       for (let x = 0; x < cols; x++, p += 4) {
         const r = data[p], g = data[p + 1], b = data[p + 2];
 
         let l = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-        // Gamma 提亮暗部
+
+        if (state.autoLevel) {
+          l = (l - aMin) / aRange;
+          l = l < 0 ? 0 : l > 1 ? 1 : l;
+        }
+
         l = Math.pow(l, gamma);
         l = (l - 0.5) * contrast + 0.5;
         l = l < 0 ? 0 : l > 1 ? 1 : l;
 
-        // 非線性密度映射：亮部更容易出現高密度字元
-        const idx = Math.round(Math.pow(1 - l, 0.9) * (n - 1));
-        const ch = chars[idx];
+        if (state.invert && (color === 0 || color === 1 || color === 4)) {
+          l = 1 - l;
+        }
+
+        let idx = Math.round(Math.pow(1 - l, 0.9) * (n - 1));
+        let ch = chars[idx];
         if (ch === ' ') continue;
+
+        if (glitchActive && Math.random() < glitchProb) {
+          ch = chars[(Math.random() * n) | 0];
+        }
 
         if (color === 2) {
           const cb = Math.min(15, ((x / cols) * 0.6 + (y / rows) * 0.4) * 16 | 0);
@@ -330,15 +465,37 @@
         } else if (color === 3) {
           const st = rgbString(r, g, b);
           if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
+        } else if (color === 5) {
+          const hue = (x / cols) * 300 + (y / rows) * 60 + performance.now() * 0.05;
+          const light = 40 + l * 45;
+          const st = 'hsl(' + (hue % 360).toFixed(0) + ',100%,' + light.toFixed(0) + '%)';
+          if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
         }
 
-        ctx.fillText(ch, x * charW, py);
+        let gx = x * charW, gy = py;
+        if (glitchActive && Math.random() < glitchProb * 0.5) {
+          gx += (Math.random() - 0.5) * state.size * 2;
+          gy += (Math.random() - 0.5) * state.size;
+        }
+
+        ctx.fillText(ch, gx, gy);
       }
     }
 
-    // 重置 shadow，避免影響其他繪製
     ctx.shadowBlur = 0;
     ctx.shadowColor = 'transparent';
+
+    if (state.watermark) {
+      const d = new Date();
+      const pad = v => String(v).padStart(2, '0');
+      const ts = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' +
+                 pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+      ctx.font = Math.max(10, state.size * 0.8) + 'px ' + FONT_FAMILY;
+      ctx.textBaseline = 'bottom';
+      ctx.fillStyle = 'rgba(0,255,156,0.65)';
+      ctx.fillText('ASCII//CAM · ' + ts, 12, state.H - 12);
+      ctx.textBaseline = 'top';
+    }
   }
 
   // ---------- Main loop ----------
@@ -346,7 +503,8 @@
   function loop(now) {
     requestAnimationFrame(loop);
     if (!started) return;
-    if (now - lastT < FRAME_MS - 1) return;
+    const frameMs = 1000 / state.fpsCap;
+    if (now - lastT < frameMs - 1) return;
     lastT = now;
 
     render();
@@ -368,10 +526,9 @@
     try {
       if (stream) stream.getTracks().forEach(t => t.stop());
 
-      // 手機優先後鏡頭，失敗則回退前鏡頭
       const attempts = IS_MOBILE
-        ? [{ facingMode: { ideal: 'environment' } }, { facingMode: 'user' }]
-        : [{ facingMode: 'user' }];
+        ? [{ facingMode: { ideal: facingMode } }, { facingMode: facingMode === 'environment' ? 'user' : 'environment' }, {}]
+        : [{ facingMode: { ideal: facingMode } }, {}];
 
       let lastErr = null;
       for (const videoConstraints of attempts) {
@@ -383,9 +540,6 @@
             }, videoConstraints),
             audio: false
           });
-          facingMode = videoConstraints.facingMode && videoConstraints.facingMode.ideal
-            ? videoConstraints.facingMode.ideal
-            : videoConstraints.facingMode;
           break;
         } catch (e) {
           lastErr = e;
@@ -410,6 +564,12 @@
     }
   }
 
+  async function switchCamera() {
+    facingMode = facingMode === 'user' ? 'environment' : 'user';
+    await startCamera();
+    toast('CAM: ' + facingMode.toUpperCase());
+  }
+
   // ---------- Snapshot ----------
   function snapshot() {
     if (!started) return;
@@ -431,44 +591,224 @@
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
+      toast('SNAPSHOT SAVED');
     }, 'image/png');
   }
 
+  // ---------- Recording ----------
+  function toggleRecording() {
+    if (!started) return;
+    if (!window.MediaRecorder) {
+      toast('REC NOT SUPPORTED');
+      return;
+    }
+    if (recording) {
+      stopRecording();
+      return;
+    }
+    try {
+      const streamToRec = screen.captureStream(state.fpsCap);
+      const mimeCandidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+      let mime = '';
+      for (const m of mimeCandidates) {
+        if (MediaRecorder.isTypeSupported(m)) { mime = m; break; }
+      }
+      if (!mime) { toast('REC NOT SUPPORTED'); return; }
+
+      recChunks = [];
+      recorder = new MediaRecorder(streamToRec, { mimeType: mime, videoBitsPerSecond: 4_000_000 });
+      recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(recChunks, { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const d = new Date();
+        const pad = v => String(v).padStart(2, '0');
+        a.href = url;
+        a.download = 'ascii-cam-rec-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
+                     '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + '.webm';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+        toast('REC SAVED');
+      };
+      recorder.start(1000);
+      recording = true;
+      const btn = document.getElementById('rec');
+      btn.classList.add('recording');
+      btn.textContent = '■ STOP RECORDING';
+      toast('RECORDING…');
+    } catch (e) {
+      toast('REC ERROR');
+      console.error(e);
+    }
+  }
+
+  function stopRecording() {
+    if (recorder && recording) {
+      recorder.stop();
+      recorder = null;
+      recording = false;
+      const btn = document.getElementById('rec');
+      btn.classList.remove('recording');
+      btn.textContent = '● RECORD / STOP (WEBM)';
+    }
+  }
+
+  // ---------- Fullscreen ----------
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      const el = document.documentElement;
+      const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+      if (req) req.call(el).catch(() => toast('FULLSCREEN FAILED'));
+    } else {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if (exit) exit.call(document);
+    }
+  }
+
   // ---------- UI wiring ----------
-  function bindGroup(id, key) {
+  function bindGroup(id, key, cast = Number) {
     const wrap = document.getElementById(id);
     wrap.addEventListener('click', e => {
       const b = e.target.closest('button');
       if (!b) return;
-      state[key] = +b.dataset.i;
+      state[key] = cast(b.dataset.i);
       wrap.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
       b.blur();
+      saveState();
     });
   }
   bindGroup('setBtns', 'set');
   bindGroup('colBtns', 'color');
+  bindGroup('fpsBtns', 'fpsCap');
+
+  const fxWrap = document.getElementById('fxBtns');
+  fxWrap.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const key = b.dataset.i;
+    state[key] = !state[key];
+    b.classList.toggle('on', state[key]);
+    if (key === 'scan') scanEl.classList.toggle('on', state.scan);
+    b.blur();
+    saveState();
+  });
 
   const sizeEl = document.getElementById('size');
   const conEl = document.getElementById('con');
+  const briEl = document.getElementById('bri');
+  const gliEl = document.getElementById('gli');
+
   sizeEl.addEventListener('input', () => {
     state.size = +sizeEl.value;
     document.getElementById('sizeVal').textContent = state.size + 'px';
     setupGrid();
+    saveState();
   });
   conEl.addEventListener('input', () => {
     state.contrast = +conEl.value;
     document.getElementById('conVal').textContent = state.contrast.toFixed(2);
+    saveState();
+  });
+  briEl.addEventListener('input', () => {
+    state.brightness = +briEl.value;
+    document.getElementById('briVal').textContent = state.brightness.toFixed(2);
+    saveState();
+  });
+  gliEl.addEventListener('input', () => {
+    state.glitch = +gliEl.value;
+    document.getElementById('gliVal').textContent = state.glitch + '%';
+    saveState();
   });
 
   document.getElementById('snap').addEventListener('click', e => { snapshot(); e.target.blur(); });
+  document.getElementById('rec').addEventListener('click', e => { toggleRecording(); e.target.blur(); });
   document.getElementById('retry').addEventListener('click', startCamera);
+  document.getElementById('switchCam').addEventListener('click', e => { switchCamera(); e.target.blur(); });
   document.getElementById('toggle').addEventListener('click', e => { hud.classList.toggle('hidden'); e.target.blur(); });
+  document.getElementById('fstoggle').addEventListener('click', e => { toggleFullscreen(); e.target.blur(); });
 
+  // ---------- Keyboard ----------
   window.addEventListener('keydown', e => {
-    if (e.key === 'h' || e.key === 'H') hud.classList.toggle('hidden');
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    const k = e.key.toLowerCase();
+    if (k === 'h') hud.classList.toggle('hidden');
+    else if (k === 'f') toggleFullscreen();
     else if (e.code === 'Space') { e.preventDefault(); snapshot(); }
+    else if (k === 'r') toggleRecording();
+    else if (k === 'c') switchCamera();
+    else if (k === 'm') {
+      state.mirror = !state.mirror;
+      document.querySelector('#fxBtns [data-i="mirror"]').classList.toggle('on', state.mirror);
+      saveState();
+      toast('MIRROR ' + (state.mirror ? 'ON' : 'OFF'));
+    }
+    else if ('12345'.includes(k)) {
+      const i = +k - 1;
+      if (i < CHARSETS.length) {
+        state.set = i;
+        document.querySelectorAll('#setBtns button').forEach((b, idx) => b.classList.toggle('on', idx === i));
+        saveState();
+      }
+    }
+    else if ('qwerty'.includes(k)) {
+      const map = { q:0, w:1, e:2, r:3, t:4, y:5 };
+      const i = map[k];
+      if (i !== undefined) {
+        state.color = i;
+        document.querySelectorAll('#colBtns button').forEach((b, idx) => b.classList.toggle('on', idx === i));
+        saveState();
+      }
+    }
   });
 
+  // ---------- Touch gestures ----------
+  let touchStartDist = 0;
+  let touchStartSize = state.size;
+  let lastTap = 0;
+  window.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      touchStartDist = Math.hypot(dx, dy);
+      touchStartSize = state.size;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', e => {
+    if (e.touches.length === 2 && touchStartDist > 0) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const scale = dist / touchStartDist;
+      let newSize = Math.round(touchStartSize * scale);
+      newSize = Math.max(6, Math.min(28, newSize));
+      if (newSize !== state.size) {
+        state.size = newSize;
+        sizeEl.value = newSize;
+        document.getElementById('sizeVal').textContent = newSize + 'px';
+        setupGrid();
+        saveState();
+      }
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchend', () => { touchStartDist = 0; });
+
+  window.addEventListener('touchend', e => {
+    if (e.touches.length === 0) {
+      const now = Date.now();
+      if (now - lastTap < 300 && e.target === screen) {
+        hud.classList.toggle('hidden');
+      }
+      lastTap = now;
+    }
+  }, { passive: true });
+
+  // ---------- Resize / visibility ----------
   let rt;
   const onResize = () => { clearTimeout(rt); rt = setTimeout(setupGrid, 120); };
   window.addEventListener('resize', onResize);
@@ -486,8 +826,28 @@
   });
 
   // ---------- Boot ----------
+  loadState();
   buildNeonPalette();
   setupGrid();
+
+  function syncUI() {
+    sizeEl.value = state.size;
+    document.getElementById('sizeVal').textContent = state.size + 'px';
+    conEl.value = state.contrast;
+    document.getElementById('conVal').textContent = state.contrast.toFixed(2);
+    briEl.value = state.brightness;
+    document.getElementById('briVal').textContent = state.brightness.toFixed(2);
+    gliEl.value = state.glitch;
+    document.getElementById('gliVal').textContent = state.glitch + '%';
+
+    document.querySelectorAll('#setBtns button').forEach((b, idx) => b.classList.toggle('on', idx === state.set));
+    document.querySelectorAll('#colBtns button').forEach((b, idx) => b.classList.toggle('on', idx === state.color));
+    document.querySelectorAll('#fpsBtns button').forEach(b => b.classList.toggle('on', +b.dataset.i === state.fpsCap));
+    document.querySelectorAll('#fxBtns button').forEach(b => b.classList.toggle('on', !!state[b.dataset.i]));
+    scanEl.classList.toggle('on', state.scan);
+  }
+  syncUI();
+
   requestAnimationFrame(loop);
   startCamera();
 })();

@@ -163,10 +163,10 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 }
 .mode-indicator.active { display: block; animation: popIn 0.3s; }
 
-/* ★ Ping 視覺提示橫幅 (修正完全隱藏) ★ */
+/* Ping 視覺提示橫幅 */
 .ping-banner {
   position: fixed; top: max(20px, env(safe-area-inset-top)); left: 50%; 
-  transform: translate(-50%, -200px); /* 強制移出畫面 */
+  transform: translate(-50%, -200px);
   z-index: 9999; padding: 16px 32px; border-radius: var(--pill);
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff; font-weight: 800; font-size: 16px;
@@ -177,7 +177,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 }
 .ping-banner.show { transform: translate(-50%, 0); opacity: 1; }
 
-/* 聊天室與 SOS 的 Overlay (省略部分細節以保持精簡) */
+/* 聊天室與 SOS 的 Overlay */
 .chat-container { display: flex; flex-direction: column; height: 100%; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
 .chat-input-area { padding: 12px; display: flex; gap: 8px; border-top: 1px solid rgba(128,128,128,0.2); }
@@ -227,7 +227,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     </button>
   </div>
   
-  <!-- 分頁切換 -->
   <div style="display:flex; padding: 0 16px; gap:10px; border-bottom:1px solid rgba(128,128,128,0.2);">
     <button id="tabRadar" class="interactive" style="flex:1; padding:12px; border:none; background:none; border-bottom: 3px solid var(--accent); font-weight:800; color:var(--accent);">Radar</button>
     <button id="tabChat" class="interactive" style="flex:1; padding:12px; border:none; background:none; border-bottom: 3px solid transparent; font-weight:800; color:var(--text-muted);">Chat</button>
@@ -340,9 +339,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   }
   let myColor = localStorage.getItem('myColor') || '#3b5bdb';
 
-  // 3. Map Setup
+  // ★ 3. Map Setup (移除了所有縮放限制，可以無限放大) ★
   const map = L.map('map', { 
-    zoomControl: false, maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0, worldCopyJump: false, minZoom: 3
+    zoomControl: false,
+    minZoom: 2,      // 允許縮小到全球視角
+    maxZoom: 22,     // 允許超級放大 (OSM 原始圖層極限約在 19，但 Leaflet 允許放更大)
+    maxBoundsViscosity: 0.0 // 移除邊界黏性，讓地圖可以自由拖拽
   }).setView([25.033, 121.5654], 15);
   
   L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
@@ -733,7 +735,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     document.getElementById('mBatt').textContent = isMe ? (myBattery || 'Unknown') : 'Unknown';
     
     document.getElementById('focusBtn').onclick = () => {
-      map.flyTo([u.lat, u.lng], 18, { duration: 1 });
+      map.flyTo([u.lat, u.lng], 19, { duration: 1 }); // 點擊聚焦時，放大到 19 級
       document.getElementById('infoModal').classList.remove('show');
       toggleSidebar(false);
     };

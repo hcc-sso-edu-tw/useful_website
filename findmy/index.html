@@ -199,11 +199,19 @@ body {
     localStorage.setItem('findMyId', myId);
   }
 
-  // 3. Map Setup
-  const map = L.map('map', { zoomControl: false }).setView([25.033, 121.5654], 15);
+  // 3. Map Setup (限制邊界，防止無限滑動)
+  const map = L.map('map', { 
+    zoomControl: false,
+    maxBounds: [[-90, -180], [90, 180]], // 限制在地球範圍內
+    maxBoundsViscosity: 1.0,             // 黏性最高，滑到底會直接卡住
+    worldCopyJump: false,                // 禁止跨換日線無限複製地圖
+    minZoom: 3                           // 最小縮放級別，防止縮太小看到一堆重複地圖
+  }).setView([25.033, 121.5654], 15);
+  
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
+    attribution: '&copy; OpenStreetMap',
+    noWrap: true // 禁止水平無限延伸
   }).addTo(map);
 
   const markers = {};
@@ -235,14 +243,13 @@ body {
     });
   }
 
-  // ★ 5. Firebase Sync (包含自動清理過期資料) ★
+  // 5. Firebase Sync
   usersRef.on('value', (snap) => {
     const users = snap.val() || {};
     const now = Date.now();
     const online = {};
     
     Object.keys(users).forEach(id => {
-      // 只有 2 分鐘內更新過的才算在線
       if (users[id] && users[id].updatedAt && now - users[id].updatedAt < 120000) {
         online[id] = users[id];
       }
@@ -281,7 +288,21 @@ body {
     });
   });
 
-  // ★ 6. 無限使用機制：自動清理資料庫舊資料 ★
+  // ★ 6. 核心修正：當關閉網頁或斷線時，瞬間清除 Pin ★
+  function setupOnDisconnect() {
+    // 使用 Firebase 的 onDisconnect 機制，只要伺服器發現客戶端斷線，就會自動刪除該節點
+    usersRef.child(myId).onDisconnect().remove();
+  }
+
+  // 點擊關閉分頁、重新整理或手機切換 App 時觸發
+  window.addEventListener('beforeunload', () => {
+    usersRef.child(myId).remove();
+  });
+  window.addEventListener('pagehide', () => {
+    usersRef.child(myId).remove();
+  });
+
+  // 自動清理殘留資料（防呆機制，防止極端情況下 onDisconnect 沒觸發）
   function startCleanup() {
     if (cleanupTimer) clearInterval(cleanupTimer);
     cleanupTimer = setInterval(() => {
@@ -289,13 +310,12 @@ body {
         const users = snap.val() || {};
         const now = Date.now();
         Object.keys(users).forEach(id => {
-          // 如果有超過 5 分鐘沒更新的殘留資料，直接刪除，防止資料庫塞爆
           if (users[id] && users[id].updatedAt && now - users[id].updatedAt > 300000) {
             usersRef.child(id).remove();
           }
         });
       });
-    }, 60000); // 每 60 秒執行一次清理
+    }, 60000); 
   }
   startCleanup();
 
@@ -338,7 +358,10 @@ body {
         shareBtn.classList.add('active');
         statusEl.textContent = 'Live Sharing Active';
         
+        // 註冊斷線自動刪除
+        setupOnDisconnect();
         requestWakeLock();
+
         sendLocation(pos);
         map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { duration: 1.5 });
 
@@ -348,7 +371,6 @@ body {
           { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
         );
 
-        // 每 15 秒發送心跳，保持連線
         heartbeatTimer = setInterval(() => {
           if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() });
         }, 15000);
@@ -387,13 +409,6 @@ body {
       delete markers[myId]; 
     }
   }
-
-  window.addEventListener('beforeunload', () => {
-    if (sharing) {
-      usersRef.child(myId).remove();
-      releaseWakeLock();
-    }
-  });
 </script>
 </body>
 </html>

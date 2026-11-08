@@ -250,8 +250,17 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 <div class="mode-indicator glass" id="modeIndicator"></div>
 
 <div class="map-controls">
+  <!-- 重新設計的簡約尺圖示 -->
   <button class="ctrl-btn glass interactive" id="measureBtn" title="Measure Distance">
-    <svg viewBox="0 0 24 24"><path d="M2 22l1-1h3l-1 1H2zM6 22l1-1h3l-1 1H6zM10 22l1-1h3l-1 1h-3zM14 22l1-1h3l-1 1h-3zM18 22l1-1h3l-1 1h-3zM22 22V12l-2 2v6h-6l-2 2h10zM14 2v8l2 2V6h6l2-2H14zM2 14v8h8l2-2H6v-4l-2-2zM2 2v8l2-2V6h4l2-2H2z"/></svg>
+    <svg viewBox="0 0 24 24">
+      <path d="M2 17h20v3H2z" fill="currentColor" stroke="none"/>
+      <line x1="5" y1="17" x2="5" y2="14"/>
+      <line x1="8" y1="17" x2="8" y2="15"/>
+      <line x1="11" y1="17" x2="11" y2="14"/>
+      <line x1="14" y1="17" x2="14" y2="15"/>
+      <line x1="17" y1="17" x2="17" y2="14"/>
+      <line x1="20" y1="17" x2="20" y2="15"/>
+    </svg>
   </button>
   <button class="ctrl-btn glass interactive" id="layerBtn" title="Change Map Layer">
     <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
@@ -323,9 +332,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
   const layerOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', noWrap: true }).addTo(map);
   const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true });
-  // ★ 修正：替換為免 Key 的 Stadia 深色圖層 ★
-  const layerDark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', { attribution: '&copy; Stadia Maps', noWrap: true });
-  let currentLayer = 0;
+  let isSatellite = false;
 
   // 4. State
   const markers = {};
@@ -341,9 +348,10 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   let lastRenderedIds = new Set();
 
   // 測距狀態
-  let isMeasuring = false;
+  let measureMode = 0; // 0: 關閉, 1: 測距中, 2: 顯示結果
   let measurePoints = [];
   let measureLayerGroup = new L.FeatureGroup().addTo(map);
+  let finalMeasureText = '';
 
   const nameInput = document.getElementById('nameInput');
   const shareBtn = document.getElementById('shareBtn');
@@ -426,42 +434,51 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   });
 
   function addMeasurePoint(latlng) {
-    if (!isMeasuring) return;
+    if (measureMode !== 1) return;
     measurePoints.push(latlng);
     L.marker(latlng, { icon: measureDotIcon, interactive: false }).addTo(measureLayerGroup);
     
     if (measurePoints.length > 1) {
-      // 畫線
       L.polyline(measurePoints, { color: '#f59e0b', dashArray: '5, 8', weight: 3 }).addTo(measureLayerGroup);
-      // 計算總距離
       let total = 0;
       for (let i = 0; i < measurePoints.length - 1; i++) {
         total += calcDist(measurePoints[i].lat, measurePoints[i].lng, measurePoints[i+1].lat, measurePoints[i+1].lng);
       }
-      modeIndicator.textContent = `Total Distance: ${total.toFixed(2)} km`;
+      finalMeasureText = `Total Distance: ${total.toFixed(2)} km`;
+      modeIndicator.textContent = finalMeasureText;
     } else {
       modeIndicator.textContent = 'Point set. Tap map to add another.';
     }
   }
 
-  // 攔截地圖點擊事件
-  map.on('click', (e) => {
-    addMeasurePoint(e.latlng);
-  });
+  map.on('click', (e) => { addMeasurePoint(e.latlng); });
 
   measureBtn.addEventListener('click', () => {
-    isMeasuring = !isMeasuring;
-    modeIndicator.classList.toggle('active', isMeasuring);
-    measureBtn.classList.toggle('active', isMeasuring);
-    if (isMeasuring) {
+    if (measureMode === 0) {
+      // 狀態 0 -> 1: 開始測距
+      measureMode = 1;
+      measureBtn.classList.add('active');
+      modeIndicator.classList.add('active');
       modeIndicator.textContent = 'Tap map or a person to start measuring.';
-      map.getContainer().style.cursor = 'crosshair'; // 改變游標
+      map.getContainer().style.cursor = 'crosshair';
+    } else if (measureMode === 1) {
+      // 狀態 1 -> 2: 結束測距，顯示結果
+      measureMode = 2;
+      measureBtn.classList.remove('active');
+      map.getContainer().style.cursor = '';
+      if (measurePoints.length < 2) {
+        modeIndicator.textContent = 'Not enough points.';
+        setTimeout(() => modeIndicator.classList.remove('active'), 2000);
+      } else {
+        modeIndicator.textContent = finalMeasureText;
+      }
     } else {
-      modeIndicator.textContent = '';
-      map.getContainer().style.cursor = ''; // 恢復游標
-      // 清除所有測距痕跡
+      // 狀態 2 -> 0: 清除並關閉
+      measureMode = 0;
+      modeIndicator.classList.remove('active');
       measureLayerGroup.clearLayers();
       measurePoints = [];
+      finalMeasureText = '';
     }
   });
 
@@ -477,7 +494,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       map.removeLayer(markers[myId]);
       const marker = L.marker(myMarker.getLatLng(), { icon: makeIcon(myColor, localStorage.getItem('myName') || 'You', true) }).addTo(map);
       marker.on('click', (e) => {
-        if (isMeasuring) { addMeasurePoint(e.latlng); L.DomEvent.stopPropagation(e); }
+        if (measureMode === 1) { addMeasurePoint(e.latlng); L.DomEvent.stopPropagation(e); }
         else openUserInfo(myId, usersData[myId]);
       });
       markers[myId] = marker;
@@ -486,9 +503,14 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   });
 
   document.getElementById('layerBtn').addEventListener('click', () => {
-    map.removeLayer([layerOSM, layerSat, layerDark][currentLayer]);
-    currentLayer = (currentLayer + 1) % 3;
-    map.addLayer([layerOSM, layerSat, layerDark][currentLayer]);
+    if (isSatellite) {
+      map.removeLayer(layerSat);
+      map.addLayer(layerOSM);
+    } else {
+      map.removeLayer(layerOSM);
+      map.addLayer(layerSat);
+    }
+    isSatellite = !isSatellite;
   });
 
   document.getElementById('fullscreenBtn').addEventListener('click', () => {
@@ -542,11 +564,9 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
           </div>
         `;
         card.onclick = () => {
-          // 若在測距模式點側邊欄，直接將該人位置作為測距點
-          if (isMeasuring) { addMeasurePoint(L.latLng(u.lat, u.lng)); toggleSidebar(false); }
+          if (measureMode === 1) { addMeasurePoint(L.latLng(u.lat, u.lng)); toggleSidebar(false); }
           else openUserInfo(id, usersData[id]);
         };
-        // Ripple for new cards
         card.addEventListener('pointerdown', function(e) {
           const rect = this.getBoundingClientRect();
           const x = e.clientX - rect.left, y = e.clientY - rect.top;
@@ -590,11 +610,10 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       else {
         const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe) }).addTo(map);
         
-        // ★ 核心修改：點擊 Marker 時的行為判斷 ★
         marker.on('click', (e) => {
-          if (isMeasuring) {
+          if (measureMode === 1) {
             addMeasurePoint(e.latlng);
-            L.DomEvent.stopPropagation(e); // 阻止地圖的點擊事件被二次觸發
+            L.DomEvent.stopPropagation(e);
           } else {
             openUserInfo(id, usersData[id]);
           }

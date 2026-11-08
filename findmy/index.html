@@ -41,7 +41,6 @@ body {
   touch-action: manipulation;
 }
 
-/* 背景漸層 */
 .bg-stage { position: fixed; inset: 0; z-index: -3; overflow: hidden; background: var(--bg-root); }
 .bg-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .6; animation: float 20s infinite alternate; }
 .bg-blob.b1 { left: -20vmax; top: -20vmax; background: radial-gradient(circle, #ff7aa8 0%, transparent 60%); }
@@ -49,15 +48,12 @@ body {
 .bg-blob.b3 { left: 30vw; top: 30vh; background: radial-gradient(circle, #ffce5c 0%, transparent 60%); animation-duration: 25s; }
 @keyframes float { 100% { transform: translate(5vw, 5vh) scale(1.1); } }
 
-/* 地圖 */
 #map { flex: 1; width: 100%; height: 100%; z-index: 1; background: transparent; }
 .leaflet-div-icon { background: transparent !important; border: none !important; }
 
-/* 小地圖 */
 .leaflet-control-minimap { border: 2px solid rgba(255,255,255,0.8) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important; border-radius: 16px !important; overflow: hidden; margin-bottom: 20px !important; margin-right: 16px !important; }
 html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,255,0.2) !important; }
 
-/* 毛玻璃 */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -65,7 +61,6 @@ html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,25
   border-radius: var(--radius); position: relative; overflow: hidden;
 }
 
-/* 互動 */
 .interactive {
   cursor: pointer; position: relative; overflow: hidden; user-select: none;
   transition: transform 0.2s var(--ease), box-shadow 0.3s var(--ease), background 0.3s;
@@ -78,7 +73,6 @@ html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,25
 html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
 @keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
 
-/* 側邊欄 */
 .sidebar {
   position: absolute; top: 0; left: 0; bottom: 0; width: 360px; max-width: 90vw;
   z-index: 1500; transform: translateX(-110%); transition: transform 0.4s var(--ease);
@@ -90,8 +84,8 @@ html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
 .sidebar-title { font-size: 18px; font-weight: 800; }
 .user-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
 
-.user-card { 
-  display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; 
+.user-card {
+  display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px;
   background: rgba(255,255,255,0.3); border: 1px solid transparent; cursor: pointer; opacity: 0; transform: translateX(-20px); animation: slideIn 0.4s var(--ease) forwards;
 }
 html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
@@ -103,11 +97,9 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .user-name { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .user-dist { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
 
-/* 遮罩 */
 .sidebar-backdrop { position: absolute; inset: 0; z-index: 1400; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); display: none; opacity: 0; transition: opacity 0.3s; }
 .sidebar-backdrop.show { display: block; opacity: 1; }
 
-/* 頂部欄 */
 .topbar { position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px; z-index: 1000; display: flex; gap: 10px; align-items: center; pointer-events: none; }
 .topbar > * { pointer-events: auto; }
 .menu-btn { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); position: relative; }
@@ -123,19 +115,16 @@ html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
 .btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); animation: breatheRed 2s infinite; }
 @keyframes breatheRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(229,72,77, 0.7); } 50% { box-shadow: 0 0 0 12px rgba(229,72,77, 0); } }
 
-/* 地圖控制 */
 .map-controls { position: absolute; right: 16px; bottom: max(100px, env(safe-area-inset-bottom)); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
 .ctrl-btn { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); box-shadow: var(--glass-shadow); }
 .ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.4s var(--ease); }
 
-/* 標記 */
 .marker-container { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
 .marker-dot { width: 14px; height: 14px; border-radius: 50%; }
 .marker-breathe { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0.5; animation: pulse 2s infinite; }
 .marker-label { position: absolute; top: -30px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); transition: transform 0.2s; }
 
-/* 模態 */
 .modal-backdrop { position: fixed; inset: 0; z-index: 2000; display: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; }
 .modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
 .modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.5s var(--ease); max-height: 90vh; overflow-y: auto; }
@@ -156,17 +145,15 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-/* 模式指示 */
-.mode-indicator { 
-  position: absolute; top: 90px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 14px 28px; font-size: 18px; font-weight: 800; 
+.mode-indicator {
+  position: absolute; top: 90px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 14px 28px; font-size: 18px; font-weight: 800;
   display: none; white-space: nowrap; border-radius: var(--pill); background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
   box-shadow: 0 8px 30px rgba(0,0,0,0.2); color: var(--warn); border: 2px solid var(--warn);
 }
 .mode-indicator.active { display: block; animation: popIn 0.3s; }
 
-/* Ping */
 .ping-banner {
-  position: fixed; top: max(20px, env(safe-area-inset-top)); left: 50%; 
+  position: fixed; top: max(20px, env(safe-area-inset-top)); left: 50%;
   transform: translate(-50%, -200px);
   z-index: 9999; padding: 16px 32px; border-radius: var(--pill);
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
@@ -178,18 +165,15 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 }
 .ping-banner.show { transform: translate(-50%, 0); opacity: 1; }
 
-/* 聊天 */
 .chat-container { display: flex; flex-direction: column; height: 100%; min-height: 200px; }
 .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-height: 120px; }
 .chat-input-area { padding: 12px; display: flex; gap: 8px; border-top: 1px solid rgba(128,128,128,0.2); flex-shrink: 0; }
 .chat-input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid var(--glass-border); background: transparent; color: var(--text); outline: none; }
 
-/* SOS */
 .sos-overlay { position: fixed; inset: 0; z-index: 10000; display: none; background: rgba(229,72,77,0.4); backdrop-filter: blur(10px); align-items: center; justify-content: center; flex-direction: column; gap: 20px; animation: flashRed 1s infinite; }
 .sos-overlay.show { display: flex; }
 @keyframes flashRed { 0%, 100% { background: rgba(229,72,77,0.2); } 50% { background: rgba(229,72,77,0.6); } }
 
-/* 比例尺 */
 .custom-scale {
   position: absolute; left: 16px; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000;
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
@@ -201,7 +185,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 }
 .custom-scale .bar { height: 3px; background: var(--text); border-radius: 2px; }
 
-/* 功能網格 */
 .func-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; border-top: 1px solid rgba(128,128,128,0.15); background: rgba(255,255,255,0.05); flex-shrink: 0; }
 .func-btn { width: 100%; aspect-ratio: 1; border-radius: 14px; border: 1px solid var(--glass-border); background: var(--glass-1-a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 10px; font-weight: 700; color: var(--text); transition: all 0.2s; }
 .func-btn svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
@@ -209,14 +192,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .func-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
 .func-btn.active svg { stroke: #fff; }
 
-/* 功能列 */
 .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; font-size: 13px; font-weight: 600; border-bottom: 1px solid rgba(128,128,128,0.1); flex-shrink: 0; }
 .toggle-switch { width: 40px; height: 22px; border-radius: 20px; background: rgba(128,128,128,0.3); position: relative; cursor: pointer; transition: background 0.3s; flex-shrink: 0; }
 .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.3s; }
 .toggle-switch.on { background: var(--accent); }
 .toggle-switch.on::after { transform: translateX(18px); }
 
-/* 100+ 功能選單 */
 .feature-menu { padding: 12px 16px; border-top: 1px solid rgba(128,128,128,0.15); background: rgba(255,255,255,0.03); flex-shrink: 0; }
 .feature-menu-title { font-size: 12px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
 .feature-menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -267,14 +248,14 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
   </div>
-  
+
   <div style="display:flex; padding: 0 16px; gap:10px; border-bottom:1px solid rgba(128,128,128,0.2); flex-shrink:0;">
     <button id="tabRadar" class="interactive" style="flex:1; padding:12px; border:none; background:none; border-bottom: 3px solid var(--accent); font-weight:800; color:var(--accent);">Radar</button>
     <button id="tabChat" class="interactive" style="flex:1; padding:12px; border:none; background:none; border-bottom: 3px solid transparent; font-weight:800; color:var(--text-muted);">Chat</button>
   </div>
 
   <div class="user-list" id="userList"></div>
-  
+
   <div class="chat-container" id="chatContainer" style="display:none;">
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-area">
@@ -320,7 +301,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     </button>
   </div>
 
-  <!-- 開關列 -->
   <div class="toggle-row">
     <span>Auto-follow me</span>
     <div class="toggle-switch" id="toggleAutoFollow"></div>
@@ -342,7 +322,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     <div class="toggle-switch" id="toggleLargeMarkers"></div>
   </div>
 
-  <!-- 100+ 功能選單 -->
   <div class="feature-menu">
     <div class="feature-menu-title">100+ Features</div>
     <div class="feature-menu-grid" id="featureMenuGrid"></div>
@@ -354,12 +333,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     <div class="unread-dot" id="unreadDot"></div>
   </div>
-  
+
   <div class="name-input-wrapper glass">
     <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
     <div id="colorPicker" class="interactive" style="width:28px;height:28px;border-radius:50%;background:#3b5bdb;border:2px solid #fff;margin-left:4px;flex-shrink:0;"></div>
   </div>
-  
+
   <button class="sos-btn interactive" id="sosBtn">SOS</button>
   <button class="btn-big interactive" id="shareBtn">Share</button>
 </div>
@@ -389,7 +368,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     <div class="modal-avatar" id="mAvatar">A</div>
     <div class="modal-name" id="mName">User</div>
     <div class="modal-sub" id="mSub">Status</div>
-    
+
     <div class="modal-grid">
       <div class="modal-box">
         <div class="modal-label">Distance</div>
@@ -415,9 +394,9 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
 <script>
   // ============================================
-  // 核心初始化
+  // Firebase 初始化
   // ============================================
-  const firebaseConfig = {
+  var firebaseConfig = {
     apiKey: "AIzaSyAsjmJUkoK-_OkNsKgDyo133JcV6030UIM",
     authDomain: "my-find-my.firebaseapp.com",
     databaseURL: "https://my-find-my-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -427,55 +406,67 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     appId: "1:933833406253:web:941c72724247cadb61c5a4"
   };
   firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  const usersRef = db.ref('users');
-  const meetupRef = db.ref('meetup');
-  const pingRef = db.ref('pings');
-  const chatRef = db.ref('chat');
-  const sosRef = db.ref('sos');
+  var db = firebase.database();
+  var usersRef = db.ref('users');
+  var meetupRef = db.ref('meetup');
+  var pingRef = db.ref('pings');
+  var chatRef = db.ref('chat');
+  var sosRef = db.ref('sos');
 
   // ============================================
   // 身份
   // ============================================
-  let myId = localStorage.getItem('findMyId');
+  var myId = localStorage.getItem('findMyId');
   if (!myId) {
     myId = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
     localStorage.setItem('findMyId', myId);
   }
-  let myColor = localStorage.getItem('myColor') || '#3b5bdb';
+  var myColor = localStorage.getItem('myColor') || '#3b5bdb';
 
   // ============================================
-  // 地圖設定
+  // 地圖
   // ============================================
-  const map = L.map('map', { 
+  var map = L.map('map', {
     zoomControl: false,
     minZoom: 2,
     maxZoom: 50,
     maxBoundsViscosity: 0.0
   }).setView([25.033, 121.5654], 15);
 
-  const layerOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', noWrap: true, maxZoom: 50 }).addTo(map);
-  const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri', noWrap: true, maxZoom: 50 });
-  let isSatellite = false;
+  var layerOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OSM',
+    noWrap: true,
+    maxZoom: 50
+  }).addTo(map);
 
-  new L.Control.MiniMap(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true, maxZoom: 50 }), { toggleDisplay: true, position: 'bottomright', width: 120, height: 120 }).addTo(map);
+  var layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '&copy; Esri',
+    noWrap: true,
+    maxZoom: 50
+  });
+  var isSatellite = false;
+
+  new L.Control.MiniMap(
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true, maxZoom: 50 }),
+    { toggleDisplay: true, position: 'bottomright', width: 120, height: 120 }
+  ).addTo(map);
 
   // ============================================
-  // 比例尺
+  // 比例尺（3m 步長，最大 15m）
   // ============================================
-  const scaleBarEl = document.getElementById('scaleBar');
-  const scaleTextEl = document.getElementById('scaleText');
-  const MAX_SCALE_METERS = 15;
+  var scaleBarEl = document.getElementById('scaleBar');
+  var scaleTextEl = document.getElementById('scaleText');
+  var MAX_SCALE_METERS = 15;
 
   function updateCustomScale() {
-    const zoom = map.getZoom();
-    const center = map.getCenter();
-    const pixelsPerDegree = 256 * Math.pow(2, zoom) / 360;
-    const metersPerDegree = 111320 * Math.cos(center.lat * Math.PI / 180);
-    const metersPerPixel = metersPerDegree / pixelsPerDegree;
-    const barPixels = 60;
-    let meters = metersPerPixel * barPixels;
-    let aligned = Math.round(meters / 3) * 3;
+    var zoom = map.getZoom();
+    var center = map.getCenter();
+    var pixelsPerDegree = 256 * Math.pow(2, zoom) / 360;
+    var metersPerDegree = 111320 * Math.cos(center.lat * Math.PI / 180);
+    var metersPerPixel = metersPerDegree / pixelsPerDegree;
+    var barPixels = 60;
+    var meters = metersPerPixel * barPixels;
+    var aligned = Math.round(meters / 3) * 3;
     aligned = Math.max(3, Math.min(MAX_SCALE_METERS, aligned));
     scaleTextEl.textContent = aligned + ' m';
     scaleBarEl.style.width = barPixels + 'px';
@@ -489,61 +480,61 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   // ============================================
   // 狀態
   // ============================================
-  const markers = {};
-  let myMarker = null;
-  let myBattery = null;
-  let sharing = false;
-  let watchId = null;
-  let heartbeatTimer = null;
-  let wakeLock = null;
-  let focusedId = null;
-  let usersData = {};
-  let lastRenderedIds = new Set();
-  let meetupMarker = null;
-  let alertTargetId = null;
-  let unreadCount = 0;
-  let currentTab = 'radar';
+  var markers = {};
+  var myMarker = null;
+  var myBattery = null;
+  var sharing = false;
+  var watchId = null;
+  var heartbeatTimer = null;
+  var wakeLock = null;
+  var focusedId = null;
+  var usersData = {};
+  var lastRenderedIds = new Set();
+  var meetupMarker = null;
+  var alertTargetId = null;
+  var unreadCount = 0;
+  var currentTab = 'radar';
 
-  let measureMode = 0;
-  let measurePoints = [];
-  let measureLayerGroup = new L.FeatureGroup().addTo(map);
-  let finalMeasureText = '';
+  var measureMode = 0;
+  var measurePoints = [];
+  var measureLayerGroup = new L.FeatureGroup().addTo(map);
+  var finalMeasureText = '';
 
-  // 功能狀態
-  let autoFollow = true;
-  let showTrails = false;
-  let trails = {};
-  let gridLayer = null;
-  let compassMarker = null;
-  let nightMode = false;
-  let soundAlerts = true;
-  let largeMarkers = false;
-  let userNoteMap = {};
-  let savedRoutes = {};
-  let geofenceCircle = null;
-  let offlineMode = false;
+  var autoFollow = true;
+  var showTrails = false;
+  var trails = {};
+  var gridLayer = null;
+  var compassMarker = null;
+  var nightMode = false;
+  var soundAlerts = true;
+  var largeMarkers = false;
 
-  const shareBtn = document.getElementById('shareBtn');
-  const userListEl = document.getElementById('userList');
-  const sidebar = document.getElementById('sidebar');
-  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-  const measureBtn = document.getElementById('measureBtn');
-  const meetupBtn = document.getElementById('meetupBtn');
-  const colorPicker = document.getElementById('colorPicker');
+  var shareBtn = document.getElementById('shareBtn');
+  var userListEl = document.getElementById('userList');
+  var sidebar = document.getElementById('sidebar');
+  var sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  var measureBtn = document.getElementById('measureBtn');
+  var meetupBtn = document.getElementById('meetupBtn');
+  var colorPicker = document.getElementById('colorPicker');
+  var modeIndicator = document.getElementById('modeIndicator');
 
-  const nameInput = document.getElementById('nameInput');
+  var nameInput = document.getElementById('nameInput');
   nameInput.value = localStorage.getItem('myName') || '';
   colorPicker.style.background = myColor;
 
   window.toggleSidebar = function(show) {
-    if (show) { 
-      sidebar.classList.add('open'); sidebarBackdrop.classList.add('show'); 
-      unreadCount = 0; document.getElementById('unreadDot').style.display = 'none';
+    if (show) {
+      sidebar.classList.add('open');
+      sidebarBackdrop.classList.add('show');
+      unreadCount = 0;
+      document.getElementById('unreadDot').style.display = 'none';
+    } else {
+      sidebar.classList.remove('open');
+      sidebarBackdrop.classList.remove('show');
     }
-    else { sidebar.classList.remove('open'); sidebarBackdrop.classList.remove('show'); }
   };
 
-  document.getElementById('tabRadar').onclick = () => {
+  document.getElementById('tabRadar').onclick = function() {
     currentTab = 'radar';
     document.getElementById('tabRadar').style.borderBottomColor = 'var(--accent)';
     document.getElementById('tabRadar').style.color = 'var(--accent)';
@@ -554,7 +545,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     document.getElementById('sidebarTitle').textContent = 'Live Radar';
   };
 
-  document.getElementById('tabChat').onclick = () => {
+  document.getElementById('tabChat').onclick = function() {
     currentTab = 'chat';
     document.getElementById('tabChat').style.borderBottomColor = 'var(--accent)';
     document.getElementById('tabChat').style.color = 'var(--accent)';
@@ -563,26 +554,31 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     document.getElementById('userList').style.display = 'none';
     document.getElementById('chatContainer').style.display = 'flex';
     document.getElementById('sidebarTitle').textContent = 'Team Chat';
-    setTimeout(() => { document.getElementById('chatMessages').scrollTop = 99999; }, 100);
+    setTimeout(function() {
+      document.getElementById('chatMessages').scrollTop = 99999;
+    }, 100);
   };
 
   // ============================================
   // 聊天（5 分鐘 TTL）
   // ============================================
-  const CHAT_TTL = 5 * 60 * 1000;
-  chatRef.limitToLast(50).on('child_added', (snap) => {
-    const msg = snap.val();
+  var CHAT_TTL = 5 * 60 * 1000;
+
+  chatRef.limitToLast(50).on('child_added', function(snap) {
+    var msg = snap.val();
     if (!msg || !msg.time) return;
-    if (Date.now() - msg.time > CHAT_TTL) { snap.ref.remove(); return; }
-    const isMe = msg.sender === (localStorage.getItem('myName') || 'Anonymous');
-    const div = document.createElement('div');
-    div.style.cssText = `align-self: ${isMe ? 'flex-end' : 'flex-start'}; max-width: 85%;`;
+    if (Date.now() - msg.time > CHAT_TTL) {
+      snap.ref.remove();
+      return;
+    }
+    var isMe = msg.sender === (localStorage.getItem('myName') || 'Anonymous');
+    var div = document.createElement('div');
+    div.style.cssText = 'align-self: ' + (isMe ? 'flex-end' : 'flex-start') + '; max-width: 85%;';
     div.dataset.chatId = snap.key;
     div.dataset.chatTime = msg.time;
-    div.innerHTML = `
-      <div style="font-size:10px; color:var(--text-muted); margin-bottom:2px; text-align:${isMe?'right':'left'}">${msg.sender}</div>
-      <div style="background:${isMe?'var(--accent)':'rgba(128,128,128,0.2)'}; color:${isMe?'#fff':'var(--text)'}; padding:8px 12px; border-radius:16px; font-size:14px;">${msg.text}</div>
-    `;
+    div.innerHTML =
+      '<div style="font-size:10px; color:var(--text-muted); margin-bottom:2px; text-align:' + (isMe ? 'right' : 'left') + '">' + msg.sender + '</div>' +
+      '<div style="background:' + (isMe ? 'var(--accent)' : 'rgba(128,128,128,0.2)') + '; color:' + (isMe ? '#fff' : 'var(--text)') + '; padding:8px 12px; border-radius:16px; font-size:14px;">' + msg.text + '</div>';
     document.getElementById('chatMessages').appendChild(div);
     document.getElementById('chatMessages').scrollTop = 99999;
     if (!isMe && currentTab !== 'chat' && !sidebar.classList.contains('open')) {
@@ -591,56 +587,60 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     }
   });
 
-  chatRef.on('child_removed', (snap) => {
-    const el = document.querySelector(`[data-chat-id="${snap.key}"]`);
+  chatRef.on('child_removed', function(snap) {
+    var el = document.querySelector('[data-chat-id="' + snap.key + '"]');
     if (el) el.remove();
   });
 
-  setInterval(() => {
-    const now = Date.now();
-    document.querySelectorAll('#chatMessages > div[data-chat-time]').forEach(el => {
+  setInterval(function() {
+    var now = Date.now();
+    document.querySelectorAll('#chatMessages > div[data-chat-time]').forEach(function(el) {
       if (now - Number(el.dataset.chatTime) > CHAT_TTL) el.remove();
     });
-    chatRef.once('value', (snap) => {
-      snap.forEach(child => {
-        const m = child.val();
+    chatRef.once('value', function(snap) {
+      snap.forEach(function(child) {
+        var m = child.val();
         if (m && m.time && now - m.time > CHAT_TTL) child.ref.remove();
       });
     });
   }, 30000);
 
-  document.getElementById('chatSendBtn').onclick = () => {
-    const txt = document.getElementById('chatInput').value.trim();
+  document.getElementById('chatSendBtn').onclick = function() {
+    var txt = document.getElementById('chatInput').value.trim();
     if (!txt) return;
     chatRef.push({ sender: localStorage.getItem('myName') || 'Anonymous', text: txt, time: Date.now() });
     document.getElementById('chatInput').value = '';
   };
 
-  // 震動與 Ripple
-  document.querySelectorAll('.interactive').forEach(el => {
+  // Ripple
+  document.querySelectorAll('.interactive').forEach(function(el) {
     el.addEventListener('pointerdown', function(e) {
       if (navigator.vibrate) navigator.vibrate(10);
-      const rect = this.getBoundingClientRect();
-      const x = e.clientX - rect.left, y = e.clientY - rect.top;
-      const size = Math.max(rect.width, rect.height);
-      const ripple = document.createElement('span');
+      var rect = this.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      var size = Math.max(rect.width, rect.height);
+      var ripple = document.createElement('span');
       ripple.className = 'ripple';
       ripple.style.width = ripple.style.height = size + 'px';
-      ripple.style.left = x - size/2 + 'px'; ripple.style.top = y - size/2 + 'px';
-      this.appendChild(ripple); setTimeout(() => ripple.remove(), 600);
+      ripple.style.left = (x - size / 2) + 'px';
+      ripple.style.top = (y - size / 2) + 'px';
+      this.appendChild(ripple);
+      setTimeout(function() { ripple.remove(); }, 600);
     });
   });
 
   if (navigator.getBattery) {
-    navigator.getBattery().then(b => {
-      const update = () => { myBattery = Math.round(b.level * 100) + '%'; };
-      update(); b.addEventListener('levelchange', update);
+    navigator.getBattery().then(function(b) {
+      var update = function() { myBattery = Math.round(b.level * 100) + '%'; };
+      update();
+      b.addEventListener('levelchange', update);
     });
   }
 
-  colorPicker.onclick = () => {
-    const colors = ['#3b5bdb', '#e5484d', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
-    let idx = colors.indexOf(myColor);
+  colorPicker.onclick = function() {
+    var colors = ['#3b5bdb', '#e5484d', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899'];
+    var idx = colors.indexOf(myColor);
     myColor = colors[(idx + 1) % colors.length];
     colorPicker.style.background = myColor;
     localStorage.setItem('myColor', myColor);
@@ -651,48 +651,67 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   // Helpers
   // ============================================
   function calcDist(lat1, lon1, lat2, lon2) {
-    const R = 6371e3, p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
-    const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
-    const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    var R = 6371e3;
+    var p1 = lat1 * Math.PI / 180;
+    var p2 = lat2 * Math.PI / 180;
+    var dp = (lat2 - lat1) * Math.PI / 180;
+    var dl = (lon2 - lon1) * Math.PI / 180;
+    var a = Math.sin(dp / 2) * Math.sin(dp / 2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
-  function formatDist(meters) { return meters > 1000 ? (meters/1000).toFixed(2) + ' km' : Math.round(meters) + ' m'; }
-  function getInitials(name) { return name.trim().slice(0, 2).toUpperCase() || '?'; }
+
+  function formatDist(meters) {
+    return meters > 1000 ? (meters / 1000).toFixed(2) + ' km' : Math.round(meters) + ' m';
+  }
+
+  function getInitials(name) {
+    return name.trim().slice(0, 2).toUpperCase() || '?';
+  }
+
   function makeIcon(color, name, isMe) {
-    const size = largeMarkers ? 50 : 40;
+    var size = largeMarkers ? 50 : 40;
     return L.divIcon({
       className: 'custom-marker-wrapper',
-      html: `
-        <div class="marker-container" style="width:${size}px;height:${size}px;box-shadow: 0 4px 12px ${color}80;">
-          ${isMe ? '<div class="marker-breathe"></div>' : ''}
-          <div class="marker-dot" style="background: ${color};width:${largeMarkers?18:14}px;height:${largeMarkers?18:14}px;"></div>
-          <div class="marker-label">${name}${isMe ? ' (You)' : ''}</div>
-        </div>
-      `,
-      iconSize: [size, size], iconAnchor: [size/2, size/2]
+      html: '<div class="marker-container" style="width:' + size + 'px;height:' + size + 'px;box-shadow: 0 4px 12px ' + color + '80;">' +
+        (isMe ? '<div class="marker-breathe"></div>' : '') +
+        '<div class="marker-dot" style="background: ' + color + ';width:' + (largeMarkers ? 18 : 14) + 'px;height:' + (largeMarkers ? 18 : 14) + 'px;"></div>' +
+        '<div class="marker-label">' + name + (isMe ? ' (You)' : '') + '</div>' +
+        '</div>',
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2]
     });
   }
 
   // ============================================
   // 集合點
   // ============================================
-  meetupBtn.addEventListener('click', () => {
+  meetupBtn.addEventListener('click', function() {
     if (meetupMarker) {
-      meetupMarker.remove(); meetupMarker = null; meetupRef.remove(); meetupBtn.classList.remove('active');
+      meetupMarker.remove();
+      meetupMarker = null;
+      meetupRef.remove();
+      meetupBtn.classList.remove('active');
       return;
     }
-    map.once('click', (e) => {
+    map.once('click', function(e) {
       meetupRef.set({ lat: e.latlng.lat, lng: e.latlng.lng });
       meetupBtn.classList.add('active');
     });
   });
 
-  meetupRef.on('value', (snap) => {
-    if (meetupMarker) { meetupMarker.remove(); meetupMarker = null; }
+  meetupRef.on('value', function(snap) {
+    if (meetupMarker) {
+      meetupMarker.remove();
+      meetupMarker = null;
+    }
     if (snap.exists()) {
-      const pos = snap.val();
-      const icon = L.divIcon({ html: '<div><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>', iconSize: [36,36], iconAnchor: [18,36] });
-      meetupMarker = L.marker([pos.lat, pos.lng], { icon }).addTo(map);
+      var pos = snap.val();
+      var icon = L.divIcon({
+        html: '<div><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="var(--warn)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>',
+        iconSize: [36, 36],
+        iconAnchor: [18, 36]
+      });
+      meetupMarker = L.marker([pos.lat, pos.lng], { icon: icon }).addTo(map);
       meetupBtn.classList.add('active');
     } else {
       meetupBtn.classList.remove('active');
@@ -702,7 +721,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   // ============================================
   // SOS
   // ============================================
-  sosRef.on('value', (snap) => {
+  sosRef.on('value', function(snap) {
     if (snap.exists() && snap.val().time > Date.now() - 10000 && snap.val().id !== myId) {
       document.getElementById('sosSender').textContent = snap.val().name + ' triggered an SOS!';
       document.getElementById('sosOverlay').classList.add('show');
@@ -710,8 +729,8 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     }
   });
 
-  document.getElementById('sosBtn').onclick = () => {
-    if (confirm("Trigger emergency SOS to all users?")) {
+  document.getElementById('sosBtn').onclick = function() {
+    if (confirm('Trigger emergency SOS to all users?')) {
       sosRef.set({ id: myId, name: localStorage.getItem('myName') || 'Anonymous', time: Date.now() });
     }
   };
@@ -719,18 +738,18 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   // ============================================
   // Ping
   // ============================================
-  pingRef.child(myId).on('value', (snap) => {
+  pingRef.child(myId).on('value', function(snap) {
     if (snap.exists() && snap.val().time > Date.now() - 5000) {
-      document.getElementById('pingText').textContent = `${snap.val().sender} pinged you!`;
-      const banner = document.getElementById('pingBanner');
+      document.getElementById('pingText').textContent = snap.val().sender + ' pinged you!';
+      var banner = document.getElementById('pingBanner');
       banner.classList.add('show');
-      setTimeout(() => banner.classList.remove('show'), 4000);
+      setTimeout(function() { banner.classList.remove('show'); }, 4000);
       if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 500]);
       snap.ref.remove();
     }
   });
 
-  document.getElementById('pingBtn').addEventListener('click', () => {
+  document.getElementById('pingBtn').addEventListener('click', function() {
     if (focusedId && focusedId !== myId) {
       pingRef.child(focusedId).set({ sender: localStorage.getItem('myName') || 'Anonymous', time: Date.now() });
     }
@@ -740,7 +759,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   // ============================================
   // 測距
   // ============================================
-  const measureDotIcon = L.divIcon({ className: 'measure-dot-wrapper', html: '<div style="width:14px;height:14px;background:var(--warn);border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(245,158,11,0.8);"></div>', iconSize: [14, 14], iconAnchor: [7, 7] });
+  var measureDotIcon = L.divIcon({
+    className: 'measure-dot-wrapper',
+    html: '<div style="width:14px;height:14px;background:var(--warn);border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(245,158,11,0.8);"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7]
+  });
 
   function addMeasurePoint(latlng) {
     if (measureMode !== 1) return;
@@ -748,20 +772,22 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     L.marker(latlng, { icon: measureDotIcon, interactive: false }).addTo(measureLayerGroup);
     if (measurePoints.length > 1) {
       L.polyline(measurePoints, { color: '#f59e0b', dashArray: '5, 8', weight: 3 }).addTo(measureLayerGroup);
-      let total = 0;
-      for (let i = 0; i < measurePoints.length - 1; i++) {
-        total += calcDist(measurePoints[i].lat, measurePoints[i].lng, measurePoints[i+1].lat, measurePoints[i+1].lng);
+      var total = 0;
+      for (var i = 0; i < measurePoints.length - 1; i++) {
+        total += calcDist(measurePoints[i].lat, measurePoints[i].lng, measurePoints[i + 1].lat, measurePoints[i + 1].lng);
       }
-      finalMeasureText = `Total Distance: ${formatDist(total)}`;
+      finalMeasureText = 'Total Distance: ' + formatDist(total);
       modeIndicator.textContent = finalMeasureText;
     } else {
       modeIndicator.textContent = 'Point set. Tap map to add another.';
     }
   }
 
-  map.on('click', (e) => { addMeasurePoint(e.latlng); });
+  map.on('click', function(e) {
+    addMeasurePoint(e.latlng);
+  });
 
-  measureBtn.addEventListener('click', () => {
+  measureBtn.addEventListener('click', function() {
     if (measureMode === 0) {
       measureMode = 1;
       measureBtn.classList.add('active');
@@ -774,7 +800,10 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       map.getContainer().style.cursor = '';
       if (measurePoints.length < 2) {
         modeIndicator.textContent = 'Not enough points.';
-        setTimeout(() => { modeIndicator.classList.remove('active'); measureMode = 0; }, 2000);
+        setTimeout(function() {
+          modeIndicator.classList.remove('active');
+          measureMode = 0;
+        }, 2000);
       } else {
         modeIndicator.textContent = finalMeasureText;
       }
@@ -788,71 +817,86 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   });
 
   // ============================================
-  // UI Events
+  // 圖層 / 中央
   // ============================================
-  document.getElementById('layerBtn').addEventListener('click', () => {
-    if (isSatellite) { map.removeLayer(layerSat); map.addLayer(layerOSM); }
-    else { map.removeLayer(layerOSM); map.addLayer(layerSat); }
+  document.getElementById('layerBtn').addEventListener('click', function() {
+    if (isSatellite) {
+      map.removeLayer(layerSat);
+      map.addLayer(layerOSM);
+    } else {
+      map.removeLayer(layerOSM);
+      map.addLayer(layerSat);
+    }
     isSatellite = !isSatellite;
   });
 
-  document.getElementById('centerBtn').addEventListener('click', () => {
-    if (myMarker) { focusedId = myId; map.flyTo(myMarker.getLatLng(), 17, { duration: 1 }); }
+  document.getElementById('centerBtn').addEventListener('click', function() {
+    if (myMarker) {
+      focusedId = myId;
+      map.flyTo(myMarker.getLatLng(), 17, { duration: 1 });
+    }
   });
 
   // ============================================
   // 同步
   // ============================================
-  usersRef.on('value', (snap) => {
+  usersRef.on('value', function(snap) {
     usersData = snap.val() || {};
-    const now = Date.now();
-    const online = {};
+    var now = Date.now();
+    var online = {};
 
-    Object.keys(usersData).forEach(id => {
-      if (usersData[id] && usersData[id].updatedAt && now - usersData[id].updatedAt < 120000) online[id] = usersData[id];
+    Object.keys(usersData).forEach(function(id) {
+      if (usersData[id] && usersData[id].updatedAt && now - usersData[id].updatedAt < 120000) {
+        online[id] = usersData[id];
+      }
     });
 
-    const currentIds = new Set(Object.keys(online));
-    lastRenderedIds.forEach(id => {
+    var currentIds = new Set(Object.keys(online));
+    lastRenderedIds.forEach(function(id) {
       if (!currentIds.has(id)) {
-        const el = document.getElementById('user-card-' + id);
+        var el = document.getElementById('user-card-' + id);
         if (el) el.remove();
       }
     });
 
-    let index = 0;
-    Object.keys(online).forEach(id => {
-      const u = online[id];
-      const isMe = id === myId;
-      let distText = '--';
+    var index = 0;
+    Object.keys(online).forEach(function(id) {
+      var u = online[id];
+      var isMe = id === myId;
+      var distText = '--';
       if (myMarker) {
-        const p = myMarker.getLatLng();
-        const d = calcDist(p.lat, p.lng, u.lat, u.lng);
+        var p = myMarker.getLatLng();
+        var d = calcDist(p.lat, p.lng, u.lat, u.lng);
         distText = isMe ? 'You' : formatDist(d);
         if (alertTargetId === id && !isMe && d > 500) {
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-          document.body.style.boxShadow = "inset 0 0 50px rgba(229,72,77,0.5)";
-          setTimeout(() => document.body.style.boxShadow = "", 500);
+          document.body.style.boxShadow = 'inset 0 0 50px rgba(229,72,77,0.5)';
+          setTimeout(function() { document.body.style.boxShadow = ''; }, 500);
         }
       }
 
-      let card = document.getElementById('user-card-' + id);
+      var card = document.getElementById('user-card-' + id);
       if (!card) {
         card = document.createElement('div');
         card.className = 'user-card interactive';
         card.id = 'user-card-' + id;
         card.style.animationDelay = (index * 0.05) + 's';
-        card.innerHTML = `
-          <div class="user-avatar" style="background: ${u.color || '#3b5bdb'};">${getInitials(u.name)}</div>
-          <div class="user-info">
-            <div class="user-name">${u.name}</div>
-            <div class="user-dist">--</div>
-          </div>
-        `;
-        card.onclick = () => {
-          if (measureMode === 1) { addMeasurePoint(L.latLng(u.lat, u.lng)); toggleSidebar(false); }
-          else openUserInfo(id, usersData[id]);
-        };
+        card.innerHTML =
+          '<div class="user-avatar" style="background: ' + (u.color || '#3b5bdb') + ';">' + getInitials(u.name) + '</div>' +
+          '<div class="user-info">' +
+          '<div class="user-name">' + u.name + '</div>' +
+          '<div class="user-dist">--</div>' +
+          '</div>';
+        card.onclick = (function(uid) {
+          return function() {
+            if (measureMode === 1) {
+              addMeasurePoint(L.latLng(usersData[uid].lat, usersData[uid].lng));
+              toggleSidebar(false);
+            } else {
+              openUserInfo(uid, usersData[uid]);
+            }
+          };
+        })(id);
         userListEl.appendChild(card);
       }
 
@@ -862,25 +906,29 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
     lastRenderedIds = currentIds;
 
-    Object.keys(markers).forEach(id => {
+    Object.keys(markers).forEach(function(id) {
       if (!online[id]) {
         map.removeLayer(markers[id]);
         delete markers[id];
-        if (trails[id]) { map.removeLayer(trails[id]); delete trails[id]; }
+        if (trails[id]) {
+          map.removeLayer(trails[id]);
+          delete trails[id];
+        }
       }
     });
 
-    Object.keys(online).forEach(id => {
-      const u = online[id];
-      const isMe = id === myId;
-      const color = u.color || '#3b5bdb';
-      const pos = [u.lat, u.lng];
+    Object.keys(online).forEach(function(id) {
+      var u = online[id];
+      var isMe = id === myId;
+      var color = u.color || '#3b5bdb';
+      var pos = [u.lat, u.lng];
 
       if (showTrails) {
-        if (!trails[id]) trails[id] = L.polyline([pos], { color: color, weight: 4, opacity: 0.5 }).addTo(map);
-        else {
-          const pts = trails[id].getLatLngs();
-          if (pts.length === 0 || pts[pts.length-1].lat !== pos[0] || pts[pts.length-1].lng !== pos[1]) {
+        if (!trails[id]) {
+          trails[id] = L.polyline([pos], { color: color, weight: 4, opacity: 0.5 }).addTo(map);
+        } else {
+          var pts = trails[id].getLatLngs();
+          if (pts.length === 0 || pts[pts.length - 1].lat !== pos[0] || pts[pts.length - 1].lng !== pos[1]) {
             pts.push(L.latLng(pos));
             trails[id].setLatLngs(pts);
           }
@@ -890,13 +938,20 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         delete trails[id];
       }
 
-      if (markers[id]) markers[id].setLatLng(pos);
-      else {
-        const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe) }).addTo(map);
-        marker.on('click', (e) => {
-          if (measureMode === 1) { addMeasurePoint(e.latlng); L.DomEvent.stopPropagation(e); }
-          else openUserInfo(id, usersData[id]);
-        });
+      if (markers[id]) {
+        markers[id].setLatLng(pos);
+      } else {
+        var marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe) }).addTo(map);
+        marker.on('click', (function(uid) {
+          return function(e) {
+            if (measureMode === 1) {
+              addMeasurePoint(e.latlng);
+              L.DomEvent.stopPropagation(e);
+            } else {
+              openUserInfo(uid, usersData[uid]);
+            }
+          };
+        })(id));
         if (isMe) myMarker = marker;
         markers[id] = marker;
       }
@@ -910,7 +965,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   function openUserInfo(id, u) {
     if (!u) return;
     focusedId = id;
-    const isMe = id === myId;
+    var isMe = id === myId;
     document.getElementById('mAvatar').textContent = getInitials(u.name);
     document.getElementById('mAvatar').style.background = u.color || '#3b5bdb';
     document.getElementById('mName').textContent = u.name;
@@ -918,13 +973,13 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     document.getElementById('mDist').textContent = myMarker ? formatDist(calcDist(myMarker.getLatLng().lat, myMarker.getLatLng().lng, u.lat, u.lng)) : '--';
     document.getElementById('mBatt').textContent = isMe ? (myBattery || 'Unknown') : 'Unknown';
 
-    document.getElementById('focusBtn').onclick = () => {
+    document.getElementById('focusBtn').onclick = function() {
       map.flyTo([u.lat, u.lng], 19, { duration: 1 });
       document.getElementById('infoModal').classList.remove('show');
       toggleSidebar(false);
     };
 
-    const alertBtn = document.getElementById('alertBtn');
+    var alertBtn = document.getElementById('alertBtn');
     if (isMe) {
       alertBtn.style.display = 'none';
       document.getElementById('pingBtn').style.display = 'none';
@@ -934,9 +989,11 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       document.getElementById('pingBtn').style.display = 'flex';
       document.getElementById('routeBtn').style.display = 'flex';
       if (alertTargetId === id) {
-        alertBtn.classList.add('active'); alertBtn.textContent = 'Radar Active...';
+        alertBtn.classList.add('active');
+        alertBtn.textContent = 'Radar Active...';
       } else {
-        alertBtn.classList.remove('active'); alertBtn.textContent = 'Watch Proximity';
+        alertBtn.classList.remove('active');
+        alertBtn.textContent = 'Watch Proximity';
       }
     }
 
@@ -945,163 +1002,246 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
   document.getElementById('alertBtn').onclick = function() {
     if (alertTargetId === focusedId) {
-      alertTargetId = null; this.classList.remove('active'); this.textContent = 'Watch Proximity';
+      alertTargetId = null;
+      this.classList.remove('active');
+      this.textContent = 'Watch Proximity';
     } else {
-      alertTargetId = focusedId; this.classList.add('active'); this.textContent = 'Radar Active...';
+      alertTargetId = focusedId;
+      this.classList.add('active');
+      this.textContent = 'Radar Active...';
     }
   };
 
   // ============================================
-  // Cleanup & Sharing
+  // Sharing
   // ============================================
   usersRef.child(myId).onDisconnect().remove();
-  window.addEventListener('beforeunload', () => usersRef.child(myId).remove());
+  window.addEventListener('beforeunload', function() {
+    usersRef.child(myId).remove();
+  });
 
-  async function requestWakeLock() { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
-  function releaseWakeLock() { if (wakeLock !== null) { wakeLock.release().then(() => { wakeLock = null; }); } }
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+    } catch (e) {}
+  }
+  function releaseWakeLock() {
+    if (wakeLock !== null) {
+      wakeLock.release().then(function() { wakeLock = null; });
+    }
+  }
 
-  shareBtn.addEventListener('click', () => {
-    if (!sharing) startSharing(); else stopSharing();
+  shareBtn.addEventListener('click', function() {
+    if (!sharing) startSharing();
+    else stopSharing();
   });
 
   function startSharing() {
-    const myName = document.getElementById('nameInput').value.trim() || 'Anonymous';
+    var myName = document.getElementById('nameInput').value.trim() || 'Anonymous';
     localStorage.setItem('myName', myName);
     if (!navigator.geolocation) return alert('Geolocation not supported');
     shareBtn.disabled = true;
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        sharing = true; shareBtn.disabled = false;
-        shareBtn.textContent = 'Stop'; shareBtn.classList.add('active');
+      function(pos) {
+        sharing = true;
+        shareBtn.disabled = false;
+        shareBtn.textContent = 'Stop';
+        shareBtn.classList.add('active');
         requestWakeLock();
         sendLocation(pos);
         map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { duration: 1.5 });
 
-        watchId = navigator.geolocation.watchPosition(sendLocation, (err) => console.warn(err), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
-        heartbeatTimer = setInterval(() => { if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() }); }, 15000);
+        watchId = navigator.geolocation.watchPosition(sendLocation, function(err) {
+          console.warn(err);
+        }, { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+
+        heartbeatTimer = setInterval(function() {
+          if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() });
+        }, 15000);
       },
-      (err) => { shareBtn.disabled = false; alert('Permission denied or GPS unavailable'); },
+      function(err) {
+        shareBtn.disabled = false;
+        alert('Permission denied or GPS unavailable');
+      },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
 
   function sendLocation(pos) {
     if (!sharing) return;
-    const { latitude: lat, longitude: lng } = pos.coords;
-    usersRef.child(myId).set({ lat, lng, name: localStorage.getItem('myName') || 'Anonymous', color: myColor, updatedAt: Date.now() });
+    var lat = pos.coords.latitude;
+    var lng = pos.coords.longitude;
+    usersRef.child(myId).set({
+      lat: lat,
+      lng: lng,
+      name: localStorage.getItem('myName') || 'Anonymous',
+      color: myColor,
+      updatedAt: Date.now()
+    });
   }
 
   function stopSharing() {
-    sharing = false; focusedId = null;
+    sharing = false;
+    focusedId = null;
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     clearInterval(heartbeatTimer);
     releaseWakeLock();
-    shareBtn.textContent = 'Share'; shareBtn.classList.remove('active');
+    shareBtn.textContent = 'Share';
+    shareBtn.classList.remove('active');
     usersRef.child(myId).remove();
-    if (myMarker) { map.removeLayer(myMarker); myMarker = null; }
-    if (markers[myId]) { map.removeLayer(markers[myId]); delete markers[myId]; }
+    if (myMarker) {
+      map.removeLayer(myMarker);
+      myMarker = null;
+    }
+    if (markers[myId]) {
+      map.removeLayer(markers[myId]);
+      delete markers[myId];
+    }
   }
 
   // ============================================
-  // 功能網格
+  // 功能網格按鈕
   // ============================================
-  document.getElementById('funcTheme').onclick = () => {
-    const html = document.documentElement;
+  document.getElementById('funcTheme').onclick = function() {
+    var html = document.documentElement;
     html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
   };
-  document.getElementById('funcScreenshot').onclick = () => alert('Use device screenshot.');
-  document.getElementById('funcCopyPos').onclick = () => {
-    if (myMarker) {
-      const p = myMarker.getLatLng();
-      navigator.clipboard.writeText(`${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`).then(() => alert('Position copied!'));
-    } else alert('Share your location first.');
+
+  document.getElementById('funcScreenshot').onclick = function() {
+    alert('Use device screenshot.');
   };
-  document.getElementById('funcToggleSat').onclick = () => {
-    if (isSatellite) { map.removeLayer(layerSat); map.addLayer(layerOSM); }
-    else { map.removeLayer(layerOSM); map.addLayer(layerSat); }
+
+  document.getElementById('funcCopyPos').onclick = function() {
+    if (myMarker) {
+      var p = myMarker.getLatLng();
+      navigator.clipboard.writeText(p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)).then(function() {
+        alert('Position copied!');
+      });
+    } else {
+      alert('Share your location first.');
+    }
+  };
+
+  document.getElementById('funcToggleSat').onclick = function() {
+    if (isSatellite) {
+      map.removeLayer(layerSat);
+      map.addLayer(layerOSM);
+    } else {
+      map.removeLayer(layerOSM);
+      map.addLayer(layerSat);
+    }
     isSatellite = !isSatellite;
   };
-  document.getElementById('funcLock').onclick = () => {
+
+  document.getElementById('funcLock').onclick = function() {
     if (map.dragging.enabled()) {
-      map.dragging.disable(); map.touchZoom.disable(); map.doubleClickZoom.disable(); map.scrollWheelZoom.disable();
+      map.dragging.disable();
+      map.touchZoom.disable();
+      map.doubleClickZoom.disable();
+      map.scrollWheelZoom.disable();
       alert('Map locked');
     } else {
-      map.dragging.enable(); map.touchZoom.enable(); map.doubleClickZoom.enable(); map.scrollWheelZoom.enable();
+      map.dragging.enable();
+      map.touchZoom.enable();
+      map.doubleClickZoom.enable();
+      map.scrollWheelZoom.enable();
       alert('Map unlocked');
     }
   };
 
-  document.getElementById('funcGrid').onclick = () => {
+  document.getElementById('funcGrid').onclick = function() {
     if (gridLayer) {
       map.removeLayer(gridLayer);
       gridLayer = null;
       return;
     }
-    const bounds = map.getBounds();
-    const step = 0.01;
-    const lines = [];
-    for (let lat = Math.floor(bounds.getSouth()); lat < bounds.getNorth(); lat += step) {
-      lines.push(L.polyline([[lat, bounds.getWest()], [lat, bounds.getEast()]], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
+    var bounds = map.getBounds();
+    var step = 0.01;
+    var lines = [];
+    var south = Math.floor(bounds.getSouth());
+    var north = bounds.getNorth();
+    var west = Math.floor(bounds.getWest());
+    var east = bounds.getEast();
+    var lat, lng;
+    for (lat = south; lat < north; lat += step) {
+      var p1 = L.latLng(lat, west);
+      var p2 = L.latLng(lat, east);
+      lines.push(L.polyline([p1, p2], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
     }
-    for (let lng = Math.floor(bounds.getWest()); lng < bounds.getEast(); lng += step) {
-      lines.push(L.polyline([[bounds.getSouth(), lng], [bounds.getNorth(), lng]], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
+    for (lng = west; lng < east; lng += step) {
+      var q1 = L.latLng(bounds.getSouth(), lng);
+      var q2 = L.latLng(bounds.getNorth(), lng);
+      lines.push(L.polyline([q1, q2], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
     }
     gridLayer = L.layerGroup(lines).addTo(map);
   };
 
-  document.getElementById('funcCompass').onclick = () => {
+  document.getElementById('funcCompass').onclick = function() {
     if (compassMarker) {
       map.removeLayer(compassMarker);
       compassMarker = null;
       return;
     }
-    const center = map.getCenter();
-    compassMarker = L.marker(center, {
-      icon: L.divIcon({
-        html: '<div style="font-size:32px;color:var(--accent);font-weight:800;">N</div>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      })
-    }).addTo(map);
+    var center = map.getCenter();
+    var icon = L.divIcon({
+      html: '<div style="font-size:32px;color:var(--accent);font-weight:800;">N</div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16]
+    });
+    compassMarker = L.marker(center, { icon: icon }).addTo(map);
   };
 
-  document.getElementById('funcHeat').onclick = () => alert('Heatmap feature coming soon.');
+  document.getElementById('funcHeat').onclick = function() {
+    alert('Heatmap feature coming soon.');
+  };
 
   // ============================================
   // 開關
   // ============================================
   function setupToggle(id, initial, onChange) {
-    const el = document.getElementById(id);
+    var el = document.getElementById(id);
     if (!el) return;
     if (initial) el.classList.add('on');
-    el.onclick = () => {
+    el.onclick = function() {
       el.classList.toggle('on');
       onChange(el.classList.contains('on'));
     };
   }
-  setupToggle('toggleAutoFollow', autoFollow, (v) => { autoFollow = v; });
-  setupToggle('toggleTrails', showTrails, (v) => { 
-    showTrails = v; 
-    if (!v) Object.keys(trails).forEach(id => { map.removeLayer(trails[id]); delete trails[id]; });
+
+  setupToggle('toggleAutoFollow', autoFollow, function(v) { autoFollow = v; });
+  setupToggle('toggleTrails', showTrails, function(v) {
+    showTrails = v;
+    if (!v) {
+      Object.keys(trails).forEach(function(id) {
+        map.removeLayer(trails[id]);
+        delete trails[id];
+      });
+    }
   });
-  setupToggle('toggleNight', nightMode, (v) => { 
+  setupToggle('toggleNight', nightMode, function(v) {
     nightMode = v;
     document.documentElement.dataset.theme = v ? 'dark' : 'light';
   });
-  setupToggle('toggleSound', soundAlerts, (v) => { soundAlerts = v; });
-  setupToggle('toggleLargeMarkers', largeMarkers, (v) => { 
+  setupToggle('toggleSound', soundAlerts, function(v) { soundAlerts = v; });
+  setupToggle('toggleLargeMarkers', largeMarkers, function(v) {
     largeMarkers = v;
-    Object.keys(markers).forEach(id => {
+    Object.keys(markers).forEach(function(id) {
       if (markers[id] && usersData[id]) {
         map.removeLayer(markers[id]);
-        const u = usersData[id];
-        const isMe = id === myId;
-        const marker = L.marker([u.lat, u.lng], { icon: makeIcon(u.color || '#3b5bdb', u.name, isMe) }).addTo(map);
-        marker.on('click', (e) => {
-          if (measureMode === 1) { addMeasurePoint(e.latlng); L.DomEvent.stopPropagation(e); }
-          else openUserInfo(id, usersData[id]);
-        });
+        var u = usersData[id];
+        var isMe = id === myId;
+        var marker = L.marker([u.lat, u.lng], { icon: makeIcon(u.color || '#3b5bdb', u.name, isMe) }).addTo(map);
+        marker.on('click', (function(uid) {
+          return function(e) {
+            if (measureMode === 1) {
+              addMeasurePoint(e.latlng);
+              L.DomEvent.stopPropagation(e);
+            } else {
+              openUserInfo(uid, usersData[uid]);
+            }
+          };
+        })(id));
         if (isMe) myMarker = marker;
         markers[id] = marker;
       }
@@ -1111,138 +1251,138 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   // ============================================
   // 100+ 功能清單
   // ============================================
-  const featureList = [
-    // 地圖操作
-    { name: 'Zoom In', fn: () => map.zoomIn() },
-    { name: 'Zoom Out', fn: () => map.zoomOut() },
-    { name: 'Set Zoom 15', fn: () => map.setZoom(15) },
-    { name: 'Set Zoom 30', fn: () => map.setZoom(30) },
-    { name: 'Set Zoom 50', fn: () => map.setZoom(50) },
-    { name: 'Fly to Me', fn: () => { if (myMarker) map.flyTo(myMarker.getLatLng(), 19); } },
-    { name: 'Fly to Center', fn: () => map.flyTo([25.033, 121.5654], 15) },
-    { name: 'Pan North', fn: () => map.panBy([0, -100]) },
-    { name: 'Pan South', fn: () => map.panBy([0, 100]) },
-    { name: 'Pan East', fn: () => map.panBy([100, 0]) },
-    { name: 'Pan West', fn: () => map.panBy([-100, 0]) },
-    { name: 'Recenter Map', fn: () => map.setView([25.033, 121.5654], 15) },
-    { name: 'Toggle OSM', fn: () => { if (isSatellite) { map.removeLayer(layerSat); map.addLayer(layerOSM); isSatellite = false; } } },
-    { name: 'Toggle Satellite', fn: () => { if (!isSatellite) { map.removeLayer(layerOSM); map.addLayer(layerSat); isSatellite = true; } } },
-    { name: 'Toggle MiniMap', fn: () => { const mm = document.querySelector('.leaflet-control-minimap'); if (mm) mm.style.display = mm.style.display === 'none' ? 'block' : 'none'; } },
-    { name: 'Toggle Scale', fn: () => { const s = document.getElementById('customScale'); s.style.display = s.style.display === 'none' ? 'flex' : 'none'; } },
-    { name: 'Toggle Grid', fn: () => document.getElementById('funcGrid').click() },
-    { name: 'Toggle Compass', fn: () => document.getElementById('funcCompass').click() },
-    { name: 'Lock/Unlock Map', fn: () => document.getElementById('funcLock').click() },
-    { name: 'Fit Bounds All', fn: () => { const pts = Object.values(usersData).map(u => [u.lat, u.lng]); if (pts.length) map.fitBounds(pts); } },
-    // 使用者
-    { name: 'List Users', fn: () => alert('Online: ' + Object.keys(usersData).length) },
-    { name: 'Copy My ID', fn: () => navigator.clipboard.writeText(myId).then(() => alert('ID copied')) },
-    { name: 'Copy My Color', fn: () => navigator.clipboard.writeText(myColor).then(() => alert('Color copied')) },
-    { name: 'Random Name', fn: () => { const n = 'User' + Math.floor(Math.random()*1000); document.getElementById('nameInput').value = n; } },
-    { name: 'Random Color', fn: () => { const cs = ['#3b5bdb','#e5484d','#f59e0b','#10b981','#8b5cf6','#ec4899']; myColor = cs[Math.floor(Math.random()*cs.length)]; colorPicker.style.background = myColor; localStorage.setItem('myColor', myColor); } },
-    { name: 'Show My Battery', fn: () => alert('Battery: ' + (myBattery || 'Unknown')) },
-    { name: 'Show My Coords', fn: () => { if (myMarker) { const p = myMarker.getLatLng(); alert(p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)); } } },
-    { name: 'My Distance to Center', fn: () => { if (myMarker) alert(formatDist(calcDist(myMarker.getLatLng().lat, myMarker.getLatLng().lng, 25.033, 121.5654))); } },
-    // 聊天
-    { name: 'Clear My Chat', fn: () => { document.getElementById('chatMessages').innerHTML = ''; } },
-    { name: 'Send Test Message', fn: () => { chatRef.push({ sender: localStorage.getItem('myName')||'Me', text: 'Test', time: Date.now() }); } },
-    { name: 'Open Chat Tab', fn: () => document.getElementById('tabChat').click() },
-    { name: 'Open Radar Tab', fn: () => document.getElementById('tabRadar').click() },
-    { name: 'Clear Unread', fn: () => { unreadCount = 0; document.getElementById('unreadDot').style.display = 'none'; } },
-    // 測距
-    { name: 'Start Measuring', fn: () => { if (measureMode !== 1) measureBtn.click(); } },
-    { name: 'Clear Measure', fn: () => { if (measureMode !== 0) { measureMode = 2; measureBtn.click(); } } },
-    { name: 'Stop Measure', fn: () => { if (measureMode !== 0) { measureMode = 0; modeIndicator.classList.remove('active'); measureLayerGroup.clearLayers(); measurePoints = []; finalMeasureText = ''; } } },
-    // 集合點
-    { name: 'Set Meetup', fn: () => meetupBtn.click() },
-    { name: 'Clear Meetup', fn: () => { if (meetupMarker) { meetupMarker.remove(); meetupMarker = null; meetupRef.remove(); meetupBtn.classList.remove('active'); } } },
-    { name: 'Copy Meetup Coords', fn: () => { if (meetupMarker) { const p = meetupMarker.getLatLng(); navigator.clipboard.writeText(p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)).then(() => alert('Copied')); } } },
-    // 警示
-    { name: 'SOS Alert', fn: () => document.getElementById('sosBtn').click() },
-    { name: 'Ping Selected', fn: () => document.getElementById('pingBtn').click() },
-    { name: 'Watch Selected', fn: () => document.getElementById('alertBtn').click() },
-    // 主題
-    { name: 'Dark Theme', fn: () => { document.documentElement.dataset.theme = 'dark'; nightMode = true; document.getElementById('toggleNight').classList.add('on'); } },
-    { name: 'Light Theme', fn: () => { document.documentElement.dataset.theme = 'light'; nightMode = false; document.getElementById('toggleNight').classList.remove('on'); } },
-    // 分享
-    { name: 'Start Sharing', fn: () => { if (!sharing) shareBtn.click(); } },
-    { name: 'Stop Sharing', fn: () => { if (sharing) shareBtn.click(); } },
-    { name: 'Toggle Sharing', fn: () => shareBtn.click() },
-    // 其他
-    { name: 'Copy App URL', fn: () => navigator.clipboard.writeText(location.href).then(() => alert('URL copied')) },
-    { name: 'Reload App', fn: () => location.reload() },
-    { name: 'Clear LocalStorage', fn: () => { if (confirm('Clear local data?')) { localStorage.clear(); location.reload(); } } },
-    { name: 'Show Online Count', fn: () => alert('Online users: ' + Object.keys(usersData).length) },
-    { name: 'Show My Name', fn: () => alert('Name: ' + (localStorage.getItem('myName') || 'Not set')) },
-    { name: 'Show My ID', fn: () => alert('ID: ' + myId) },
-    { name: 'Show App Version', fn: () => alert('Find My Ultimate v2.0') },
-    { name: 'Toggle Sidebar', fn: () => toggleSidebar(!sidebar.classList.contains('open')) },
-    { name: 'Close Sidebar', fn: () => toggleSidebar(false) },
-    { name: 'Open Sidebar', fn: () => toggleSidebar(true) },
-    { name: 'Toggle Auto Follow', fn: () => document.getElementById('toggleAutoFollow').click() },
-    { name: 'Toggle Trails', fn: () => document.getElementById('toggleTrails').click() },
-    { name: 'Toggle Night Mode', fn: () => document.getElementById('toggleNight').click() },
-    { name: 'Toggle Sound', fn: () => document.getElementById('toggleSound').click() },
-    { name: 'Toggle Large Markers', fn: () => document.getElementById('toggleLargeMarkers').click() },
-    { name: 'Toggle Satellite Layer', fn: () => document.getElementById('funcToggleSat').click() },
-    { name: 'Toggle Map Lock', fn: () => document.getElementById('funcLock').click() },
-    { name: 'Toggle Grid Overlay', fn: () => document.getElementById('funcGrid').click() },
-    { name: 'Toggle Compass', fn: () => document.getElementById('funcCompass').click() },
-    { name: 'Show Scale Info', fn: () => alert(document.getElementById('scaleText').textContent) },
-    { name: 'Copy Scale', fn: () => navigator.clipboard.writeText(document.getElementById('scaleText').textContent).then(() => alert('Scale copied')) },
-    // 模擬/測試
-    { name: 'Simulate Ping Me', fn: () => { document.getElementById('pingText').textContent = 'Test ping!'; document.getElementById('pingBanner').classList.add('show'); setTimeout(() => document.getElementById('pingBanner').classList.remove('show'), 3000); } },
-    { name: 'Simulate SOS', fn: () => { document.getElementById('sosSender').textContent = 'Test SOS'; document.getElementById('sosOverlay').classList.add('show'); } },
-    { name: 'Dismiss SOS', fn: () => document.getElementById('sosOverlay').classList.remove('show') },
-    { name: 'Dismiss Ping', fn: () => document.getElementById('pingBanner').classList.remove('show') },
-    { name: 'Dismiss Modal', fn: () => document.getElementById('infoModal').classList.remove('show') },
-    { name: 'Show Modal', fn: () => document.getElementById('infoModal').classList.add('show') },
-    { name: 'Set Name Test', fn: () => { document.getElementById('nameInput').value = 'Tester'; localStorage.setItem('myName', 'Tester'); } },
-    { name: 'Clear Chat Messages', fn: () => { chatRef.remove(); document.getElementById('chatMessages').innerHTML = ''; } },
-    { name: 'Reset Color', fn: () => { myColor = '#3b5bdb'; colorPicker.style.background = myColor; localStorage.setItem('myColor', myColor); } },
-    { name: 'Reset Name', fn: () => { document.getElementById('nameInput').value = ''; localStorage.removeItem('myName'); } },
-    { name: 'Clear All Trails', fn: () => { Object.keys(trails).forEach(id => { map.removeLayer(trails[id]); delete trails[id]; }); } },
-    { name: 'Clear All Markers', fn: () => { Object.keys(markers).forEach(id => { map.removeLayer(markers[id]); delete markers[id]; }); } },
-    { name: 'Reset Map View', fn: () => map.setView([25.033, 121.5654], 15) },
-    { name: 'Recenter to Me', fn: () => { if (myMarker) map.setView(myMarker.getLatLng(), 17); } },
-    // 資料
-    { name: 'Export Users JSON', fn: () => { const s = JSON.stringify(usersData); navigator.clipboard.writeText(s).then(() => alert('Users JSON copied')); } },
-    { name: 'Export My Position', fn: () => { if (myMarker) { const p = myMarker.getLatLng(); navigator.clipboard.writeText(JSON.stringify({lat:p.lat,lng:p.lng})); alert('Position JSON copied'); } } },
-    { name: 'Export Chat', fn: () => { const msgs = []; document.querySelectorAll('#chatMessages > div').forEach(d => msgs.push(d.innerText)); navigator.clipboard.writeText(msgs.join('\n')).then(() => alert('Chat copied')); } },
-    // 安全
-    { name: 'Logout (Clear ID)', fn: () => { if (confirm('Logout?')) { localStorage.removeItem('findMyId'); location.reload(); } } },
-    { name: 'Reset All Settings', fn: () => { if (confirm('Reset all?')) { localStorage.clear(); location.reload(); } } },
-    // 進階
-    { name: 'Show Leaflet Version', fn: () => alert('Leaflet ' + L.version) },
-    { name: 'Show Zoom Level', fn: () => alert('Zoom: ' + map.getZoom()) },
-    { name: 'Show Center', fn: () => { const c = map.getCenter(); alert(c.lat.toFixed(4) + ', ' + c.lng.toFixed(4)); } },
-    { name: 'Show Bounds', fn: () => { const b = map.getBounds(); alert(b.toBBoxString()); } },
-    { name: 'Invalidate Size', fn: () => map.invalidateSize() },
-    { name: 'Force Refresh', fn: () => location.reload() },
-    { name: 'Toggle All Features', fn: () => alert('Feature panel visible in sidebar') }
+  var featureList = [
+    { name: 'Zoom In', fn: function() { map.zoomIn(); } },
+    { name: 'Zoom Out', fn: function() { map.zoomOut(); } },
+    { name: 'Set Zoom 15', fn: function() { map.setZoom(15); } },
+    { name: 'Set Zoom 30', fn: function() { map.setZoom(30); } },
+    { name: 'Set Zoom 50', fn: function() { map.setZoom(50); } },
+    { name: 'Fly to Me', fn: function() { if (myMarker) map.flyTo(myMarker.getLatLng(), 19); } },
+    { name: 'Fly to Center', fn: function() { map.flyTo([25.033, 121.5654], 15); } },
+    { name: 'Pan North', fn: function() { map.panBy([0, -100]); } },
+    { name: 'Pan South', fn: function() { map.panBy([0, 100]); } },
+    { name: 'Pan East', fn: function() { map.panBy([100, 0]); } },
+    { name: 'Pan West', fn: function() { map.panBy([-100, 0]); } },
+    { name: 'Recenter Map', fn: function() { map.setView([25.033, 121.5654], 15); } },
+    { name: 'Toggle OSM', fn: function() { if (isSatellite) { map.removeLayer(layerSat); map.addLayer(layerOSM); isSatellite = false; } } },
+    { name: 'Toggle Satellite', fn: function() { if (!isSatellite) { map.removeLayer(layerOSM); map.addLayer(layerSat); isSatellite = true; } } },
+    { name: 'Toggle MiniMap', fn: function() { var mm = document.querySelector('.leaflet-control-minimap'); if (mm) mm.style.display = mm.style.display === 'none' ? 'block' : 'none'; } },
+    { name: 'Toggle Scale', fn: function() { var s = document.getElementById('customScale'); s.style.display = s.style.display === 'none' ? 'flex' : 'none'; } },
+    { name: 'Toggle Grid', fn: function() { document.getElementById('funcGrid').click(); } },
+    { name: 'Toggle Compass', fn: function() { document.getElementById('funcCompass').click(); } },
+    { name: 'Lock/Unlock Map', fn: function() { document.getElementById('funcLock').click(); } },
+    { name: 'Fit Bounds All', fn: function() { var pts = Object.values(usersData).map(function(u) { return [u.lat, u.lng]; }); if (pts.length) map.fitBounds(pts); } },
+    { name: 'List Users', fn: function() { alert('Online: ' + Object.keys(usersData).length); } },
+    { name: 'Copy My ID', fn: function() { navigator.clipboard.writeText(myId).then(function() { alert('ID copied'); }); } },
+    { name: 'Copy My Color', fn: function() { navigator.clipboard.writeText(myColor).then(function() { alert('Color copied'); }); } },
+    { name: 'Random Name', fn: function() { var n = 'User' + Math.floor(Math.random() * 1000); document.getElementById('nameInput').value = n; } },
+    { name: 'Random Color', fn: function() { var cs = ['#3b5bdb', '#e5484d', '#f59e0b', '#10b981', '#8b5cf6', '#ec4899']; myColor = cs[Math.floor(Math.random() * cs.length)]; colorPicker.style.background = myColor; localStorage.setItem('myColor', myColor); } },
+    { name: 'Show My Battery', fn: function() { alert('Battery: ' + (myBattery || 'Unknown')); } },
+    { name: 'Show My Coords', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); alert(p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)); } } },
+    { name: 'Distance to Center', fn: function() { if (myMarker) alert(formatDist(calcDist(myMarker.getLatLng().lat, myMarker.getLatLng().lng, 25.033, 121.5654))); } },
+    { name: 'Clear My Chat', fn: function() { document.getElementById('chatMessages').innerHTML = ''; } },
+    { name: 'Send Test Message', fn: function() { chatRef.push({ sender: localStorage.getItem('myName') || 'Me', text: 'Test', time: Date.now() }); } },
+    { name: 'Open Chat Tab', fn: function() { document.getElementById('tabChat').click(); } },
+    { name: 'Open Radar Tab', fn: function() { document.getElementById('tabRadar').click(); } },
+    { name: 'Clear Unread', fn: function() { unreadCount = 0; document.getElementById('unreadDot').style.display = 'none'; } },
+    { name: 'Start Measuring', fn: function() { if (measureMode !== 1) measureBtn.click(); } },
+    { name: 'Clear Measure', fn: function() { if (measureMode !== 0) { measureMode = 2; measureBtn.click(); } } },
+    { name: 'Stop Measure', fn: function() { if (measureMode !== 0) { measureMode = 0; modeIndicator.classList.remove('active'); measureLayerGroup.clearLayers(); measurePoints = []; finalMeasureText = ''; } } },
+    { name: 'Set Meetup', fn: function() { meetupBtn.click(); } },
+    { name: 'Clear Meetup', fn: function() { if (meetupMarker) { meetupMarker.remove(); meetupMarker = null; meetupRef.remove(); meetupBtn.classList.remove('active'); } } },
+    { name: 'Copy Meetup Coords', fn: function() { if (meetupMarker) { var p = meetupMarker.getLatLng(); navigator.clipboard.writeText(p.lat.toFixed(6) + ', ' + p.lng.toFixed(6)).then(function() { alert('Copied'); }); } } },
+    { name: 'SOS Alert', fn: function() { document.getElementById('sosBtn').click(); } },
+    { name: 'Ping Selected', fn: function() { document.getElementById('pingBtn').click(); } },
+    { name: 'Watch Selected', fn: function() { document.getElementById('alertBtn').click(); } },
+    { name: 'Dark Theme', fn: function() { document.documentElement.dataset.theme = 'dark'; nightMode = true; document.getElementById('toggleNight').classList.add('on'); } },
+    { name: 'Light Theme', fn: function() { document.documentElement.dataset.theme = 'light'; nightMode = false; document.getElementById('toggleNight').classList.remove('on'); } },
+    { name: 'Start Sharing', fn: function() { if (!sharing) shareBtn.click(); } },
+    { name: 'Stop Sharing', fn: function() { if (sharing) shareBtn.click(); } },
+    { name: 'Toggle Sharing', fn: function() { shareBtn.click(); } },
+    { name: 'Copy App URL', fn: function() { navigator.clipboard.writeText(location.href).then(function() { alert('URL copied'); }); } },
+    { name: 'Reload App', fn: function() { location.reload(); } },
+    { name: 'Clear LocalStorage', fn: function() { if (confirm('Clear local data?')) { localStorage.clear(); location.reload(); } } },
+    { name: 'Show Online Count', fn: function() { alert('Online users: ' + Object.keys(usersData).length); } },
+    { name: 'Show My Name', fn: function() { alert('Name: ' + (localStorage.getItem('myName') || 'Not set')); } },
+    { name: 'Show My ID', fn: function() { alert('ID: ' + myId); } },
+    { name: 'Show App Version', fn: function() { alert('Find My Ultimate v2.0'); } },
+    { name: 'Toggle Sidebar', fn: function() { toggleSidebar(!sidebar.classList.contains('open')); } },
+    { name: 'Close Sidebar', fn: function() { toggleSidebar(false); } },
+    { name: 'Open Sidebar', fn: function() { toggleSidebar(true); } },
+    { name: 'Toggle Auto Follow', fn: function() { document.getElementById('toggleAutoFollow').click(); } },
+    { name: 'Toggle Trails', fn: function() { document.getElementById('toggleTrails').click(); } },
+    { name: 'Toggle Night Mode', fn: function() { document.getElementById('toggleNight').click(); } },
+    { name: 'Toggle Sound', fn: function() { document.getElementById('toggleSound').click(); } },
+    { name: 'Toggle Large Markers', fn: function() { document.getElementById('toggleLargeMarkers').click(); } },
+    { name: 'Toggle Satellite', fn: function() { document.getElementById('funcToggleSat').click(); } },
+    { name: 'Toggle Map Lock', fn: function() { document.getElementById('funcLock').click(); } },
+    { name: 'Toggle Grid', fn: function() { document.getElementById('funcGrid').click(); } },
+    { name: 'Toggle Compass', fn: function() { document.getElementById('funcCompass').click(); } },
+    { name: 'Show Scale Info', fn: function() { alert(document.getElementById('scaleText').textContent); } },
+    { name: 'Copy Scale', fn: function() { navigator.clipboard.writeText(document.getElementById('scaleText').textContent).then(function() { alert('Scale copied'); }); } },
+    { name: 'Simulate Ping', fn: function() { document.getElementById('pingText').textContent = 'Test ping!'; document.getElementById('pingBanner').classList.add('show'); setTimeout(function() { document.getElementById('pingBanner').classList.remove('show'); }, 3000); } },
+    { name: 'Simulate SOS', fn: function() { document.getElementById('sosSender').textContent = 'Test SOS'; document.getElementById('sosOverlay').classList.add('show'); } },
+    { name: 'Dismiss SOS', fn: function() { document.getElementById('sosOverlay').classList.remove('show'); } },
+    { name: 'Dismiss Ping', fn: function() { document.getElementById('pingBanner').classList.remove('show'); } },
+    { name: 'Dismiss Modal', fn: function() { document.getElementById('infoModal').classList.remove('show'); } },
+    { name: 'Show Modal', fn: function() { document.getElementById('infoModal').classList.add('show'); } },
+    { name: 'Set Name Test', fn: function() { document.getElementById('nameInput').value = 'Tester'; localStorage.setItem('myName', 'Tester'); } },
+    { name: 'Clear Chat Messages', fn: function() { chatRef.remove(); document.getElementById('chatMessages').innerHTML = ''; } },
+    { name: 'Reset Color', fn: function() { myColor = '#3b5bdb'; colorPicker.style.background = myColor; localStorage.setItem('myColor', myColor); } },
+    { name: 'Reset Name', fn: function() { document.getElementById('nameInput').value = ''; localStorage.removeItem('myName'); } },
+    { name: 'Clear All Trails', fn: function() { Object.keys(trails).forEach(function(id) { map.removeLayer(trails[id]); delete trails[id]; }); } },
+    { name: 'Clear All Markers', fn: function() { Object.keys(markers).forEach(function(id) { map.removeLayer(markers[id]); delete markers[id]; }); } },
+    { name: 'Reset Map View', fn: function() { map.setView([25.033, 121.5654], 15); } },
+    { name: 'Recenter to Me', fn: function() { if (myMarker) map.setView(myMarker.getLatLng(), 17); } },
+    { name: 'Export Users JSON', fn: function() { var s = JSON.stringify(usersData); navigator.clipboard.writeText(s).then(function() { alert('Users JSON copied'); }); } },
+    { name: 'Export My Position', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); navigator.clipboard.writeText(JSON.stringify({ lat: p.lat, lng: p.lng })); alert('Position JSON copied'); } } },
+    { name: 'Export Chat', fn: function() { var msgs = []; document.querySelectorAll('#chatMessages > div').forEach(function(d) { msgs.push(d.innerText); }); navigator.clipboard.writeText(msgs.join('\n')).then(function() { alert('Chat copied'); }); } },
+    { name: 'Logout (Clear ID)', fn: function() { if (confirm('Logout?')) { localStorage.removeItem('findMyId'); location.reload(); } } },
+    { name: 'Reset All Settings', fn: function() { if (confirm('Reset all?')) { localStorage.clear(); location.reload(); } } },
+    { name: 'Show Leaflet Version', fn: function() { alert('Leaflet ' + L.version); } },
+    { name: 'Show Zoom Level', fn: function() { alert('Zoom: ' + map.getZoom()); } },
+    { name: 'Show Center', fn: function() { var c = map.getCenter(); alert(c.lat.toFixed(4) + ', ' + c.lng.toFixed(4)); } },
+    { name: 'Show Bounds', fn: function() { var b = map.getBounds(); alert(b.toBBoxString()); } },
+    { name: 'Invalidate Size', fn: function() { map.invalidateSize(); } },
+    { name: 'Force Refresh', fn: function() { location.reload(); } },
+    { name: 'Toggle All Features', fn: function() { alert('Feature panel visible in sidebar'); } },
+    { name: 'Show Marker Count', fn: function() { alert('Markers: ' + Object.keys(markers).length); } },
+    { name: 'Show Trail Count', fn: function() { alert('Trails: ' + Object.keys(trails).length); } },
+    { name: 'Show Meetup Status', fn: function() { alert(meetupMarker ? 'Meetup set' : 'No meetup'); } },
+    { name: 'Show Alert Target', fn: function() { alert(alertTargetId ? 'Watching: ' + alertTargetId : 'No target'); } },
+    { name: 'Clear Alert Target', fn: function() { alertTargetId = null; } },
+    { name: 'Set Zoom 20', fn: function() { map.setZoom(20); } },
+    { name: 'Set Zoom 40', fn: function() { map.setZoom(40); } },
+    { name: 'Pan Random', fn: function() { map.panBy([Math.random() * 200 - 100, Math.random() * 200 - 100]); } },
+    { name: 'Zoom Random', fn: function() { map.setZoom(Math.floor(Math.random() * 49) + 2); } },
+    { name: 'Count Online', fn: function() { alert('Online: ' + Object.keys(usersData).length); } },
+    { name: 'Add Marker at Center', fn: function() { var c = map.getCenter(); L.marker([c.lat, c.lng]).addTo(map); } },
+    { name: 'Drop Test Marker', fn: function() { var c = map.getCenter(); L.circle([c.lat, c.lng], { radius: 50, color: 'var(--warn)' }).addTo(map); } },
+    { name: 'Open Fullscreen', fn: function() { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); } },
+    { name: 'Exit Fullscreen', fn: function() { if (document.exitFullscreen) document.exitFullscreen(); } },
+    { name: 'Copy Current Time', fn: function() { navigator.clipboard.writeText(new Date().toISOString()).then(function() { alert('Time copied'); }); } },
+    { name: 'Show User Agent', fn: function() { alert(navigator.userAgent); } },
+    { name: 'Show Screen Size', fn: function() { alert(screen.width + ' x ' + screen.height); } },
+    { name: 'Show Geolocation Support', fn: function() { alert('Geolocation: ' + !!navigator.geolocation); } },
+    { name: 'Vibrate Test', fn: function() { if (navigator.vibrate) navigator.vibrate([100, 50, 100]); else alert('No vibration'); } },
+    { name: 'Copy Location URL', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); var url = 'https://www.openstreetmap.org/?mlat=' + p.lat + '&mlon=' + p.lng; navigator.clipboard.writeText(url).then(function() { alert('OSM URL copied'); }); } } },
+    { name: 'Open in OSM', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); window.open('https://www.openstreetmap.org/?mlat=' + p.lat + '&mlon=' + p.lng + '#map=19/' + p.lat + '/' + p.lng); } } },
+    { name: 'Open in Google Maps', fn: function() { if (myMarker) { var p = myMarker.getLatLng(); window.open('https://www.google.com/maps?q=' + p.lat + ',' + p.lng); } } }
   ];
 
-  // 生成功能按鈕
   (function buildFeatureMenu() {
-    const grid = document.getElementById('featureMenuGrid');
-    featureList.forEach(f => {
-      const btn = document.createElement('button');
+    var grid = document.getElementById('featureMenuGrid');
+    featureList.forEach(function(f) {
+      var btn = document.createElement('button');
       btn.className = 'feature-menu-btn interactive';
       btn.textContent = f.name;
       btn.onclick = f.fn;
-      // 加入 ripple
-      btn.addEventListener('pointerdown', function(e) {
+      btn.addEventListener('pointerdown', function() {
         if (navigator.vibrate) navigator.vibrate(8);
       });
       grid.appendChild(btn);
     });
   })();
-
-  // 更新使用者資料（供其他功能使用）
-  setInterval(() => {
-    if (myMarker && sharing) {
-      // 保持更新
-    }
-  }, 5000);
 
   console.log('Find My Ultimate loaded with ' + featureList.length + ' features');
 </script>

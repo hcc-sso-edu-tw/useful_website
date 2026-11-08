@@ -41,8 +41,8 @@ body {
   touch-action: manipulation;
 }
 
-/* 背景動畫 */
-.bg-stage { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--bg-root); }
+/* 背景漸層（保留少量） */
+.bg-stage { position: fixed; inset: 0; z-index: -3; overflow: hidden; background: var(--bg-root); }
 .bg-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .6; animation: float 20s infinite alternate; }
 .bg-blob.b1 { left: -20vmax; top: -20vmax; background: radial-gradient(circle, #ff7aa8 0%, transparent 60%); }
 .bg-blob.b2 { right: -20vmax; bottom: -20vmax; background: radial-gradient(circle, #5cb0ff 0%, transparent 60%); }
@@ -65,7 +65,7 @@ html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,25
   border-radius: var(--radius); position: relative; overflow: hidden;
 }
 
-/* 互動動畫核心 */
+/* 互動動畫核心（保留） */
 .interactive {
   cursor: pointer; position: relative; overflow: hidden; user-select: none;
   transition: transform 0.2s var(--ease), box-shadow 0.3s var(--ease), background 0.3s;
@@ -187,7 +187,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 .sos-overlay.show { display: flex; }
 @keyframes flashRed { 0%, 100% { background: rgba(229,72,77,0.2); } 50% { background: rgba(229,72,77,0.6); } }
 
-/* 自訂比例尺（步長 3 米，zoom 50 仍可見） */
+/* 自訂比例尺 */
 .custom-scale {
   position: absolute; left: 16px; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000;
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
@@ -199,13 +199,20 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 }
 .custom-scale .bar { height: 3px; background: var(--text); border-radius: 2px; }
 
-/* 功能網格 */
+/* 功能網格（新增更多功能） */
 .func-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; border-top: 1px solid rgba(128,128,128,0.15); background: rgba(255,255,255,0.05); }
 .func-btn { width: 100%; aspect-ratio: 1; border-radius: 14px; border: 1px solid var(--glass-border); background: var(--glass-1-a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 10px; font-weight: 700; color: var(--text); transition: all 0.2s; }
 .func-btn svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
 .func-btn:hover { background: var(--glass-2-a); border-color: var(--accent); transform: translateY(-2px); }
 .func-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
 .func-btn.active svg { stroke: #fff; }
+
+/* 功能開關列 */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; font-size: 13px; font-weight: 600; border-bottom: 1px solid rgba(128,128,128,0.1); }
+.toggle-switch { width: 40px; height: 22px; border-radius: 20px; background: rgba(128,128,128,0.3); position: relative; cursor: pointer; transition: background 0.3s; }
+.toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 0.3s; }
+.toggle-switch.on { background: var(--accent); }
+.toggle-switch.on::after { transform: translateX(18px); }
 
 @media (max-width: 480px) {
   .topbar { gap: 8px; left: 12px; right: 12px; }
@@ -268,8 +275,9 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     </div>
   </div>
 
+  <!-- 新增更多功能按鈕 -->
   <div class="func-grid">
-    <button class="func-btn interactive" id="funcTheme" title="Toggle Theme">
+    <button class="func-btn interactive" id="funcTheme" title="Theme">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       Theme
     </button>
@@ -277,7 +285,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
       Shot
     </button>
-    <button class="func-btn interactive" id="funcCopyPos" title="Copy My Position">
+    <button class="func-btn interactive" id="funcCopyPos" title="Copy Position">
       <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       Copy
     </button>
@@ -289,6 +297,40 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       Lock
     </button>
+    <button class="func-btn interactive" id="funcGrid" title="Grid Overlay">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Grid
+    </button>
+    <button class="func-btn interactive" id="funcCompass" title="Compass">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      Compass
+    </button>
+    <button class="func-btn interactive" id="funcHeat" title="Heatmap">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Heat
+    </button>
+  </div>
+
+  <!-- 更多左側功能開關 -->
+  <div class="toggle-row">
+    <span>Auto-follow me</span>
+    <div class="toggle-switch" id="toggleAutoFollow"></div>
+  </div>
+  <div class="toggle-row">
+    <span>Show trails</span>
+    <div class="toggle-switch" id="toggleTrails"></div>
+  </div>
+  <div class="toggle-row">
+    <span>Night mode</span>
+    <div class="toggle-switch" id="toggleNight"></div>
+  </div>
+  <div class="toggle-row">
+    <span>Sound alerts</span>
+    <div class="toggle-switch" id="toggleSound"></div>
+  </div>
+  <div class="toggle-row">
+    <span>Large markers</span>
+    <div class="toggle-switch" id="toggleLargeMarkers"></div>
   </div>
 </div>
 
@@ -313,18 +355,15 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   <button class="ctrl-btn glass interactive" id="meetupBtn" title="Set Meetup Point">
     <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
   </button>
-  
   <button class="ctrl-btn glass interactive" id="measureBtn" title="Measure Distance">
     <svg viewBox="0 0 24 24" style="stroke-linecap: round; stroke-linejoin: round;">
       <path d="M3 15l12-12 6 6-12 12-6-6z"/>
       <path d="M9 9l1.5 1.5M12 6l1.5 1.5M15 9l1.5 1.5"/>
     </svg>
   </button>
-  
   <button class="ctrl-btn glass interactive" id="layerBtn" title="Change Map Layer">
     <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
   </button>
-  
   <button class="ctrl-btn glass interactive" id="centerBtn" title="Center My Location">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
   </button>
@@ -396,12 +435,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   const map = L.map('map', { 
     zoomControl: false,
     minZoom: 2,
-    maxZoom: 50,        // 允許超級放大
+    maxZoom: 50,
     maxBoundsViscosity: 0.0
   }).setView([25.033, 121.5654], 15);
 
   const layerOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', noWrap: true, maxZoom: 50 }).addTo(map);
-  const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true, maxZoom: 50 });
+  const layerSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri', noWrap: true, maxZoom: 50 });
   let isSatellite = false;
 
   new L.Control.MiniMap(L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { noWrap: true, maxZoom: 50 }), { toggleDisplay: true, position: 'bottomright', width: 120, height: 120 }).addTo(map);
@@ -409,39 +448,23 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   // ============================================
   // 自訂比例尺（步長 3 米，最大 15 米）
   // ============================================
-  const customScaleEl = document.getElementById('customScale');
   const scaleBarEl = document.getElementById('scaleBar');
   const scaleTextEl = document.getElementById('scaleText');
-
-  // 比例尺最大顯示 15 米
   const MAX_SCALE_METERS = 15;
 
   function updateCustomScale() {
     const zoom = map.getZoom();
     const center = map.getCenter();
-
-    // 計算目前 zoom 下，每像素對應的公尺數
     const pixelsPerDegree = 256 * Math.pow(2, zoom) / 360;
     const metersPerDegree = 111320 * Math.cos(center.lat * Math.PI / 180);
     const metersPerPixel = metersPerDegree / pixelsPerDegree;
-
-    // 固定像素寬度
     const barPixels = 60;
     let meters = metersPerPixel * barPixels;
-
-    // 對齊到 3 的倍數（至少 3 米，最多 15 米）
     let aligned = Math.round(meters / 3) * 3;
-    aligned = Math.max(3, Math.min(15, aligned));
-
-    // 顯示文字
-    let text = aligned + ' m';
-    scaleTextEl.textContent = text;
+    aligned = Math.max(3, Math.min(MAX_SCALE_METERS, aligned));
+    scaleTextEl.textContent = aligned + ' m';
     scaleBarEl.style.width = barPixels + 'px';
-
-    // 如果實際距離超過 15 米，仍顯示 15 m（截斷）
-    if (meters > MAX_SCALE_METERS) {
-      scaleTextEl.textContent = MAX_SCALE_METERS + ' m';
-    }
+    if (meters > MAX_SCALE_METERS) scaleTextEl.textContent = MAX_SCALE_METERS + ' m';
   }
 
   map.on('zoomend', updateCustomScale);
@@ -466,11 +489,20 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   let unreadCount = 0;
   let currentTab = 'radar';
 
-  // 測距狀態
   let measureMode = 0;
   let measurePoints = [];
   let measureLayerGroup = new L.FeatureGroup().addTo(map);
   let finalMeasureText = '';
+
+  // 新增功能狀態
+  let autoFollow = true; // 預設開啟跟隨，可在側欄關閉
+  let showTrails = false;
+  let trails = {};
+  let gridLayer = null;
+  let compassMarker = null;
+  let nightMode = false;
+  let soundAlerts = true;
+  let largeMarkers = false;
 
   const shareBtn = document.getElementById('shareBtn');
   const userListEl = document.getElementById('userList');
@@ -492,7 +524,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     else { sidebar.classList.remove('open'); sidebarBackdrop.classList.remove('show'); }
   };
 
-  // 分頁切換
   document.getElementById('tabRadar').onclick = () => {
     currentTab = 'radar';
     document.getElementById('tabRadar').style.borderBottomColor = 'var(--accent)';
@@ -519,18 +550,11 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   // ============================================
   // 聊天室（訊息 5 分鐘後自動刪除）
   // ============================================
-  const CHAT_TTL = 5 * 60 * 1000; // 5 分鐘
-
+  const CHAT_TTL = 5 * 60 * 1000;
   chatRef.limitToLast(50).on('child_added', (snap) => {
     const msg = snap.val();
     if (!msg || !msg.time) return;
-
-    // 若已超過 5 分鐘，直接刪除並跳過
-    if (Date.now() - msg.time > CHAT_TTL) {
-      snap.ref.remove();
-      return;
-    }
-
+    if (Date.now() - msg.time > CHAT_TTL) { snap.ref.remove(); return; }
     const isMe = msg.sender === (localStorage.getItem('myName') || 'Anonymous');
     const div = document.createElement('div');
     div.style.cssText = `align-self: ${isMe ? 'flex-end' : 'flex-start'}; max-width: 85%;`;
@@ -542,7 +566,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     `;
     document.getElementById('chatMessages').appendChild(div);
     document.getElementById('chatMessages').scrollTop = 99999;
-
     if (!isMe && currentTab !== 'chat' && !sidebar.classList.contains('open')) {
       unreadCount++;
       document.getElementById('unreadDot').style.display = 'block';
@@ -574,7 +597,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     document.getElementById('chatInput').value = '';
   };
 
-  // 震動與 Ripple 特效
+  // 震動與 Ripple 特效（保留少量必要動畫）
   document.querySelectorAll('.interactive').forEach(el => {
     el.addEventListener('pointerdown', function(e) {
       if (navigator.vibrate) navigator.vibrate(10);
@@ -602,9 +625,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     myColor = colors[(idx + 1) % colors.length];
     colorPicker.style.background = myColor;
     localStorage.setItem('myColor', myColor);
-    if (sharing && myMarker) {
-      sendLocation({ coords: myMarker.getLatLng() });
-    }
+    if (sharing && myMarker) sendLocation({ coords: myMarker.getLatLng() });
   };
 
   // ============================================
@@ -616,24 +637,20 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
-
-  function formatDist(meters) {
-    return meters > 1000 ? (meters/1000).toFixed(2) + ' km' : Math.round(meters) + ' m';
-  }
-
+  function formatDist(meters) { return meters > 1000 ? (meters/1000).toFixed(2) + ' km' : Math.round(meters) + ' m'; }
   function getInitials(name) { return name.trim().slice(0, 2).toUpperCase() || '?'; }
-
   function makeIcon(color, name, isMe) {
+    const size = largeMarkers ? 50 : 40;
     return L.divIcon({
       className: 'custom-marker-wrapper',
       html: `
-        <div class="marker-container" style="box-shadow: 0 4px 12px ${color}80;">
+        <div class="marker-container" style="width:${size}px;height:${size}px;box-shadow: 0 4px 12px ${color}80;">
           ${isMe ? '<div class="marker-breathe"></div>' : ''}
-          <div class="marker-dot" style="background: ${color};"></div>
+          <div class="marker-dot" style="background: ${color};width:${largeMarkers?18:14}px;height:${largeMarkers?18:14}px;"></div>
           <div class="marker-label">${name}${isMe ? ' (You)' : ''}</div>
         </div>
       `,
-      iconSize: [40, 40], iconAnchor: [20, 20]
+      iconSize: [size, size], iconAnchor: [size/2, size/2]
     });
   }
 
@@ -710,7 +727,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     if (measureMode !== 1) return;
     measurePoints.push(latlng);
     L.marker(latlng, { icon: measureDotIcon, interactive: false }).addTo(measureLayerGroup);
-
     if (measurePoints.length > 1) {
       L.polyline(measurePoints, { color: '#f59e0b', dashArray: '5, 8', weight: 3 }).addTo(measureLayerGroup);
       let total = 0;
@@ -766,7 +782,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   });
 
   // ============================================
-  // 同步
+  // 同步（無自動跟隨，但可透過側欄開啟）
   // ============================================
   usersRef.on('value', (snap) => {
     usersData = snap.val() || {};
@@ -794,7 +810,6 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         const p = myMarker.getLatLng();
         const d = calcDist(p.lat, p.lng, u.lat, u.lng);
         distText = isMe ? 'You' : formatDist(d);
-
         if (alertTargetId === id && !isMe && d > 500) {
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
           document.body.style.boxShadow = "inset 0 0 50px rgba(229,72,77,0.5)";
@@ -828,10 +843,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
     lastRenderedIds = currentIds;
 
+    // 清除已下線的使用者標記與軌跡
     Object.keys(markers).forEach(id => {
       if (!online[id]) {
         map.removeLayer(markers[id]);
         delete markers[id];
+        if (trails[id]) { map.removeLayer(trails[id]); delete trails[id]; }
       }
     });
 
@@ -840,6 +857,21 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       const isMe = id === myId;
       const color = u.color || '#3b5bdb';
       const pos = [u.lat, u.lng];
+
+      // 軌跡功能
+      if (showTrails) {
+        if (!trails[id]) trails[id] = L.polyline([pos], { color: color, weight: 4, opacity: 0.5 }).addTo(map);
+        else {
+          const pts = trails[id].getLatLngs();
+          if (pts.length === 0 || pts[pts.length-1].lat !== pos[0] || pts[pts.length-1].lng !== pos[1]) {
+            pts.push(L.latLng(pos));
+            trails[id].setLatLngs(pts);
+          }
+        }
+      } else if (trails[id]) {
+        map.removeLayer(trails[id]);
+        delete trails[id];
+      }
 
       if (markers[id]) markers[id].setLatLng(pos);
       else {
@@ -853,7 +885,10 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       }
     });
 
-    if (focusedId && online[focusedId]) map.panTo([online[focusedId].lat, online[focusedId].lng], { animate: true });
+    // 自動跟隨（可開關）
+    if (autoFollow && focusedId && online[focusedId]) {
+      map.panTo([online[focusedId].lat, online[focusedId].lng], { animate: true });
+    }
   });
 
   function openUserInfo(id, u) {
@@ -953,22 +988,18 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   }
 
   // ============================================
-  // 功能網格
+  // 功能網格（新增更多功能按鈕）
   // ============================================
   document.getElementById('funcTheme').onclick = () => {
     const html = document.documentElement;
     html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
   };
-  document.getElementById('funcScreenshot').onclick = () => {
-    alert('Screenshot feature: use your device screenshot.');
-  };
+  document.getElementById('funcScreenshot').onclick = () => alert('Use device screenshot.');
   document.getElementById('funcCopyPos').onclick = () => {
     if (myMarker) {
       const p = myMarker.getLatLng();
       navigator.clipboard.writeText(`${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`).then(() => alert('Position copied!'));
-    } else {
-      alert('Share your location first.');
-    }
+    } else alert('Share your location first.');
   };
   document.getElementById('funcToggleSat').onclick = () => {
     if (isSatellite) { map.removeLayer(layerSat); map.addLayer(layerOSM); }
@@ -984,6 +1015,73 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       alert('Map unlocked');
     }
   };
+  document.getElementById('funcGrid').onclick = () => {
+    if (gridLayer) { map.removeLayer(gridLayer); gridLayer = null; }
+    else {
+      gridLayer = L.gridLayer({ className: 'grid-layer' });
+      // 簡單繪製網格：用經緯線
+      const bounds = map.getBounds();
+      const step = 0.01;
+      const lines = [];
+      for (let lat = Math.floor(bounds.getSouth()); lat < bounds.getNorth(); lat += step) {
+        lines.push(L.polyline([[lat, bounds.getWest()], [lat, bounds.getEast()]], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
+      }
+      for (let lng = Math.floor(bounds.getWest()); lng < bounds.getEast(); lng += step) {
+        lines.push(L.polyline([[bounds.getSouth(), lng], [bounds.getNorth(), lng]], { color: 'rgba(128,128,128,0.3)', weight: 1 }));
+      }
+      gridLayer = L.layerGroup(lines).addTo(map);
+    }
+  };
+  document.getElementById('funcCompass').onclick = () => {
+    if (compassMarker) { map.removeLayer(compassMarker); compassMarker = null; }
+    else {
+      const center = map.getCenter();
+      compassMarker = L.marker(center, {
+        icon: L.divIcon({ html: '<div style="font-size:32px;color:var(--accent);">N</div>', iconSize: [32,32], iconAnchor: [16,16] })
+      }).addTo(map);
+    }
+  };
+  document.getElementById('funcHeat').onclick = () => alert('Heatmap feature coming soon.');
+
+  // ============================================
+  // 側欄開關功能
+  // ============================================
+  function setupToggle(id, initial, onChange) {
+    const el = document.getElementById(id);
+    if (initial) el.classList.add('on');
+    el.onclick = () => {
+      el.classList.toggle('on');
+      onChange(el.classList.contains('on'));
+    };
+  }
+  setupToggle('toggleAutoFollow', autoFollow, (v) => { autoFollow = v; });
+  setupToggle('toggleTrails', showTrails, (v) => { 
+    showTrails = v; 
+    if (!v) Object.keys(trails).forEach(id => { map.removeLayer(trails[id]); delete trails[id]; });
+  });
+  setupToggle('toggleNight', nightMode, (v) => { 
+    nightMode = v;
+    document.documentElement.dataset.theme = v ? 'dark' : 'light';
+  });
+  setupToggle('toggleSound', soundAlerts, (v) => { soundAlerts = v; });
+  setupToggle('toggleLargeMarkers', largeMarkers, (v) => { 
+    largeMarkers = v;
+    // 重新渲染所有標記
+    Object.keys(markers).forEach(id => {
+      if (markers[id] && usersData[id]) {
+        map.removeLayer(markers[id]);
+        const u = usersData[id];
+        const isMe = id === myId;
+        const marker = L.marker([u.lat, u.lng], { icon: makeIcon(u.color || '#3b5bdb', u.name, isMe) }).addTo(map);
+        marker.on('click', (e) => {
+          if (measureMode === 1) { addMeasurePoint(e.latlng); L.DomEvent.stopPropagation(e); }
+          else openUserInfo(id, usersData[id]);
+        });
+        if (isMe) myMarker = marker;
+        markers[id] = marker;
+      }
+    });
+  });
 </script>
 </body>
 </html>

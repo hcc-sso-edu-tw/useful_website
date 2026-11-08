@@ -6,54 +6,39 @@
 <title>Find My · Liquid Glass</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <style>
 :root {
-  --accent: #3b5bdb; 
-  --accent-2: #7048e8;
-  --ok: #10b981; 
-  --err: #e5484d;
-  --bg-root: #eef0f7;
-  --text: #0f1020; 
-  --text-muted: #5f617a;
-  --glass-1-a: rgba(255,255,255,.42); 
-  --glass-1-b: rgba(255,255,255,.28);
-  --glass-2-a: rgba(255,255,255,.60); 
-  --glass-2-b: rgba(255,255,255,.42);
-  --glass-3-a: rgba(255,255,255,.78); 
-  --glass-3-b: rgba(255,255,255,.62);
+  --accent: #3b5bdb; --accent-2: #7048e8;
+  --ok: #10b981; --err: #e5484d;
+  --bg-root: #eef0f7; --text: #0f1020; --text-muted: #5f617a;
+  --glass-1-a: rgba(255,255,255,.42); --glass-1-b: rgba(255,255,255,.28);
+  --glass-2-a: rgba(255,255,255,.60); --glass-2-b: rgba(255,255,255,.42);
+  --glass-3-a: rgba(255,255,255,.78); --glass-3-b: rgba(255,255,255,.62);
   --glass-border: rgba(255,255,255,.82);
   --glass-blur: 24px;
   --glass-shadow: 0 18px 60px -28px rgba(20,20,40,.35);
   --glass-inset: inset 0 1px 0 0 rgba(255,255,255,.65);
-  --radius: 24px;
-  --pill: 999px;
-  --font: "Inter", -apple-system, sans-serif;
+  --radius: 24px; --pill: 999px; --font: "Inter", -apple-system, sans-serif;
 }
 html[data-theme="dark"] {
-  --bg-root: #070711;
-  --text: #f2f3fa; 
-  --text-muted: #9ea0b8;
-  --accent: #7c95ff; 
-  --accent-2: #b197ff;
-  --glass-1-a: rgba(30,31,48,.46); 
-  --glass-1-b: rgba(20,21,36,.32);
-  --glass-2-a: rgba(38,40,62,.60); 
-  --glass-2-b: rgba(26,28,46,.46);
-  --glass-3-a: rgba(48,50,80,.78); 
-  --glass-3-b: rgba(34,36,58,.68);
+  --bg-root: #070711; --text: #f2f3fa; --text-muted: #9ea0b8;
+  --accent: #7c95ff; --accent-2: #b197ff;
+  --glass-1-a: rgba(30,31,48,.46); --glass-1-b: rgba(20,21,36,.32);
+  --glass-2-a: rgba(38,40,62,.60); --glass-2-b: rgba(26,28,46,.46);
+  --glass-3-a: rgba(48,50,80,.78); --glass-3-b: rgba(34,36,58,.68);
   --glass-border: rgba(255,255,255,.14);
   --glass-shadow: 0 24px 70px -28px rgba(0,0,0,.75);
   --glass-inset: inset 0 1px 0 0 rgba(255,255,255,.15);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: var(--bg-root); color: var(--text);
-  font-family: var(--font); height: 100vh; height: 100dvh;
-  display: flex; flex-direction: column; overflow: hidden;
-  -webkit-font-smoothing: antialiased;
+  background: var(--bg-root); color: var(--text); font-family: var(--font);
+  height: 100vh; height: 100dvh; display: flex; overflow: hidden; -webkit-font-smoothing: antialiased;
 }
 
 /* Background */
@@ -65,76 +50,84 @@ body {
 @keyframes float { 100% { transform: translate(5vw, 5vh) scale(1.1); } }
 
 /* Map */
-#map { flex: 1; width: 100%; z-index: 1; background: transparent; }
+#map { flex: 1; width: 100%; height: 100%; z-index: 1; background: transparent; }
 .leaflet-div-icon { background: transparent !important; border: none !important; }
+.leaflet-control-scale-line { background: rgba(255,255,255,0.6) !important; color: #000 !important; backdrop-filter: blur(4px); border-color: rgba(0,0,0,0.2) !important; }
 
-/* Glassmorphism Base */
+/* Glass */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), var(--glass-inset);
-  border-radius: var(--radius);
-  position: relative; overflow: hidden;
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow), var(--glass-inset);
+  border-radius: var(--radius); position: relative; overflow: hidden;
 }
+
+/* Sidebar */
+.sidebar {
+  position: absolute; top: 0; left: 0; bottom: 0; width: 320px; max-width: 85vw;
+  z-index: 1000; transform: translateX(-110%); transition: transform 0.4s var(--ease);
+  display: flex; flex-direction: column; border-radius: 0 24px 24px 0; border-left: none;
+}
+.sidebar.open { transform: translateX(0); }
+.sidebar-header { padding: 24px 20px 16px; border-bottom: 1px solid var(--glass-border-lo); display: flex; justify-content: space-between; align-items: center; }
+.sidebar-title { font-size: 18px; font-weight: 800; }
+.user-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.user-card { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: rgba(255,255,255,0.3); border: 1px solid transparent; transition: all 0.2s; cursor: pointer; }
+html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
+.user-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.5); }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 16px; }
+.user-info { flex: 1; }
+.user-name { font-weight: 700; font-size: 15px; }
+.user-dist { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
 
 /* Top Bar */
 .topbar {
   position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px;
-  z-index: 1000; display: flex; gap: 12px; align-items: center;
+  z-index: 1000; display: flex; gap: 10px; align-items: center; pointer-events: none;
 }
-.name-input-wrapper {
-  flex: 1; padding: 4px; border-radius: var(--pill);
-}
-.name-input {
-  width: 100%; padding: 14px 20px; border-radius: var(--pill); border: none;
-  background: transparent; color: var(--text); font-size: 16px; outline: none; font-weight: 600;
-}
+.topbar > * { pointer-events: auto; }
+.menu-btn { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); backdrop-filter: blur(10px); }
+.menu-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; }
+.name-input-wrapper { flex: 1; padding: 4px; border-radius: var(--pill); }
+.name-input { width: 100%; padding: 12px 20px; border-radius: var(--pill); border: none; background: transparent; color: var(--text); font-size: 15px; outline: none; font-weight: 600; }
 .btn-big {
-  padding: 14px 28px; border-radius: var(--pill); border: none;
-  font-size: 16px; font-weight: 800; color: #fff; cursor: pointer;
+  padding: 0 24px; height: 52px; border-radius: var(--pill); border: none;
+  font-size: 15px; font-weight: 800; color: #fff; cursor: pointer;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  box-shadow: 0 8px 24px -6px var(--accent); transition: transform 0.2s;
+  box-shadow: 0 8px 24px -6px var(--accent); transition: all 0.2s;
   white-space: nowrap; flex-shrink: 0;
 }
-.btn-big:active { transform: scale(0.95); }
 .btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); }
 
-/* Map Controls (Bottom Right) */
+/* Map Controls */
 .map-controls {
   position: absolute; right: 16px; bottom: max(24px, env(safe-area-inset-bottom));
   z-index: 1000; display: flex; flex-direction: column; gap: 10px;
 }
 .ctrl-btn {
-  width: 48px; height: 48px; border-radius: 50%; border: none;
+  width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border);
   display: flex; align-items: center; justify-content: center; cursor: pointer;
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
-  backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow-2);
+  backdrop-filter: blur(10px); box-shadow: var(--glass-shadow);
   transition: transform 0.2s;
 }
 .ctrl-btn:active { transform: scale(0.9); }
-.ctrl-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; }
+.ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; }
 
-/* SVG Icons Styling */
-.icon { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-/* Custom Marker */
+/* Markers */
 .marker-container {
   position: relative; display: flex; align-items: center; justify-content: center;
-  width: 48px; height: 48px; border-radius: 50%;
+  width: 40px; height: 40px; border-radius: 50%;
   background: linear-gradient(135deg, #fff, #f0f0f0);
   border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
-.marker-container .dot {
-  width: 16px; height: 16px; border-radius: 50%;
-}
+.marker-dot { width: 14px; height: 14px; border-radius: 50%; }
 .marker-label {
-  position: absolute; top: -28px; white-space: nowrap;
-  background: rgba(0,0,0,0.7); color: #fff; font-size: 12px; font-weight: 600;
+  position: absolute; top: -26px; white-space: nowrap;
+  background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700;
   padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px);
+  transform: scale(0.9); transition: transform 0.2s;
 }
 
 /* Modal */
@@ -144,40 +137,29 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   align-items: center; justify-content: center; padding: 20px;
 }
 .modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
-.modal-content {
-  width: 100%; max-width: 360px; padding: 28px 24px; text-align: center;
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.modal-icon-wrap {
-  width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 16px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--accent-soft); color: var(--accent);
-}
+.modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.modal-avatar { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; font-weight: 800; }
 .modal-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
 .modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; font-weight: 600; }
 .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
-.modal-data-box {
-  background: rgba(128,128,128,0.1); border-radius: 12px; padding: 12px; text-align: left;
-}
-.modal-data-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
-.modal-data-val { font-size: 14px; font-weight: 600; }
-.modal-btn {
-  width: 100%; padding: 16px; border-radius: var(--pill); border: none;
-  background: var(--text); color: var(--bg-root); font-size: 16px; font-weight: 700;
-  cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.modal-btn:active { transform: scale(0.98); }
-.btn-focus {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
-  margin-bottom: 10px; box-shadow: 0 8px 20px -6px var(--accent);
-}
+.modal-box { background: rgba(128,128,128,0.1); border-radius: 12px; padding: 12px; text-align: left; }
+.modal-label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px; margin-bottom: 4px; }
+.modal-val { font-size: 14px; font-weight: 700; }
+.modal-btn { width: 100%; padding: 16px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 8px; }
+.btn-focus { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 8px 20px -6px var(--accent); }
+.btn-close { background: rgba(128,128,128,0.2); color: var(--text); }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
+/* Draw Tool Override for Glassmorphism */
+.leaflet-draw-toolbar a { background-color: rgba(255,255,255,0.8) !important; border: 1px solid var(--glass-border) !important; backdrop-filter: blur(10px); }
+html[data-theme="dark"] .leaflet-draw-toolbar a { background-color: rgba(30,30,30,0.8) !important; }
+
 @media (max-width: 480px) {
   .topbar { gap: 8px; left: 12px; right: 12px; }
-  .name-input { padding: 12px 16px; font-size: 15px; }
-  .btn-big { padding: 12px 20px; font-size: 15px; }
+  .name-input { padding: 10px 14px; font-size: 14px; }
+  .btn-big { padding: 0 16px; font-size: 14px; height: 48px; }
+  .menu-btn { width: 48px; height: 48px; }
 }
 </style>
 </head>
@@ -191,13 +173,31 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
 <div id="map"></div>
 
+<!-- Sidebar -->
+<div class="sidebar glass" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">Live Devices</div>
+    <button class="ctrl-btn" style="width:36px;height:36px;" onclick="document.getElementById('sidebar').classList.remove('open')">
+      <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="user-list" id="userList">
+    <!-- User cards injected here -->
+  </div>
+</div>
+
+<!-- Top Bar -->
 <div class="topbar">
+  <div class="menu-btn glass" onclick="document.getElementById('sidebar').classList.add('open')">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </div>
   <div class="name-input-wrapper glass">
     <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
   </div>
   <button class="btn-big" id="shareBtn">Share</button>
 </div>
 
+<!-- Map Controls -->
 <div class="map-controls">
   <button class="ctrl-btn" id="mapStyleBtn" title="Toggle Satellite">
     <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -207,36 +207,35 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   </button>
 </div>
 
+<!-- User Info Modal -->
 <div class="modal-backdrop" id="infoModal">
   <div class="modal-content glass">
-    <div class="modal-icon-wrap">
-      <svg class="icon" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-    </div>
+    <div class="modal-avatar" id="mAvatar">A</div>
     <div class="modal-name" id="mName">User</div>
     <div class="modal-sub" id="mSub">Status</div>
     
     <div class="modal-grid">
-      <div class="modal-data-box">
-        <div class="modal-data-label">Distance</div>
-        <div class="modal-data-val" id="mDist">--</div>
+      <div class="modal-box">
+        <div class="modal-label">Distance</div>
+        <div class="modal-val" id="mDist">--</div>
       </div>
-      <div class="modal-data-box">
-        <div class="modal-data-label">Battery</div>
-        <div class="modal-data-val" id="mBatt">--</div>
+      <div class="modal-box">
+        <div class="modal-label">Battery</div>
+        <div class="modal-val" id="mBatt">--</div>
       </div>
-      <div class="modal-data-box" style="grid-column: 1 / -1;">
-        <div class="modal-data-label">Last Updated</div>
-        <div class="modal-data-val" id="mTime">--</div>
+      <div class="modal-box" style="grid-column: 1 / -1;">
+        <div class="modal-label">Last Updated</div>
+        <div class="modal-val" id="mTime">--</div>
       </div>
     </div>
 
     <button class="modal-btn btn-focus" id="focusBtn">Focus on Map</button>
-    <button class="modal-btn" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
+    <button class="modal-btn btn-close" onclick="document.getElementById('infoModal').classList.remove('show')">Close</button>
   </div>
 </div>
 
 <script>
-  // 1. Firebase Config
+  // 1. Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyAsjmJUkoK-_OkNsKgDyo133JcV6030UIM",
     authDomain: "my-find-my.firebaseapp.com",
@@ -250,7 +249,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   const db = firebase.database();
   const usersRef = db.ref('users');
 
-  // 2. Identity Setup
+  // 2. Identity
   let myId = localStorage.getItem('findMyId');
   if (!myId) {
     myId = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -259,20 +258,24 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
 
   // 3. Map Setup
   const map = L.map('map', { 
-    zoomControl: false,
-    maxBounds: [[-90, -180], [90, 180]],
-    maxBoundsViscosity: 1.0,
-    worldCopyJump: false,
-    minZoom: 3
+    zoomControl: false, maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0, worldCopyJump: false, minZoom: 3
   }).setView([25.033, 121.5654], 15);
   
-  const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap', noWrap: true
-  }).addTo(map);
-  
-  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri', noWrap: true
+  L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map);
+
+  const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OSM', noWrap: true }).addTo(map);
+  const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '&copy; Esri', noWrap: true });
+
+  // Drawing Tools
+  const drawnItems = new L.FeatureGroup();
+  map.addLayer(drawnItems);
+  const drawControl = new L.Control.Draw({
+    position: 'bottomleft',
+    draw: { polyline: true, polygon: true, circle: false, marker: false, circlemarker: false },
+    edit: { featureGroup: drawnItems }
   });
+  map.addControl(drawControl);
+  map.on(L.Draw.Event.CREATED, (e) => { drawnItems.addLayer(e.layer); });
 
   let isSatellite = false;
   document.getElementById('mapStyleBtn').addEventListener('click', () => {
@@ -281,25 +284,17 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     else { map.removeLayer(satelliteLayer); map.addLayer(standardLayer); }
   });
 
-  document.getElementById('centerBtn').addEventListener('click', () => {
-    if (myMarker && myMarker.getLatLng()) {
-      map.flyTo(myMarker.getLatLng(), 17, { duration: 1 });
-    } else {
-      map.flyTo([25.033, 121.5654], 15, { duration: 1 });
-    }
-  });
-
-  // State
+  // 4. State
   const markers = {};
   const trails = {};
   let myMarker = null;
   let myBattery = null;
   let sharing = false;
   let watchId = null;
-  let myName = '';
   let heartbeatTimer = null;
   let wakeLock = null;
-  let focusedId = null; // Tracking mode
+  let focusedId = null;
+  let usersData = {};
 
   const nameInput = document.getElementById('nameInput');
   const shareBtn = document.getElementById('shareBtn');
@@ -308,13 +303,12 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   // Battery API
   if (navigator.getBattery) {
     navigator.getBattery().then(b => {
-      const updateBatt = () => { myBattery = Math.round(b.level * 100) + '%'; };
-      updateBatt();
-      b.addEventListener('levelchange', updateBatt);
+      const update = () => { myBattery = Math.round(b.level * 100) + '%'; };
+      update(); b.addEventListener('levelchange', update);
     });
   }
 
-  // 4. Helper Functions
+  // 5. Helpers
   function getColor(id) {
     const colors = ['#3b5bdb','#e5484d','#f59e0b','#10b981','#8b5cf6','#ec4899','#06b6d4'];
     let hash = 0;
@@ -323,13 +317,15 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   }
 
   function calcDist(lat1, lon1, lat2, lon2) {
-    const R = 6371e3;
-    const p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
+    const R = 6371e3, p1 = lat1 * Math.PI/180, p2 = lat2 * Math.PI/180;
     const dp = (lat2-lat1) * Math.PI/180, dl = (lon2-lon1) * Math.PI/180;
     const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const d = R * c;
+    const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return d > 1000 ? (d/1000).toFixed(1) + ' km' : Math.round(d) + ' m';
+  }
+
+  function getInitials(name) {
+    return name.trim().slice(0, 2).toUpperCase() || '?';
   }
 
   function makeIcon(color, name, isMe) {
@@ -337,33 +333,57 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       className: 'custom-marker-wrapper',
       html: `
         <div class="marker-container" style="box-shadow: 0 4px 12px ${color}80;">
-          <div class="dot" style="background: ${color};"></div>
+          <div class="marker-dot" style="background: ${color};"></div>
           <div class="marker-label">${name}${isMe ? ' (You)' : ''}</div>
         </div>
       `,
-      iconSize: [48, 48], iconAnchor: [24, 24]
+      iconSize: [40, 40], iconAnchor: [20, 20]
     });
   }
 
-  // 5. Firebase Sync
+  // 6. Sync & UI
   usersRef.on('value', (snap) => {
-    const users = snap.val() || {};
+    usersData = snap.val() || {};
     const now = Date.now();
     const online = {};
     
-    Object.keys(users).forEach(id => {
-      if (users[id] && users[id].updatedAt && now - users[id].updatedAt < 120000) {
-        online[id] = users[id];
+    Object.keys(usersData).forEach(id => {
+      if (usersData[id] && usersData[id].updatedAt && now - usersData[id].updatedAt < 120000) {
+        online[id] = usersData[id];
       }
     });
 
-    // Remove offline
+    // Update List
+    const listEl = document.getElementById('userList');
+    listEl.innerHTML = '';
+    Object.keys(online).forEach(id => {
+      const u = online[id];
+      const isMe = id === myId;
+      let distText = '--';
+      if (myMarker && myMarker.getLatLng()) {
+        const p = myMarker.getLatLng();
+        distText = isMe ? 'You' : calcDist(p.lat, p.lng, u.lat, u.lng);
+      }
+      
+      const card = document.createElement('div');
+      card.className = 'user-card';
+      card.innerHTML = `
+        <div class="user-avatar" style="background: ${getColor(id)};">${getInitials(u.name)}</div>
+        <div class="user-info">
+          <div class="user-name">${u.name}</div>
+          <div class="user-dist">${distText}</div>
+        </div>
+      `;
+      card.onclick = () => openUserInfo(id, u);
+      listEl.appendChild(card);
+    });
+
+    // Update Map
     Object.keys(markers).forEach(id => {
       if (!online[id]) {
         map.removeLayer(markers[id]);
         if (trails[id]) map.removeLayer(trails[id]);
-        delete markers[id];
-        delete trails[id];
+        delete markers[id]; delete trails[id];
         if (focusedId === id) focusedId = null;
       }
     });
@@ -374,51 +394,27 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
       const color = getColor(id);
       const pos = [u.lat, u.lng];
 
-      // Trails (Polyline)
       if (!trails[id]) {
-        trails[id] = L.polyline([pos], { color: color, weight: 4, opacity: 0.4, lineJoin: 'round' }).addTo(map);
+        trails[id] = L.polyline([pos], { color: color, weight: 4, opacity: 0.5 }).addTo(map);
       } else {
         const pts = trails[id].getLatLngs();
-        const lastPt = pts[pts.length - 1];
-        if (lastPt.lat !== pos[0] || lastPt.lng !== pos[1]) {
+        const last = pts[pts.length - 1];
+        if (last.lat !== pos[0] || last.lng !== pos[1]) {
           pts.push(L.latLng(pos));
           trails[id].setLatLngs(pts);
         }
       }
 
-      // Markers
       if (markers[id]) {
         markers[id].setLatLng(pos);
       } else {
         const marker = L.marker(pos, { icon: makeIcon(color, u.name, isMe) }).addTo(map);
-        
-        marker.on('click', () => {
-          document.getElementById('mName').textContent = u.name;
-          document.getElementById('mSub').textContent = isMe ? 'Sharing active' : 'Online now';
-          
-          let distText = '--';
-          if (myMarker && myMarker.getLatLng()) {
-            const myLatLng = myMarker.getLatLng();
-            distText = calcDist(myLatLng.lat, myLatLng.lng, u.lat, u.lng);
-          }
-          document.getElementById('mDist').textContent = isMe ? '--' : distText;
-          document.getElementById('mBatt').textContent = isMe ? (myBattery || 'Unknown') : 'Unknown';
-          document.getElementById('mTime').textContent = new Date(u.updatedAt).toLocaleTimeString();
-          
-          document.getElementById('focusBtn').onclick = () => {
-            focusedId = id;
-            map.flyTo(pos, 18, { duration: 1 });
-            document.getElementById('infoModal').classList.remove('show');
-          };
-          document.getElementById('infoModal').classList.add('show');
-        });
-
+        marker.on('click', () => openUserInfo(id, u));
         if (isMe) myMarker = marker;
         markers[id] = marker;
       }
     });
 
-    // Follow Mode Auto-Pan
     if (focusedId && online[focusedId]) {
       const u = online[focusedId];
       if (!map.getBounds().contains([u.lat, u.lng])) {
@@ -427,15 +423,44 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     }
   });
 
-  // Drag map cancels follow mode
+  function openUserInfo(id, u) {
+    const isMe = id === myId;
+    document.getElementById('mAvatar').textContent = getInitials(u.name);
+    document.getElementById('mAvatar').style.background = getColor(id);
+    document.getElementById('mName').textContent = u.name;
+    document.getElementById('mSub').textContent = isMe ? 'Sharing active' : 'Online now';
+    
+    let distText = '--';
+    if (myMarker && myMarker.getLatLng()) {
+      const p = myMarker.getLatLng();
+      distText = isMe ? '--' : calcDist(p.lat, p.lng, u.lat, u.lng);
+    }
+    document.getElementById('mDist').textContent = distText;
+    document.getElementById('mBatt').textContent = isMe ? (myBattery || 'Unknown') : 'Unknown';
+    document.getElementById('mTime').textContent = new Date(u.updatedAt).toLocaleTimeString();
+    
+    document.getElementById('focusBtn').onclick = () => {
+      focusedId = id;
+      map.flyTo([u.lat, u.lng], 18, { duration: 1 });
+      document.getElementById('infoModal').classList.remove('show');
+      document.getElementById('sidebar').classList.remove('open');
+    };
+    document.getElementById('infoModal').classList.add('show');
+  }
+
   map.on('dragstart', () => { focusedId = null; });
 
-  // 6. Disconnect Cleanup
+  document.getElementById('centerBtn').addEventListener('click', () => {
+    if (myMarker && myMarker.getLatLng()) {
+      focusedId = myId;
+      map.flyTo(myMarker.getLatLng(), 17, { duration: 1 });
+    }
+  });
+
+  // 7. Disconnect Cleanup
   usersRef.child(myId).onDisconnect().remove();
   window.addEventListener('beforeunload', () => usersRef.child(myId).remove());
   window.addEventListener('pagehide', () => usersRef.child(myId).remove());
-
-  // Periodic cleanup (removes ghost users > 5 mins)
   setInterval(() => {
     usersRef.once('value', (snap) => {
       const users = snap.val() || {};
@@ -448,23 +473,19 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     });
   }, 60000);
 
-  // 7. Wake Lock
-  async function requestWakeLock() {
-    try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
-  }
+  // 8. Wake Lock
+  async function requestWakeLock() { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
   function releaseWakeLock() { if (wakeLock !== null) wakeLock.release().then(() => { wakeLock = null; }); }
 
-  // 8. Sharing Logic
+  // 9. Sharing
   shareBtn.addEventListener('click', () => {
     if (!sharing) startSharing(); else stopSharing();
   });
 
   function startSharing() {
-    myName = nameInput.value.trim() || 'Anonymous';
+    const myName = nameInput.value.trim() || 'Anonymous';
     localStorage.setItem('myName', myName);
-
     if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
-
     shareBtn.disabled = true;
 
     navigator.geolocation.getCurrentPosition(
@@ -473,20 +494,11 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
         shareBtn.disabled = false;
         shareBtn.textContent = 'Stop';
         shareBtn.classList.add('active');
-        
         requestWakeLock();
         sendLocation(pos);
         map.flyTo([pos.coords.latitude, pos.coords.longitude], 17, { duration: 1.5 });
-
-        watchId = navigator.geolocation.watchPosition(
-          sendLocation,
-          (err) => console.warn(err),
-          { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-        );
-
-        heartbeatTimer = setInterval(() => {
-          if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() });
-        }, 15000);
+        watchId = navigator.geolocation.watchPosition(sendLocation, (err) => console.warn(err), { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+        heartbeatTimer = setInterval(() => { if (sharing) usersRef.child(myId).update({ updatedAt: Date.now() }); }, 15000);
       },
       (err) => {
         shareBtn.disabled = false;
@@ -499,11 +511,7 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   function sendLocation(pos) {
     if (!sharing) return;
     const { latitude: lat, longitude: lng } = pos.coords;
-    usersRef.child(myId).set({ 
-      lat, lng, 
-      name: myName, 
-      updatedAt: Date.now() 
-    });
+    usersRef.child(myId).set({ lat, lng, name: localStorage.getItem('myName') || 'Anonymous', updatedAt: Date.now() });
   }
 
   function stopSharing() {
@@ -512,10 +520,8 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     clearInterval(heartbeatTimer);
     releaseWakeLock();
-    
     shareBtn.textContent = 'Share';
     shareBtn.classList.remove('active');
-    
     usersRef.child(myId).remove();
     if (myMarker) { map.removeLayer(myMarker); myMarker = null; }
     if (markers[myId]) { map.removeLayer(markers[myId]); delete markers[myId]; }

@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>CYBER ASCII CAM // Real-Time Matrix Video Camera</title>
-<link href="ascii.png" rel="apple-touch-icon" type="image/png">
+<title>ASCII CAM // Mobile Video + Photo Upload + Shutter</title>
 <style>
   :root{ --c:#00ff9c; --c2:#ff2bd6; --bg:rgba(4,10,14,.72); }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -16,6 +15,7 @@
   #screen{position:fixed;inset:0;width:100vw;height:100vh;display:block;background:#000}
   #video{position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none}
   #sampler{display:none}
+  #uploader{display:none}
 
   #crt{position:fixed;inset:0;pointer-events:none;z-index:5;
     background:
@@ -63,6 +63,55 @@
 
   #toggle{position:fixed;top:14px;right:14px;z-index:11;width:auto;flex:none;padding:9px 12px;background:var(--bg);min-height:40px;}
 
+  /* 手機版快門按鈕（固定底部右側） */
+  #shutterBtn {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 50;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 3px solid var(--c2);
+    box-shadow: 0 0 24px var(--c2), inset 0 0 12px rgba(255,43,214,0.4);
+    color: var(--c2);
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: 0.2s;
+    touch-action: manipulation;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    font-family: inherit;
+    font-weight: bold;
+  }
+  #shutterBtn:active {
+    transform: scale(0.88);
+    background: rgba(255,43,214,0.4);
+    box-shadow: 0 0 40px var(--c2);
+  }
+  #shutterBtn .inner-ring {
+    display: block;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,43,214,0.9);
+    position: relative;
+  }
+  #shutterBtn .inner-ring::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    background: var(--c2);
+    opacity: 0.7;
+  }
+
   #overlay{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;padding:24px;transition:opacity .6s}
   #overlay.gone{opacity:0;pointer-events:none}
@@ -82,11 +131,32 @@
   #flash.go{animation:fl .35s ease-out}
   @keyframes fl{0%{opacity:.85}100%{opacity:0}}
 
-  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:40;
+  #toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);z-index:40;
     padding:10px 18px;background:rgba(0,0,0,.88);border:1px solid var(--c);color:var(--c);
     font-size:12px;letter-spacing:2px;opacity:0;pointer-events:none;transition:.3s;
     box-shadow:0 0 14px rgba(0,255,156,.5);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* 上傳按鈕樣式 */
+  #uploadBtn {
+    background: rgba(0,255,156,.12);
+    border: 1px solid var(--c);
+    color: var(--c);
+    padding: 10px;
+    font-size: 11px;
+    min-height: 40px;
+    width: 100%;
+    margin-top: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: .15s;
+    font-family: inherit;
+  }
+  #uploadBtn:hover {
+    background: rgba(0,255,156,.25);
+    box-shadow: 0 0 12px var(--c);
+  }
 
   @media (max-width: 600px) {
     #hud{top:8px;left:8px;width:calc(100vw - 16px);max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);
@@ -103,6 +173,17 @@
     #overlay .ring{width:90px;height:90px;margin-bottom:24px}
     #overlay h2{letter-spacing:3px}
     #overlay p{letter-spacing:1px;line-height:1.6}
+    #shutterBtn {
+      bottom: 18px;
+      right: 16px;
+      width: 64px;
+      height: 64px;
+    }
+    #shutterBtn .inner-ring {
+      width: 40px;
+      height: 40px;
+    }
+    #toast{bottom: 90px}
   }
   @media (max-height: 520px) {
     #hud{top:6px;left:6px;max-height:calc(100vh - 12px);padding:8px}
@@ -113,6 +194,16 @@
     button.snap{padding:8px}
     #toggle{top:6px;right:6px;padding:6px 8px;min-height:36px}
     #stats{margin-top:5px;padding-top:5px}
+    #shutterBtn {
+      bottom: 12px;
+      right: 12px;
+      width: 56px;
+      height: 56px;
+    }
+    #shutterBtn .inner-ring {
+      width: 34px;
+      height: 34px;
+    }
   }
 </style>
 </head>
@@ -121,6 +212,7 @@
 <canvas id="screen"></canvas>
 <video id="video" playsinline muted autoplay></video>
 <canvas id="sampler"></canvas>
+<input type="file" id="uploader" accept="image/*">
 <div id="crt"></div>
 <div id="scan"></div>
 <div id="flash"></div>
@@ -128,8 +220,19 @@
 
 <button id="toggle" title="Toggle HUD (H)">[ HUD ]</button>
 
+<!-- 手機版快門按鈕 -->
+<button id="shutterBtn" title="拍照 / 儲存 PNG">
+  <span class="inner-ring"></span>
+</button>
+
 <div id="hud">
-  <h1>ASCII//CAM <span>v2.2</span></h1>
+  <h1>ASCII//CAM <span>v2.3</span></h1>
+
+  <!-- 上傳圖片 -->
+  <div class="grp">
+    <div class="lbl"><span>UPLOAD PHOTO</span></div>
+    <button id="uploadBtn">📁 UPLOAD IMAGE → ASCII</button>
+  </div>
 
   <div class="grp">
     <div class="lbl"><span>CHARSET / DENSITY</span></div>
@@ -139,6 +242,7 @@
       <button data-i="2">Blocks</button>
       <button data-i="3">Dots</button>
       <button data-i="4">Matrix</button>
+      <button data-i="5">Alphanum</button>
     </div>
   </div>
 
@@ -206,13 +310,13 @@
   <button class="rec" id="rec">● RECORD / STOP (WEBM)</button>
 
   <div id="stats"><span id="fps">FPS --</span><span id="grid">GRID --</span></div>
-  <div id="hint">H: HUD · SPACE: snap · R: record · C: cam · M: mirror · 1-5: charset · Q/W/E/R/T/Y: color</div>
+  <div id="hint">H: HUD · SPACE: snap · R: record · C: cam · M: mirror · 1-6: charset · Q/W/E/R/T/Y: color</div>
 </div>
 
 <div id="overlay">
   <div class="ring"></div>
   <h2>AWAITING NEURAL LINK<span class="blink">_</span></h2>
-  <p>PLEASE ALLOW CAMERA ACCESS TO SYNC VISUAL CORTEX</p>
+  <p>PLEASE ALLOW CAMERA ACCESS OR UPLOAD AN IMAGE</p>
   <div class="err" id="err"></div>
   <button id="retry">INITIATE LINK</button>
 </div>
@@ -233,14 +337,18 @@
   const flashEl = document.getElementById('flash');
   const scanEl  = document.getElementById('scan');
   const toastEl = document.getElementById('toast');
+  const uploader = document.getElementById('uploader');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const shutterBtn = document.getElementById('shutterBtn');
 
   // ---------- Config ----------
   const CHARSETS = [
-    '@#$%=+*:-. ',          // standard
-    '10 ',                   // binary
-    '█▓▒░#+*:. ',            // blocks
-    '●◉◎○·. ',               // dots
-    'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉ ' // katakana matrix
+    '@#$%=+*:-. ',                       // 0 standard
+    '10 ',                                // 1 binary
+    '█▓▒░#+*:. ',                        // 2 blocks
+    '●◉◎○·. ',                           // 3 dots
+    'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉ ',      // 4 katakana matrix
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*+=?!' // 5 alphanum
   ];
   const AMBER = '#ffb000', GREEN = '#00ff9c';
   const FONT_FAMILY = '"Courier New", ui-monospace, Menlo, Consolas, monospace';
@@ -265,8 +373,12 @@
   let recChunks = [];
   let recording = false;
 
+  // 用於上傳圖片
+  let uploadedImage = null;       // HTMLImageElement
+  let useUploadedImage = false;   // 若為 true 則渲染上傳的圖片，而非 video
+
   // ---------- Persistence ----------
-  const PERSIST_KEY = 'ascii-cam-v2.2';
+  const PERSIST_KEY = 'ascii-cam-v2.3';
   function loadState() {
     try {
       const raw = localStorage.getItem(PERSIST_KEY);
@@ -363,6 +475,33 @@
 
   // ---------- Sampling ----------
   function sampleVideo() {
+    // 若有上傳圖片且使用中，則從圖片取樣
+    if (useUploadedImage && uploadedImage) {
+      const vw = uploadedImage.naturalWidth;
+      const vh = uploadedImage.naturalHeight;
+      if (!vw || !vh) return null;
+
+      const dstAspect = (state.cols * state.charW) / (state.rows * state.lineH);
+      const srcAspect = vw / vh;
+      let sx, sy, sw, sh;
+      if (srcAspect > dstAspect) {
+        sh = vh; sw = vh * dstAspect; sx = (vw - sw) / 2; sy = 0;
+      } else {
+        sw = vw; sh = vw / dstAspect; sx = 0; sy = (vh - sh) / 2;
+      }
+
+      sctx.save();
+      if (state.mirror) {
+        sctx.translate(state.cols, 0);
+        sctx.scale(-1, 1);
+      }
+      sctx.drawImage(uploadedImage, sx, sy, sw, sh, 0, 0, state.cols, state.rows);
+      sctx.restore();
+
+      return sctx.getImageData(0, 0, state.cols, state.rows).data;
+    }
+
+    // 否則從 video 取樣
     const vw = video.videoWidth, vh = video.videoHeight;
     if (!vw || !vh) return null;
 
@@ -501,7 +640,8 @@
   let lastT = 0, frames = 0, fpsT = performance.now();
   function loop(now) {
     requestAnimationFrame(loop);
-    if (!started) return;
+    // 如果既沒有相機啟動也沒有上傳圖片，就不渲染
+    if (!started && !useUploadedImage) return;
     const frameMs = 1000 / state.fpsCap;
     if (now - lastT < frameMs - 1) return;
     lastT = now;
@@ -550,7 +690,10 @@
       video.srcObject = stream;
       await video.play();
       started = true;
+      useUploadedImage = false; // 切回相機
+      uploadedImage = null;
       overlay.classList.add('gone');
+      toast('CAMERA LIVE');
     } catch (e) {
       started = false;
       overlay.classList.remove('gone');
@@ -569,9 +712,40 @@
     toast('CAM: ' + facingMode.toUpperCase());
   }
 
+  // ---------- 上傳圖片 ----------
+  uploadBtn.addEventListener('click', () => {
+    uploader.click();
+  });
+
+  uploader.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        uploadedImage = img;
+        useUploadedImage = true;
+        started = true;          // 允許主迴圈繼續
+        overlay.classList.add('gone');
+        toast('IMAGE LOADED → ASCII');
+        // 確保預覽更新
+        setupGrid();
+        render();
+      };
+      img.onerror = () => toast('IMAGE LOAD FAILED');
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    // 重置 file input 以便再次上傳同一檔案
+    uploader.value = '';
+  });
+
   // ---------- Snapshot ----------
   function snapshot() {
-    if (!started) return;
+    if (!started && !useUploadedImage) return;
     flashEl.classList.remove('go');
     void flashEl.offsetWidth;
     flashEl.classList.add('go');
@@ -594,9 +768,17 @@
     }, 'image/png');
   }
 
+  // 快門按鈕
+  shutterBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    snapshot();
+    shutterBtn.blur();
+  });
+
   // ---------- Recording ----------
   function toggleRecording() {
-    if (!started) return;
+    if (!started && !useUploadedImage) return;
     if (!window.MediaRecorder) {
       toast('REC NOT SUPPORTED');
       return;
@@ -730,7 +912,7 @@
       saveState();
       toast('MIRROR ' + (state.mirror ? 'ON' : 'OFF'));
     }
-    else if ('12345'.includes(k)) {
+    else if ('123456'.includes(k)) {
       const i = +k - 1;
       if (i < CHARSETS.length) {
         state.set = i;
@@ -805,7 +987,7 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       if (video.srcObject && !video.paused) video.pause();
-    } else if (video.srcObject && video.paused) {
+    } else if (video.srcObject && video.paused && !useUploadedImage) {
       video.play().catch(() => {});
     }
   });

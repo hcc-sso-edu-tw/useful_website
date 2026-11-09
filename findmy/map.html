@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Offline Map</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  html,body{height:100%;margin:0;font-family:system-ui,sans-serif}
+  #map{position:absolute;inset:0;background:#e5e5e5}
+  .tile-blank{background:#ddd}
+  #panel{position:absolute;z-index:1000;top:10px;left:10px;width:300px;max-width:calc(100% - 20px);
+    max-height:calc(100% - 20px);overflow:auto;background:#fff;border-radius:10px;
+    box-shadow:0 2px 12px #0004;padding:12px;font-size:14px;line-height:1.5}
+  #panel h1{font-size:16px;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+  #net{font-size:12px;padding:2px 8px;border-radius:10px;color:#fff}
+  .on{background:#2e9d4f}.off{background:#c0392b}
+  button,select,input{font:inherit;padding:6px 10px;border-radius:6px;border:1px solid #bbb;background:#f6f6f6}
+  button{cursor:pointer}
+  input{width:70px;background:#fff}
+  button.primary{background:#1a73e8;color:#fff;border-color:#1a73e8}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;align-items:center}
+  #bar{height:8px;background:#ddd;border-radius:4px;overflow:hidden;margin-top:6px}
+  #bar i{display:block;height:100%;width:0;background:#1a73e8}
+  #info{color:#555;font-size:13px}
+  #warn{color:#c0392b;font-size:12px}
+  .note{font-size:12px;color:#777;margin-top:4px}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+  <h1>Offline Map <span id="net" class="on">Online</span></h1>
+
+  <div class="row">View: <select id="base">
+    <option value="street">Street map</option>
+    <option value="sat">Satellite</option>
+  </select></div>
+
+  <b>1. Pick a center point</b>
+  <div class="note" style="margin:0">Click the map, or use a button:</div>
+  <div class="row">
+    <button id="btnCenter">Use map center</button>
+    <button id="btnLoc">Use my location</button>
+  </div>
+  <div class="row">Radius <input id="km" type="number" min="0.1" step="0.5" value="2"> km</div>
+  <div class="row">Zoom levels <select id="zmin"></select> to <select id="zmax"></select></div>
+  <div class="row">Download <select id="dlSrc">
+    <option value="street">Street map</option>
+    <option value="sat">Satellite</option>
+    <option value="both">Both</option>
+  </select></div>
+  <div id="info">No center point selected</div>
+  <div id="warn"></div>
+
+  <b>2. Download</b>
+  <div class="row">
+    <button id="btnDl" class="primary" disabled>Download</button>
+    <button id="btnCancel" disabled>Cancel</button>
+    <button id="btnClear">Clear saved</button>
+  </div>
+  <div id="bar"><i></i></div>
+  <div id="status" style="margin-top:6px;font-size:13px">Saved 0 tiles (0 MB)</div>
+  <div class="note">Tiles are kept in memory. While offline, do NOT close or reload this tab.</div>
+  <div class="note">Satellite imagery at zoom 18-19 is not available in every area.</div>
+</div>
+
+<script>
+const MAX_Z = 19;
+const MAX_TILES = 20000;   // hard cap on total tiles per download
+
+// Tile sources. kb = rough average tile size, used only for the size estimate.
+const SOURCES = {
+  street: {
+    url: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`,
+    kb: 18,
+    attr: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  },
+  sat: {
+    // Esri World Imagery uses {z}/{y}/{x} order
+    url: (z, x, y) => `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,
+    kb: 35,
+    attr: 'Tiles © Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community'
+  }
+};
+
+const cache = new Map();   // "src/z/x/y" -> object URL
+let cacheBytes = 0, center = null, circle = null, abortFlag = false, downloading = false;
+const saved = L.layerGroup();
+const $ = id => document.getElementById(id);
+const map = L.map('map', {maxZoom: MAX_Z}).setView([24.8138, 121.0053], 13);
+saved.addTo(map);
+
+// Tile layer: look in memory first, then fall back to the network if online.
+const OfflineLayer = L.GridLayer.extend({
+  initialize(srcId, opts) { this.srcId = srcId; L.GridLayer.prototype.initialize.call(this, opts); },
+  createTile(c, done) {
+    const img = document.createElement('img');
+    const n = 2 ** c.z, x = ((c.x % n) + n) % n;
+    const hit = cache.get(`${this.srcId}/${c.z}/${x}/${c.y}`);
+    img.onload = () => done(null, img);
+    img.onerror = () => { img.classList.add('tile-blank'); done(null, img); };
+    if (hit) { img.src = hit; }
+    else if (navigator.onLine && c.y >= 0 && c.y < n) {
+      img.crossOrigin = 'anonymous';
+      img.src = SOURCES[this.srcId].url(c.z, x, c.y);
+    } else {
+      img.classList.add('tile-blank');
+      setTimeout(() => done(null, img));
+    }
+    return img;
+  }
+});
+const layers = {};
+for (const id in SOURCES)
+  layers[id] = new OfflineLayer(id, {tileSize: 256, maxZoom: MAX_Z, minZoom: 1, attribution: SOURCES[id].attr});
+let activeLayer = layers.street.addTo(map);
+$('base').onchange = () => {
+  map.removeLayer(activeLayer);
+  activeLayer = layers[$('base').value].addTo(map);
+  $('dlSrc').value = $('base').value;
+  refresh();
+};
+
+function updateNet() {
+  const o = navigator.onLine;
+  $('net').textContent = o ? 'Online' : 'Offline';
+  $('net').className = o ? 'on' : 'off';
+  refresh();
+  if (o) activeLayer.redraw();
+}
+addEventListener('online', updateNet);
+addEventListener('offline', updateNet);
+
+for (let z = 1; z <= MAX_Z; z++) { $('zmin').add(new Option(z, z)); $('zmax').add(new Option(z, z)); }
+$('zmin').value = 10; $('zmax').value = MAX_Z;
+$('zmin').onchange = $('zmax').onchange = $('dlSrc').onchange = $('km').oninput = () => setCenter(center);
+
+// Slippy-map tile math
+const lng2x = (lng, z) => Math.floor((lng + 180) / 360 * 2 ** z);
+const lat2y = (lat, z) => {
+  const r = lat * Math.PI / 180;
+  return Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * 2 ** z);
+};
+const x2lng = (x, z) => x / 2 ** z * 360 - 180;
+const y2lat = (y, z) => Math.atan(Math.sinh(Math.PI * (1 - 2 * y / 2 ** z))) * 180 / Math.PI;
+
+function ranges(b, z) {   // tile index ranges covering a bounding box
+  const n = 2 ** z;
+  return [lng2x(b.getWest(), z), lng2x(b.getEast(), z),
+          Math.max(0, lat2y(b.getNorth(), z)), Math.min(n - 1, lat2y(b.getSouth(), z))];
+}
+function estimate(b, z0, z1) {   // bounding-box count x pi/4 ~ tiles inside the circle
+  let t = 0;
+  for (let z = z0; z <= z1; z++) { const [a, c, d, e] = ranges(b, z); t += (c - a + 1) * (e - d + 1); }
+  return Math.round(t * Math.PI / 4);
+}
+function tileList(b, z0, z1, r) {   // exact list: only tiles that intersect the circle
+  const list = [];
+  for (let z = z0; z <= z1; z++) {
+    const [x0, x1, y0, y1] = ranges(b, z);
+    for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) {
+      const w = x2lng(x, z), e = x2lng(x + 1, z), n = y2lat(y, z), s = y2lat(y + 1, z);
+      const p = L.latLng(Math.min(n, Math.max(s, center.lat)), Math.min(e, Math.max(w, center.lng)));
+      if (center.distanceTo(p) <= r) list.push([z, x, y]);
+    }
+  }
+  return list;
+}
+const selectedSources = () => $('dlSrc').value === 'both' ? ['street', 'sat'] : [$('dlSrc').value];
+
+function refresh() {
+  if (!center) { $('info').textContent = 'No center point selected'; $('btnDl').disabled = true; return; }
+  let z0 = +$('zmin').value, z1 = +$('zmax').value;
+  if (z0 > z1) { $('zmin').value = z0 = z1; }
+  const per = estimate(circle.getBounds(), z0, z1);
+  const srcs = selectedSources();
+  const total = per * srcs.length;
+  const mb = srcs.reduce((s, id) => s + per * SOURCES[id].kb / 1024, 0);
+  $('info').textContent = `About ${total.toLocaleString()} tiles, est. ${mb.toFixed(0)} MB`;
+  const tooMany = total > MAX_TILES;
+  $('warn').textContent = tooMany ? `Over the ${MAX_TILES.toLocaleString()}-tile limit. Reduce the radius or max zoom.` : '';
+  $('btnDl').disabled = tooMany || !navigator.onLine || downloading;
+}
+function setCenter(ll) {
+  if (!ll) return;
+  center = L.latLng(ll);
+  const m = Math.max(0.1, +$('km').value || 0.1) * 1000;
+  if (circle) map.removeLayer(circle);
+  circle = L.circle(center, {radius: m, color: '#1a73e8', weight: 2, fillOpacity: .1, interactive: false}).addTo(map);
+  refresh();
+}
+map.on('click', e => setCenter(e.latlng));
+$('btnCenter').onclick = () => setCenter(map.getCenter());
+
+function updateStatus() {
+  $('status').textContent = `Saved ${cache.size.toLocaleString()} tiles (${(cacheBytes / 1048576).toFixed(1)} MB)`;
+}
+
+$('btnDl').onclick = async () => {
+  const z0 = +$('zmin').value, z1 = +$('zmax').value, r = circle.getRadius();
+  const base = tileList(circle.getBounds(), z0, z1, r);
+  const todo = [];
+  for (const s of selectedSources())
+    for (const [z, x, y] of base) if (!cache.has(`${s}/${z}/${x}/${y}`)) todo.push([s, z, x, y]);
+
+  const total = todo.length;
+  let done = 0, fail = 0, i = 0;
+  downloading = true; abortFlag = false;
+  $('btnDl').disabled = true; $('btnCancel').disabled = false;
+  const bar = $('bar').firstElementChild;
+
+  async function worker() {
+    while (i < todo.length && !abortFlag) {
+      const [s, z, x, y] = todo[i++];
+      try {
+        const res = await fetch(SOURCES[s].url(z, x, y));
+        if (!res.ok) throw new Error(res.status);
+        const blob = await res.blob();
+        cache.set(`${s}/${z}/${x}/${y}`, URL.createObjectURL(blob));
+        cacheBytes += blob.size;
+      } catch (e) { fail++; }
+      done++;
+      if (done % 10 === 0 || done === total) {
+        bar.style.width = (done / Math.max(1, total) * 100) + '%';
+        $('status').textContent = `Downloading ${done}/${total} (failed: ${fail})`;
+      }
+    }
+  }
+  await Promise.all([worker(), worker(), worker(), worker()]);   // 4 parallel downloads
+
+  downloading = false; $('btnCancel').disabled = true;
+  L.circle(center, {radius: r, color: '#2e9d4f', weight: 1.5, dashArray: '5 4', fill: false, interactive: false}).addTo(saved);
+  updateStatus();
+  $('status').textContent += abortFlag ? ' (cancelled)'
+    : fail ? ` (${fail} failed, press Download again to retry)` : ' - done ✔';
+  refresh();
+};
+$('btnCancel').onclick = () => abortFlag = true;
+
+$('btnClear').onclick = () => {
+  if (!confirm('Delete all saved map tiles?')) return;
+  cache.forEach(u => URL.revokeObjectURL(u));
+  cache.clear(); cacheBytes = 0;
+  saved.clearLayers(); updateStatus(); activeLayer.redraw();
+};
+
+// Geolocation (GPS works offline)
+let me;
+$('btnLoc').onclick = () => navigator.geolocation.getCurrentPosition(p => {
+  const ll = L.latLng(p.coords.latitude, p.coords.longitude);
+  if (me) map.removeLayer(me);
+  me = L.circleMarker(ll, {radius: 8, color: '#fff', weight: 3, fillColor: '#1a73e8', fillOpacity: 1}).addTo(map);
+  map.setView(ll, Math.max(map.getZoom(), 15));
+  setCenter(ll);
+}, () => alert('Could not get your location'), {enableHighAccuracy: true});
+
+// Warn before leaving, since saved tiles live only in memory
+addEventListener('beforeunload', e => { if (cache.size) { e.preventDefault(); e.returnValue = ''; } });
+
+updateNet(); updateStatus();
+</script>
+</body>
+</html>

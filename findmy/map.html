@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Offline Map</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-  html,body{height:100%;margin:0;font-family:system-ui,sans-serif}
-  #map{position:absolute;inset:0;background:#e5e5e5}
+  html,body{height:100%;margin:0;font-family:system-ui,sans-serif;overscroll-behavior:none}
+  #map{position:absolute;inset:0;background:#e5e5e5;touch-action:none}
   .tile-blank{background:#ddd}
   #panel{position:absolute;z-index:1000;top:10px;left:10px;width:300px;max-width:calc(100% - 20px);
     max-height:calc(100% - 20px);overflow:auto;background:#fff;border-radius:10px;
@@ -27,12 +27,23 @@
   #info{color:#555;font-size:13px}
   #warn{color:#c0392b;font-size:12px}
   .note{font-size:12px;color:#777;margin-top:4px}
+  #toggle{padding:2px 10px;font-size:13px}
+  #panel.min #body{display:none}
+  /* Phones: bottom sheet, bigger touch targets, 16px inputs (prevents iOS auto-zoom) */
+  @media (max-width:640px), (pointer:coarse){
+    #panel{top:auto;left:0;right:0;bottom:0;width:auto;max-width:none;max-height:55vh;
+      border-radius:14px 14px 0 0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));font-size:15px}
+    button,select,input{font-size:16px;min-height:40px}
+    input{width:80px}
+    #toggle{min-height:32px}
+  }
 </style>
 </head>
 <body>
 <div id="map"></div>
 <div id="panel">
-  <h1>Offline Map <span id="net" class="on">Online</span></h1>
+  <h1>Offline Map <span><span id="net" class="on">Online</span> <button id="toggle">Hide</button></span></h1>
+  <div id="body">
 
   <div class="row">View: <select id="base">
     <option value="street">Street map</option>
@@ -65,11 +76,15 @@
   <div id="status" style="margin-top:6px;font-size:13px">Saved 0 tiles (0 MB)</div>
   <div class="note">Tiles are kept in memory. While offline, do NOT close or reload this tab.</div>
   <div class="note">Satellite imagery at zoom 18-19 is not available in every area.</div>
+  <label class="row" style="font-size:13px"><input type="checkbox" id="wake" style="width:auto;min-height:0"> Keep screen on (stops the phone from sleeping)</label>
+  <div class="note">On phones, keep this tab open and in the foreground. Switching apps may let the browser discard the tab and the saved tiles.</div>
+  </div>
 </div>
 
 <script>
 const MAX_Z = 19;
-const MAX_TILES = 20000;   // hard cap on total tiles per download
+const IS_TOUCH = matchMedia('(pointer:coarse)').matches;
+const MAX_TILES = IS_TOUCH ? 6000 : 20000;   // hard cap per download (lower on phones: less memory)
 
 // Tile sources. kb = rough average tile size, used only for the size estimate.
 const SOURCES = {
@@ -92,6 +107,8 @@ const saved = L.layerGroup();
 const $ = id => document.getElementById(id);
 const map = L.map('map', {maxZoom: MAX_Z}).setView([24.8138, 121.0053], 13);
 saved.addTo(map);
+// Keep attribution visible on phones (the bottom sheet would cover it)
+if (matchMedia('(max-width:640px), (pointer:coarse)').matches) map.attributionControl.setPosition('topright');
 
 // Tile layer: look in memory first, then fall back to the network if online.
 const OfflineLayer = L.GridLayer.extend({
@@ -256,6 +273,25 @@ $('btnLoc').onclick = () => navigator.geolocation.getCurrentPosition(p => {
   map.setView(ll, Math.max(map.getZoom(), 15));
   setCenter(ll);
 }, () => alert('Could not get your location'), {enableHighAccuracy: true});
+
+// Collapse / expand the panel
+$('toggle').onclick = () => {
+  const min = $('panel').classList.toggle('min');
+  $('toggle').textContent = min ? 'Show' : 'Hide';
+};
+
+// Screen Wake Lock (optional, where supported)
+let wakeLock = null;
+async function setWake(on) {
+  try {
+    if (on && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+    else if (wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch (e) { $('wake').checked = false; }
+}
+$('wake').onchange = () => setWake($('wake').checked);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && $('wake').checked) setWake(true);
+});
 
 // Warn before leaving, since saved tiles live only in memory
 addEventListener('beforeunload', e => { if (cache.size) { e.preventDefault(); e.returnValue = ''; } });

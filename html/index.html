@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e1a">
+<title>Mobile HTML Runner</title>
+<style>
+  :root {
+    /* More translucent glass settings */
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-bg-strong: rgba(255, 255, 255, 0.10);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-shadow: rgba(0, 0, 0, 0.3);
+    
+    --fg: #f8faff;
+    --fg-dim: rgba(248, 250, 255, 0.6);
+    --accent: #90cdff;
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0; padding: 0;
+    height: 100dvh; width: 100%;
+    overflow: hidden;
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background: #0a0e1a;
+  }
+
+  /* Vibrant backdrop for the glass to refract */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    z-index: -2;
+    background:
+      radial-gradient(circle at 10% 10%, rgba(96, 165, 250, 0.7), transparent 50%),
+      radial-gradient(circle at 90% 20%, rgba(192, 132, 252, 0.6), transparent 50%),
+      radial-gradient(circle at 20% 90%, rgba(52, 211, 153, 0.6), transparent 50%),
+      radial-gradient(circle at 85% 85%, rgba(251, 113, 133, 0.6), transparent 50%),
+      linear-gradient(160deg, #0a0e1a, #101832 60%, #0a0e1a);
+    filter: saturate(1.3);
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    height: 100dvh;
+    padding: calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px);
+  }
+
+  /* ---------- Shared glass surface ---------- */
+  .glass {
+    position: relative;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 16px 40px var(--glass-shadow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    overflow: hidden;
+  }
+  
+  /* Top specular highlight for the glass edge */
+  .glass::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 50%;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
+    pointer-events: none;
+  }
+
+  /* ---------- Toolbar ---------- */
+  #toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    flex-wrap: wrap;
+    flex: 0 0 auto;
+    z-index: 10;
+  }
+  #toolbar .spacer { flex: 1; }
+
+  .btn {
+    position: relative;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--fg);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    touch-action: manipulation;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      0 4px 12px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.3s ease;
+  }
+  .btn:active { transform: scale(0.94); }
+
+  .btn.primary {
+    background: linear-gradient(180deg, rgba(144, 205, 255, 0.9), rgba(96, 165, 250, 0.8));
+    border-color: rgba(255, 255, 255, 0.5);
+    color: #0a0e1a;
+    font-weight: 700;
+    box-shadow: 
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 6px 16px rgba(96, 165, 250, 0.3);
+  }
+  
+  .btn.ghost {
+    background: transparent;
+    padding: 0 13px;
+    box-shadow: none;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .btn.icon {
+    width: 42px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn.icon svg { width: 18px; height: 18px; display: block; }
+
+  /* ---------- Tabs (Liquid Movement) ---------- */
+  #tabs {
+    display: flex;
+    position: relative;
+    padding: 6px;
+    flex: 0 0 auto;
+    background: rgba(255, 255, 255, 0.03);
+  }
+  
+  #tabs.hidden {
+    display: none;
+  }
+
+  /* Sliding liquid glass indicator */
+  #tabIndicator {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.08));
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      0 4px 12px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1), width 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #tabs .btn {
+    flex: 1;
+    min-height: 38px;
+    border-radius: 999px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    color: var(--fg-dim);
+    font-weight: 600;
+    z-index: 1;
+    transition: color 0.3s ease;
+  }
+  
+  #tabs .btn:active {
+    transform: scale(0.96);
+  }
+
+  #tabs .btn.active {
+    color: var(--fg);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  }
+
+  /* ---------- Editor ---------- */
+  #editorWrap {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: rgba(5, 10, 20, 0.3);
+  }
+  #editorWrap.hidden { display: none; }
+
+  textarea {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    padding: 16px;
+    border: none;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: var(--fg);
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 14px;
+    line-height: 1.55;
+    tab-size: 2;
+  }
+  textarea::placeholder { color: rgba(248, 250, 255, 0.25); }
+
+  /* ---------- Preview ---------- */
+  #previewWrap {
+    flex: 1;
+    min-height: 0;
+    display: none;
+    background: #fff;
+  }
+  #previewWrap.active { display: block; }
+  #preview {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #fff;
+    display: block;
+  }
+
+  /* ---------- Fullscreen preview ---------- */
+  #fullPreview {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: #fff;
+    display: none;
+    flex-direction: column;
+  }
+  #fullPreview.active { display: flex; }
+  #fullPreview iframe {
+    flex: 1;
+    border: none;
+    width: 100%;
+    background: #fff;
+  }
+  #fullClose {
+    position: absolute;
+    top: calc(env(safe-area-inset-top) + 12px);
+    right: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(10, 14, 26, 0.6);
+    color: #fff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 1001;
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom) + 24px);
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--fg);
+    padding: 12px 24px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    z-index: 2000;
+    max-width: 90vw;
+    text-align: center;
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    box-shadow:
+      0 12px 32px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Upload dialog ---------- */
+  #uploadMenu {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    background: rgba(4, 8, 20, 0.4);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  #uploadMenu.active { display: flex; }
+  #uploadMenu .box {
+    width: 100%;
+    max-width: 430px;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    box-shadow:
+      0 24px 60px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  #uploadMenu h3 {
+    margin: 0 0 16px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--fg);
+  }
+  #uploadMenu label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: var(--fg-dim);
+  }
+  #uploadMenu input[type=file] {
+    padding: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--fg);
+    font-size: 13px;
+    width: 100%;
+  }
+  #uploadMenu input[type=file]::file-selector-button {
+    margin-right: 10px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--fg);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  #uploadMenu .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  #uploadMenu .actions .btn { flex: 1; min-height: 46px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="toolbar" class="glass">
+    <button class="btn primary" id="btnRun">Run</button>
+    <button class="btn" id="btnPreviewToggle">Preview</button>
+    <button class="btn icon ghost" id="btnFull" title="Fullscreen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9V5a1 1 0 0 1 1-1h4"></path>
+        <path d="M20 9V5a1 1 0 0 0-1-1h-4"></path>
+        <path d="M4 15v4a1 1 0 0 0 1 1h4"></path>
+        <path d="M20 15v4a1 1 0 0 1-1 1h-4"></path>
+      </svg>
+    </button>
+    <button class="btn ghost" id="btnUpload">Upload</button>
+    <div class="spacer"></div>
+    <button class="btn icon ghost" id="btnClear" title="Clear all">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18"></path>
+        <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"></path>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+        <path d="M10 11v6"></path>
+        <path d="M14 11v6"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Tabs with sliding liquid indicator -->
+  <div id="tabs" class="glass">
+    <div id="tabIndicator"></div>
+    <button data-tab="html" class="btn active">HTML</button>
+    <button data-tab="css" class="btn">CSS</button>
+    <button data-tab="js" class="btn">JS</button>
+  </div>
+
+  <div id="editorWrap" class="glass">
+    <textarea id="ta-html" spellcheck="false" placeholder="<!DOCTYPE html>..."></textarea>
+    <textarea id="ta-css" spellcheck="false" placeholder="/* CSS */" style="display:none"></textarea>
+    <textarea id="ta-js" spellcheck="false" placeholder="// JavaScript" style="display:none"></textarea>
+  </div>
+
+  <div id="previewWrap" class="glass">
+    <iframe id="preview" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe>
+  </div>
+
+</div>
+
+<div id="fullPreview">
+  <button id="fullClose">&#10005;</button>
+  <iframe id="fullFrame" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe>
+</div>
+
+<div id="uploadMenu">
+  <div class="box">
+    <h3>Upload files</h3>
+    <label>HTML file (may contain everything)
+      <input type="file" id="fileHtml" accept=".html,.htm,text/html">
+    </label>
+    <label>CSS file (optional)
+      <input type="file" id="fileCss" accept=".css,text/css">
+    </label>
+    <label>JS file (optional)
+      <input type="file" id="fileJs" accept=".js,text/javascript">
+    </label>
+    <div class="actions">
+      <button class="btn" id="uploadCancel">Cancel</button>
+      <button class="btn primary" id="uploadOk">Load</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'mobile-html-runner-v1';
+
+  var taHtml = document.getElementById('ta-html');
+  var taCss  = document.getElementById('ta-css');
+  var taJs   = document.getElementById('ta-js');
+  var editorWrap = document.getElementById('editorWrap');
+  var previewWrap = document.getElementById('previewWrap');
+  var previewFrame = document.getElementById('preview');
+  var fullPreview = document.getElementById('fullPreview');
+  var fullFrame = document.getElementById('fullFrame');
+  var toastEl = document.getElementById('toast');
+  var uploadMenu = document.getElementById('uploadMenu');
+  var btnPreviewToggle = document.getElementById('btnPreviewToggle');
+  var tabsWrap = document.getElementById('tabs');
+  var tabIndicator = document.getElementById('tabIndicator');
+  var tabs = document.querySelectorAll('#tabs button');
+
+  var previewMode = false;
+
+  var DEFAULT_HTML =
+'<div class="card">\n' +
+'  <h1>Hello, mobile!</h1>\n' +
+'  <p>This is the default demo. Try editing it.</p>\n' +
+'  <button id="btn">Click me</button>\n' +
+'  <p id="out"></p>\n' +
+'</div>';
+
+  var DEFAULT_CSS =
+'body {\n' +
+'  margin: 0;\n' +
+'  min-height: 100vh;\n' +
+'  display: grid;\n' +
+'  place-items: center;\n' +
+'  background: linear-gradient(135deg, #89b4fa, #a6e3a1);\n' +
+'  font-family: system-ui, sans-serif;\n' +
+'}\n' +
+'.card {\n' +
+'  background: #fff;\n' +
+'  padding: 28px 32px;\n' +
+'  border-radius: 16px;\n' +
+'  box-shadow: 0 10px 30px rgba(0,0,0,.2);\n' +
+'  text-align: center;\n' +
+'}\n' +
+'h1 { margin: 0 0 8px; font-size: 22px; color: #1e1e2e; }\n' +
+'p { margin: 4px 0; color: #45475a; }\n' +
+'button {\n' +
+'  margin-top: 12px;\n' +
+'  padding: 10px 20px;\n' +
+'  border: none;\n' +
+'  border-radius: 10px;\n' +
+'  background: #89b4fa;\n' +
+'  color: #1e1e2e;\n' +
+'  font-size: 15px;\n' +
+'  font-weight: 700;\n' +
+'}\n' +
+'#out { font-weight: 700; color: #a6e3a1; }';
+
+  var DEFAULT_JS =
+'var count = 0;\n' +
+'document.getElementById("btn").addEventListener("click", function () {\n' +
+'  count++;\n' +
+'  document.getElementById("out").textContent = "You clicked " + count + " times";\n' +
+'});';
+
+  /* ---------- Storage ---------- */
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        html: taHtml.value,
+        css: taCss.value,
+        js: taJs.value
+      }));
+    } catch (e) { /* ignore */ }
+  }
+
+  function load() {
+    var raw = null;
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+    if (raw) {
+      try {
+        var d = JSON.parse(raw);
+        if (d && typeof d.html === 'string') {
+          taHtml.value = d.html;
+          taCss.value = d.css || '';
+          taJs.value = d.js || '';
+          return;
+        }
+      } catch (e) {}
+    }
+    taHtml.value = DEFAULT_HTML;
+    taCss.value = DEFAULT_CSS;
+    taJs.value = DEFAULT_JS;
+  }
+
+  /* ---------- Build the full document ---------- */
+  function buildDoc() {
+    var html = taHtml.value;
+    var css  = taCss.value;
+    var js   = taJs.value;
+
+    if (/<html[\s>]/i.test(html)) {
+      var styleTag = css.trim() ? '<style>\n' + css + '\n</style>\n' : '';
+      var scriptTag = js.trim() ? '<script>\n' + js + '\n<\/script>\n' : '';
+
+      if (/<\/head>/i.test(html)) {
+        html = html.replace(/<\/head>/i, styleTag + '</head>');
+      } else {
+        html = styleTag + html;
+      }
+
+      if (/<\/body>/i.test(html)) {
+        html = html.replace(/<\/body>/i, scriptTag + '</body>');
+      } else {
+        html = html + scriptTag;
+      }
+      return html;
+    }
+
+    return '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+      '<style>\n' + css + '\n</style>\n</head>\n<body>\n' +
+      html + '\n<script>\n' + js + '\n<\/script>\n</body>\n</html>';
+  }
+
+  /* ---------- Run ---------- */
+  function run() {
+    previewFrame.srcdoc = buildDoc();
+    fullFrame.srcdoc = previewFrame.srcdoc;
+  }
+
+  /* ---------- Toast ---------- */
+  var toastTimer = null;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toastEl.classList.remove('show');
+    }, 1600);
+  }
+
+  /* ---------- Tabs & Liquid Indicator ---------- */
+  var textareas = { html: taHtml, css: taCss, js: taJs };
+  
+  function updateIndicator(targetBtn) {
+    var wrapRect = tabsWrap.getBoundingClientRect();
+    var btnRect = targetBtn.getBoundingClientRect();
+    
+    // Calculate relative position, subtracting 6px padding
+    var left = btnRect.left - wrapRect.left - 6;
+    var width = btnRect.width;
+    
+    tabIndicator.style.transform = 'translateX(' + left + 'px)';
+    tabIndicator.style.width = width + 'px';
+  }
+
+  tabs.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var name = btn.getAttribute('data-tab');
+      tabs.forEach(function (b) { b.classList.toggle('active', b === btn); });
+      
+      updateIndicator(btn);
+
+      Object.keys(textareas).forEach(function (k) {
+        textareas[k].style.display = (k === name) ? 'block' : 'none';
+      });
+    });
+  });
+
+  // Initial indicator position
+  setTimeout(function() {
+    updateIndicator(document.querySelector('#tabs button.active'));
+  }, 50);
+
+  window.addEventListener('resize', function() {
+    updateIndicator(document.querySelector('#tabs button.active'));
+  });
+
+  /* ---------- Preview toggle ---------- */
+  function setPreviewMode(on) {
+    previewMode = on;
+    if (on) {
+      editorWrap.classList.add('hidden');
+      tabsWrap.classList.add('hidden'); // Hide tabs in preview
+      previewWrap.classList.add('active');
+      btnPreviewToggle.textContent = 'Edit';
+      run();
+    } else {
+      editorWrap.classList.remove('hidden');
+      tabsWrap.classList.remove('hidden'); // Show tabs when editing
+      previewWrap.classList.remove('active');
+      btnPreviewToggle.textContent = 'Preview';
+      
+      // Update indicator when returning to editor
+      setTimeout(function() {
+        updateIndicator(document.querySelector('#tabs button.active'));
+      }, 50);
+    }
+  }
+
+  btnPreviewToggle.addEventListener('click', function () {
+    setPreviewMode(!previewMode);
+  });
+
+  /* ---------- Run button ---------- */
+  document.getElementById('btnRun').addEventListener('click', function () {
+    run();
+    toast('Running');
+  });
+
+  /* ---------- Fullscreen ---------- */
+  document.getElementById('btnFull').addEventListener('click', function () {
+    fullFrame.srcdoc = buildDoc();
+    fullPreview.classList.add('active');
+  });
+  document.getElementById('fullClose').addEventListener('click', function () {
+    fullPreview.classList.remove('active');
+  });
+
+  /* ---------- Clear ---------- */
+  document.getElementById('btnClear').addEventListener('click', function () {
+    if (!confirm('Clear all content?')) return;
+    taHtml.value = '';
+    taCss.value = '';
+    taJs.value = '';
+    save();
+    run();
+    toast('Cleared');
+  });
+
+  /* ---------- Upload ---------- */
+  var pendingHtml = null;
+  var pendingCss = null;
+  var pendingJs = null;
+
+  document.getElementById('btnUpload').addEventListener('click', function () {
+    pendingHtml = pendingCss = pendingJs = null;
+    document.getElementById('fileHtml').value = '';
+    document.getElementById('fileCss').value = '';
+    document.getElementById('fileJs').value = '';
+    uploadMenu.classList.add('active');
+  });
+
+  document.getElementById('uploadCancel').addEventListener('click', function () {
+    uploadMenu.classList.remove('active');
+  });
+
+  function readFile(input, cb) {
+    var file = input.files && input.files[0];
+    if (!file) { cb(null); return; }
+    var reader = new FileReader();
+    reader.onload = function () { cb(String(reader.result)); };
+    reader.onerror = function () { cb(null); };
+    reader.readAsText(file);
+  }
+
+  document.getElementById('uploadOk').addEventListener('click', function () {
+    var fHtml = document.getElementById('fileHtml');
+    var fCss  = document.getElementById('fileCss');
+    var fJs   = document.getElementById('fileJs');
+
+    var done = 0;
+    var total = 0;
+    function check() {
+      done++;
+      if (done < total) return;
+      applyUpload();
+    }
+
+    var hasHtml = fHtml.files && fHtml.files[0];
+    var hasCss  = fCss.files && fCss.files[0];
+    var hasJs   = fJs.files && fJs.files[0];
+
+    if (!hasHtml && !hasCss && !hasJs) {
+      toast('No file selected');
+      return;
+    }
+
+    total = (hasHtml ? 1 : 0) + (hasCss ? 1 : 0) + (hasJs ? 1 : 0);
+
+    if (hasHtml) readFile(fHtml, function (t) { pendingHtml = t; check(); });
+    if (hasCss)  readFile(fCss,  function (t) { pendingCss  = t; check(); });
+    if (hasJs)   readFile(fJs,   function (t) { pendingJs   = t; check(); });
+  });
+
+  function applyUpload() {
+    if (pendingHtml !== null) {
+      var src = pendingHtml;
+      var cssMatch = src.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+      var jsMatch  = src.match(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/i);
+
+      if (pendingCss === null && cssMatch) pendingCss = cssMatch[1].trim();
+      if (pendingJs === null && jsMatch)  pendingJs  = jsMatch[1].trim();
+
+      if (/<html[\s>]/i.test(src)) {
+        src = src
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .replace(/<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/gi, '');
+      }
+      taHtml.value = src;
+    }
+
+    if (pendingCss !== null) taCss.value = pendingCss;
+    if (pendingJs !== null)  taJs.value = pendingJs;
+
+    save();
+    uploadMenu.classList.remove('active');
+    setPreviewMode(true);
+    toast('Loaded');
+  }
+
+  /* ---------- Auto-save ---------- */
+  [taHtml, taCss, taJs].forEach(function (ta) {
+    ta.addEventListener('input', save);
+  });
+
+  /* ---------- Init ---------- */
+  load();
+  run();
+})();
+</script>
+</body>
+</html>

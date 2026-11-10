@@ -1,15 +1,9 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>Find My · Ultimate</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/leaflet-minimap@3.6.1/dist/Control.MiniMap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ASCII CAM · Liquid Glass</title>
 <style>
 :root {
   --accent: #3b5bdb; --accent-2: #7048e8;
@@ -42,7 +36,7 @@ body {
   touch-action: manipulation;
 }
 
-/* Background animation */
+/* 背景動畫 */
 .bg-stage { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--bg-root); }
 .bg-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .6; animation: float 20s infinite alternate; }
 .bg-blob.b1 { left: -20vmax; top: -20vmax; background: radial-gradient(circle, #ff7aa8 0%, transparent 60%); }
@@ -50,15 +44,7 @@ body {
 .bg-blob.b3 { left: 30vw; top: 30vh; background: radial-gradient(circle, #ffce5c 0%, transparent 60%); animation-duration: 25s; }
 @keyframes float { 100% { transform: translate(5vw, 5vh) scale(1.1); } }
 
-/* Map */
-#map { flex: 1; width: 100%; height: 100%; z-index: 1; background: transparent; }
-.leaflet-div-icon { background: transparent !important; border: none !important; }
-
-/* Mini map */
-.leaflet-control-minimap { border: 2px solid rgba(255,255,255,0.8) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important; border-radius: 16px !important; overflow: hidden; margin-bottom: 20px !important; margin-right: 16px !important; }
-html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,255,0.2) !important; }
-
-/* Glass base */
+/* 毛玻璃基礎 */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -66,7 +52,7 @@ html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,25
   border-radius: var(--radius); position: relative; overflow: hidden;
 }
 
-/* Interaction */
+/* 互動動畫核心 */
 .interactive {
   cursor: pointer; position: relative; overflow: hidden; user-select: none;
   transition: transform 0.2s var(--ease), box-shadow 0.3s var(--ease), background 0.3s;
@@ -79,154 +65,228 @@ html[data-theme="dark"] .leaflet-control-minimap { border-color: rgba(255,255,25
 html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
 @keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
 
-/* Sidebar */
-.sidebar {
-  position: absolute; top: 0; left: 0; bottom: 0; width: 320px; max-width: 85vw;
-  z-index: 1500; transform: translateX(-110%); transition: transform 0.4s var(--ease);
-  display: flex; flex-direction: column; border-radius: 0 24px 24px 0; border-left: none; box-shadow: 20px 0 60px -20px rgba(0,0,0,0.3);
+/* Canvas 全螢幕 */
+#screen { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; background: #000; z-index: 1; }
+#video { position: fixed; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+#sampler { display: none; }
+#uploader { display: none; }
+
+/* 暗角 */
+#vignette { position: fixed; inset: 0; pointer-events: none; z-index: 5;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,.5) 100%); }
+
+/* HUD 面板 */
+#hud {
+  position: fixed; top: max(16px, env(safe-area-inset-top)); left: 16px;
+  z-index: 10; width: 340px; max-width: calc(100vw - 32px);
+  padding: 20px; max-height: calc(100vh - 32px); overflow-y: auto; overscroll-behavior: contain;
+  transition: opacity .25s, transform .25s;
 }
-.sidebar.open { transform: translateX(0); }
-.sidebar-header { padding: 20px; border-bottom: 1px solid rgba(128,128,128,0.2); display: flex; justify-content: space-between; align-items: center; }
-.sidebar-title { font-size: 18px; font-weight: 800; }
-.user-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+#hud.hidden { opacity: 0; pointer-events: none; transform: translateX(-12px); }
+#hud h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.5px;
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(128,128,128,0.2); }
+#hud h1 span { font-size: 12px; color: var(--text-muted); font-weight: 700; }
 
-.user-card { 
-  display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; 
-  background: rgba(255,255,255,0.3); border: 1px solid transparent; cursor: pointer; opacity: 0; transform: translateX(-20px); animation: slideIn 0.4s var(--ease) forwards;
-}
-html[data-theme="dark"] .user-card { background: rgba(0,0,0,0.2); }
-.user-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.6); transform: translateX(4px); }
-@keyframes slideIn { to { opacity: 1; transform: translateX(0); } }
+.grp { margin-bottom: 16px; }
+.lbl { font-size: 11px; letter-spacing: 0.5px; color: var(--text-muted);
+  margin-bottom: 8px; display: flex; justify-content: space-between; font-weight: 800; text-transform: uppercase; }
+.lbl b { color: var(--accent); font-weight: 800; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
 
-.user-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 16px; position: relative; }
-.user-info { flex: 1; }
-.user-name { font-weight: 700; font-size: 15px; }
-.user-dist { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 2px; }
-
-/* Backdrop */
-.sidebar-backdrop { position: absolute; inset: 0; z-index: 1400; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); display: none; opacity: 0; transition: opacity 0.3s; }
-.sidebar-backdrop.show { display: block; opacity: 1; }
-
-/* Top bar */
-.topbar { position: absolute; top: max(16px, env(safe-area-inset-top)); left: 16px; right: 16px; z-index: 1000; display: flex; gap: 10px; align-items: center; pointer-events: none; }
-.topbar > * { pointer-events: auto; }
-.menu-btn { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid var(--glass-border); background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); position: relative; }
-.menu-btn svg { width: 24px; height: 24px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.3s var(--ease); }
-.menu-btn:hover svg { transform: scale(1.1) rotate(90deg); }
-.unread-dot { position: absolute; top: 10px; right: 10px; width: 10px; height: 10px; border-radius: 50%; background: var(--err); box-shadow: 0 0 8px var(--err); display: none; }
-
-.name-input-wrapper { flex: 1; display: flex; align-items: center; border-radius: var(--pill); padding: 4px 6px 4px 4px; min-width: 0; }
-.name-input { flex: 1; padding: 12px 16px; border-radius: var(--pill); border: none; background: transparent; color: var(--text); font-size: 15px; outline: none; font-weight: 600; min-width: 0; }
-
-.sos-btn { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--glass-border); background: rgba(229,72,77,0.15); color: var(--err); font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.btn-big { padding: 0 24px; height: 52px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 8px 24px -6px var(--accent); white-space: nowrap; flex-shrink: 0; }
-.btn-big.active { background: var(--err); box-shadow: 0 8px 24px -6px var(--err); animation: breatheRed 2s infinite; }
-@keyframes breatheRed { 0%, 100% { box-shadow: 0 0 0 0 rgba(229,72,77, 0.7); } 50% { box-shadow: 0 0 0 12px rgba(229,72,77, 0); } }
-
-/* Map controls */
-.map-controls { position: absolute; right: 16px; bottom: max(100px, env(safe-area-inset-bottom)); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
-.ctrl-btn { width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b)); box-shadow: var(--glass-shadow); }
-.ctrl-btn svg { width: 22px; height: 22px; stroke: var(--text); fill: none; stroke-width: 2; transition: transform 0.4s var(--ease); }
-.ctrl-btn.active { background: var(--warn); border-color: var(--warn); }
-.ctrl-btn.active svg { stroke: #fff; }
-
-/* Markers */
-.marker-container { position: relative; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #fff, #f0f0f0); border: 2px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, #333, #111); border-color: #444; }
-.marker-dot { width: 14px; height: 14px; border-radius: 50%; }
-.marker-breathe { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0.5; animation: pulse 2s infinite; }
-.marker-label { position: absolute; top: -30px; white-space: nowrap; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: var(--pill); backdrop-filter: blur(4px); transition: transform 0.2s; }
-
-/* Modal */
-.modal-backdrop { position: fixed; inset: 0; z-index: 2000; display: none; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 20px; }
-.modal-backdrop.show { display: flex; animation: fadeIn 0.3s; }
-.modal-content { width: 100%; max-width: 360px; padding: 28px 24px; text-align: center; animation: popIn 0.5s var(--ease); max-height: 90vh; overflow-y: auto; }
-.modal-avatar { width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; font-weight: 800; }
-.modal-name { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
-.modal-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; font-weight: 600; }
-.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
-.modal-box { background: rgba(128,128,128,0.1); border-radius: 12px; padding: 12px; text-align: left; }
-.modal-label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); font-weight: 800; letter-spacing: 0.5px; margin-bottom: 4px; }
-.modal-val { font-size: 14px; font-weight: 700; }
-.modal-btn { width: 100%; padding: 16px; border-radius: var(--pill); border: none; font-size: 15px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px;}
-.btn-focus { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 8px 20px -6px var(--accent); }
-.btn-alert { background: rgba(245, 158, 11, 0.15); color: var(--warn); border: 1px solid rgba(245, 158, 11, 0.3); }
-.btn-alert.active { background: var(--warn); color: #fff; }
-.btn-route { background: rgba(16, 185, 129, 0.15); color: var(--ok); border: 1px solid rgba(16, 185, 129, 0.3); }
-.btn-close { background: rgba(128,128,128,0.2); color: var(--text); }
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes popIn { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-
-/* Mode indicator */
-.mode-indicator { 
-  position: absolute; top: 90px; left: 50%; transform: translateX(-50%); z-index: 1000; padding: 14px 28px; font-size: 18px; font-weight: 800; 
-  display: none; white-space: nowrap; border-radius: var(--pill); background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
-  box-shadow: 0 8px 30px rgba(0,0,0,0.2); color: var(--warn); border: 2px solid var(--warn);
-}
-.mode-indicator.active { display: block; animation: popIn 0.3s; }
-
-/* Ping banner */
-.ping-banner {
-  position: fixed; top: max(20px, env(safe-area-inset-top)); left: 50%; 
-  transform: translate(-50%, -200px);
-  z-index: 9999; padding: 16px 32px; border-radius: var(--pill);
-  background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff; font-weight: 800; font-size: 16px;
-  box-shadow: 0 10px 40px rgba(59,91,219,0.5);
-  display: flex; align-items: center; gap: 12px;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-  opacity: 0; pointer-events: none;
-}
-.ping-banner.show { transform: translate(-50%, 0); opacity: 1; }
-
-/* Chat & SOS */
-.chat-container { display: flex; flex-direction: column; height: 100%; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
-.chat-input-area { padding: 12px; display: flex; gap: 8px; border-top: 1px solid rgba(128,128,128,0.2); }
-.chat-input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid var(--glass-border); background: transparent; color: var(--text); outline: none; }
-
-.sos-overlay { position: fixed; inset: 0; z-index: 10000; display: none; background: rgba(229,72,77,0.4); backdrop-filter: blur(10px); align-items: center; justify-content: center; flex-direction: column; gap: 20px; animation: flashRed 1s infinite; }
-.sos-overlay.show { display: flex; }
-@keyframes flashRed { 0%, 100% { background: rgba(229,72,77,0.2); } 50% { background: rgba(229,72,77,0.6); } }
-
-/* Custom scale */
-.custom-scale {
-  position: absolute; left: 16px; bottom: max(20px, env(safe-area-inset-bottom)); z-index: 1000;
-  background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
+/* 按鈕：Liquid Glass 風格 */
+button { font: inherit; cursor: pointer; touch-action: manipulation; user-select: none; }
+.btn-glass {
+  font-size: 12px; font-weight: 700; color: var(--text);
+  background: var(--glass-1-a); border: 1px solid var(--glass-border);
+  padding: 10px 14px; border-radius: var(--pill); flex: 1 1 auto;
+  min-height: 42px; transition: all 0.2s var(--ease);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border); border-radius: 10px;
-  padding: 6px 12px; font-size: 12px; font-weight: 700; color: var(--text);
-  box-shadow: var(--glass-shadow); display: flex; align-items: center; gap: 8px;
-  pointer-events: none; white-space: nowrap;
 }
-.custom-scale .bar { height: 3px; background: var(--text); border-radius: 2px; }
+.btn-glass:hover { background: var(--glass-2-a); border-color: var(--accent); }
+.btn-glass.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; box-shadow: 0 8px 24px -6px var(--accent); }
 
-/* Function grid */
-.func-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; border-top: 1px solid rgba(128,128,128,0.15); background: rgba(255,255,255,0.05); }
-.func-btn { width: 100%; aspect-ratio: 1; border-radius: 14px; border: 1px solid var(--glass-border); background: var(--glass-1-a); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 10px; font-weight: 700; color: var(--text); transition: all 0.2s; }
-.func-btn svg { width: 20px; height: 20px; stroke: var(--text); fill: none; stroke-width: 2; }
-.func-btn:hover { background: var(--glass-2-a); border-color: var(--accent); transform: translateY(-2px); }
-.func-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
-.func-btn.active svg { stroke: #fff; }
+button.snap {
+  width: 100%; margin-top: 4px; padding: 14px; border-radius: var(--pill);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
+  border: none; font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+  box-shadow: 0 8px 24px -6px var(--accent);
+}
+button.rec {
+  width: 100%; margin-top: 8px; padding: 14px; border-radius: var(--pill);
+  background: rgba(229,72,77,0.12); color: var(--err); border: 1px solid rgba(229,72,77,0.3);
+  font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+}
+button.rec.recording { background: var(--err); color: #fff; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Range 滑桿 */
+input[type=range] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 32px;
+  background: transparent; outline: none; touch-action: pan-y;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  height: 6px; background: rgba(128,128,128,0.25); border-radius: var(--pill);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px;
+  background: #fff; border: 2px solid var(--accent); border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2); cursor: pointer;
+}
+html[data-theme="dark"] input[type=range]::-webkit-slider-thumb { background: var(--accent); border-color: #fff; }
+input[type=range]::-moz-range-track { height: 6px; background: rgba(128,128,128,0.25); border-radius: var(--pill); }
+input[type=range]::-moz-range-thumb {
+  width: 20px; height: 20px; background: #fff; border: 2px solid var(--accent);
+  border-radius: 50%; cursor: pointer;
+}
+
+#stats {
+  font-size: 11px; color: var(--text-muted); font-weight: 700;
+  display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px;
+  border-top: 1px solid rgba(128,128,128,0.2);
+}
+#hint { font-size: 10px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; font-weight: 600; }
+
+/* Toggle HUD */
+#toggle {
+  position: fixed; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 11;
+  width: 52px; height: 52px; border-radius: 50%; padding: 0;
+  background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
+  border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow), var(--glass-inset);
+  backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+  display: flex; align-items: center; justify-content: center; color: var(--text);
+}
+#toggle svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+/* 手機版快門按鈕 */
+#shutterBtn {
+  position: fixed; bottom: 24px; right: 20px; z-index: 50;
+  width: 76px; height: 76px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
+  border: 2px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), var(--glass-inset), 0 0 0 4px rgba(255,255,255,0.15);
+  backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+  display: flex; align-items: center; justify-content: center;
+  transition: 0.2s var(--ease); cursor: pointer; padding: 0;
+}
+#shutterBtn:active { transform: scale(0.9); }
+#shutterBtn .inner-ring {
+  display: block; width: 50px; height: 50px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 20px -4px var(--accent), inset 0 2px 0 rgba(255,255,255,0.4);
+  position: relative;
+}
+#shutterBtn .inner-ring::after {
+  content: ''; position: absolute; inset: 8px; border-radius: 50%;
+  background: #fff; opacity: 0.9;
+}
+
+/* 拍照預覽浮層 */
+#previewOverlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding: 20px; gap: 20px;
+}
+#previewOverlay.show { display: flex; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+#previewOverlay .preview-card {
+  width: 100%; max-width: 460px; padding: 20px; display: flex; flex-direction: column; gap: 16px;
+  animation: popIn 0.5s var(--ease);
+}
+@keyframes popIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+#previewOverlay img {
+  max-width: 100%; max-height: 60vh; border-radius: 16px; object-fit: contain;
+  border: 1px solid var(--glass-border); background: #000;
+}
+#previewOverlay .preview-actions { display: flex; gap: 12px; width: 100%; }
+#previewOverlay .preview-actions button { flex: 1; min-height: 48px; font-size: 14px; }
+#saveBtn {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
+  border: none; font-weight: 800; border-radius: var(--pill);
+  box-shadow: 0 8px 24px -6px var(--accent);
+}
+#closePreviewBtn {
+  background: var(--glass-1-a); color: var(--text); border: 1px solid var(--glass-border);
+  border-radius: var(--pill); font-weight: 700;
+}
+
+/* 啟動覆蓋層 */
+#overlay {
+  position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; padding: 24px;
+  background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  transition: opacity .6s;
+}
+#overlay.gone { opacity: 0; pointer-events: none; }
+#overlay .ring {
+  width: 120px; height: 120px; border: 3px solid rgba(128,128,128,0.2);
+  border-top-color: var(--accent); border-bottom-color: var(--accent-2);
+  border-radius: 50%; animation: spin 1.4s linear infinite; position: relative; margin-bottom: 34px;
+}
+#overlay .ring::after {
+  content: ""; position: absolute; inset: 14px; border: 2px dashed var(--accent);
+  border-radius: 50%; animation: spin 3s linear infinite reverse;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#overlay h2 { font-size: clamp(20px,4vw,34px); font-weight: 800; letter-spacing: 1px; color: var(--text); }
+#overlay p { margin-top: 14px; font-size: clamp(12px,1.8vw,15px); color: var(--text-muted); font-weight: 600; line-height: 1.8; }
+#overlay .err { color: var(--err); min-height: 22px; margin-top: 10px; font-size: 13px; font-weight: 700; max-width: 600px; }
+#overlay button {
+  margin-top: 26px; padding: 14px 32px; font-size: 15px; font-weight: 800;
+  border-radius: var(--pill); border: none; color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 8px 24px -6px var(--accent);
+}
+
+/* Flash 拍照閃光 */
+#flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 30; }
+#flash.go { animation: fl .35s ease-out; }
+@keyframes fl { 0% { opacity: .85; } 100% { opacity: 0; } }
 
 /* Toast */
-.toast {
-  position: fixed; left: 50%; bottom: max(100px, env(safe-area-inset-bottom));
+#toast {
+  position: fixed; left: 50%; bottom: max(120px, env(safe-area-inset-bottom));
   transform: translate(-50%, 20px);
-  background: rgba(0,0,0,0.82); color: #fff; padding: 11px 22px;
+  background: rgba(0,0,0,0.82); color: #fff; padding: 12px 24px;
   border-radius: var(--pill); font-size: 13px; font-weight: 700;
   z-index: 9000; opacity: 0; pointer-events: none;
   transition: all 0.3s var(--ease); backdrop-filter: blur(10px);
   white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
 }
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-@media (max-width: 480px) {
-  .topbar { gap: 8px; left: 12px; right: 12px; }
-  .name-input { padding: 10px 12px; font-size: 14px; }
-  .btn-big { padding: 0 16px; font-size: 14px; height: 48px; }
-  .menu-btn, .sos-btn { width: 48px; height: 48px; }
+/* 上傳按鈕 */
+#uploadBtn {
+  width: 100%; margin-top: 4px; padding: 14px; border-radius: var(--pill);
+  background: var(--glass-1-a); color: var(--text); border: 1px solid var(--glass-border);
+  font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
+  transition: all 0.2s var(--ease); backdrop-filter: blur(10px);
+}
+#uploadBtn:hover { background: var(--glass-2-a); border-color: var(--accent); }
+
+@media (max-width: 600px) {
+  #hud { top: max(12px, env(safe-area-inset-top)); left: 12px; width: calc(100vw - 24px); max-width: calc(100vw - 24px); padding: 16px; max-height: calc(100vh - 24px); }
+  #hud h1 { font-size: 16px; margin-bottom: 12px; padding-bottom: 10px; }
+  .grp { margin-bottom: 12px; }
+  .lbl { font-size: 10px; margin-bottom: 6px; }
+  .btn-glass { font-size: 11px; padding: 9px 10px; min-height: 40px; }
+  button.snap, button.rec { padding: 12px; font-size: 12px; }
+  #toggle { top: max(12px, env(safe-area-inset-top)); right: 12px; width: 48px; height: 48px; }
+  #shutterBtn { bottom: 18px; right: 16px; width: 68px; height: 68px; }
+  #shutterBtn .inner-ring { width: 44px; height: 44px; }
+  #toast { bottom: 100px; }
+  #overlay .ring { width: 90px; height: 90px; margin-bottom: 24px; }
+}
+@media (max-height: 520px) {
+  #hud { top: 8px; left: 8px; padding: 12px; max-height: calc(100vh - 16px); }
+  #hud h1 { font-size: 14px; margin-bottom: 10px; padding-bottom: 8px; }
+  .grp { margin-bottom: 10px; }
+  .btn-glass { min-height: 36px; padding: 7px 10px; font-size: 10px; }
+  #shutterBtn { bottom: 12px; right: 12px; width: 60px; height: 60px; }
+  #shutterBtn .inner-ring { width: 38px; height: 38px; }
 }
 </style>
 </head>
@@ -238,123 +298,817 @@ html[data-theme="dark"] .marker-container { background: linear-gradient(135deg, 
   <div class="bg-blob b3"></div>
 </div>
 
-<div class="ping-banner" id="pingBanner">
-  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-  <span id="pingText">Someone pinged you!</span>
-</div>
+<canvas id="screen"></canvas>
+<video id="video" playsinline muted autoplay></video>
+<canvas id="sampler"></canvas>
+<input type="file" id="uploader" accept="image/*">
+<div id="vignette"></div>
+<div id="flash"></div>
+<div id="toast"></div>
 
-<div class="toast" id="toastEl"></div>
+<button id="toggle" class="interactive" title="Toggle HUD">
+  <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
 
-<div class="sos-overlay" id="sosOverlay">
-  <h1 style="color:#fff; font-size:36px; text-shadow:0 4px 12px rgba(0,0,0,0.5);">EMERGENCY SOS</h1>
-  <p id="sosSender" style="color:#fff; font-size:18px; font-weight:bold;">Someone needs help!</p>
-  <button class="btn-big" style="background:#fff; color:var(--err);" onclick="document.getElementById('sosOverlay').classList.remove('show')">I'm Coming</button>
-</div>
+<button id="shutterBtn" class="interactive" title="Take snapshot">
+  <span class="inner-ring"></span>
+</button>
 
-<div id="map"></div>
-
-<div class="custom-scale" id="customScale">
-  <div class="bar" id="scaleBar" style="width: 60px;"></div>
-  <span id="scaleText">3 m</span>
-</div>
-
-<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
-
-<div class="sidebar glass" id="sidebar">
-  <div class="sidebar-header">
-    <div class="sidebar-title" id="sidebarTitle">Live Radar</div>
-    <button class="ctrl-btn glass interactive" style="width:36px;height:36px;border:none;box-shadow:none;background:transparent;" onclick="toggleSidebar(false)">
-      <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
-    </button>
+<div id="previewOverlay">
+  <div class="preview-card glass">
+    <img id="previewImg" alt="ASCII Snapshot">
+    <div class="preview-actions">
+      <button id="saveBtn" class="interactive">Save PNG</button>
+      <button id="closePreviewBtn" class="interactive">Close</button>
+    </div>
   </div>
-  
-  <div style="display:flex; padding: 0 16px; gap:10px; border-bottom:1px solid rgba(128,128,128,0.2);">
-    <button id="tabRadar" class="interactive" style="flex:1; padding:12px; border:none; background:none; border-bottom: 3px solid var(--accent); font-weight:800; color:var(--accent);">Radar</button>
-    <button id="tabChat" class="interactive" style="flex:1; padding:12px; border:none; background:none; border-bottom: 3px solid transparent; font-weight:800; color:var(--text-muted);">Chat</button>
+</div>
+
+<div id="hud" class="glass">
+  <h1>ASCII CAM <span>v2.5</span></h1>
+
+  <div class="grp">
+    <div class="lbl"><span>Upload Photo</span></div>
+    <button id="uploadBtn" class="interactive">Upload Image</button>
   </div>
 
-  <div class="user-list" id="userList"></div>
-  
-  <div class="chat-container" id="chatContainer" style="display:none;">
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input-area">
-      <input class="chat-input" id="chatInput" placeholder="Message everyone..." />
-      <button class="ctrl-btn glass interactive" id="chatSendBtn" style="width:44px;height:44px;flex-shrink:0;">
-        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
+  <div class="grp">
+    <div class="lbl"><span>Charset</span></div>
+    <div class="row" id="setBtns">
+      <button data-i="0" class="btn-glass on">Standard</button>
+      <button data-i="1" class="btn-glass">Binary</button>
+      <button data-i="2" class="btn-glass">Blocks</button>
+      <button data-i="3" class="btn-glass">Dots</button>
+      <button data-i="4" class="btn-glass">Matrix</button>
+      <button data-i="5" class="btn-glass">Alphanum</button>
     </div>
   </div>
 
-  <div class="func-grid">
-    <button class="func-btn interactive" id="funcTheme" title="Toggle Theme">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-      Theme
-    </button>
-    <button class="func-btn interactive" id="funcScreenshot" title="Screenshot">
-      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      Shot
-    </button>
-    <button class="func-btn interactive" id="funcCopyPos" title="Copy My Position">
-      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-      Copy
-    </button>
-    <button class="func-btn interactive" id="funcToggleSat" title="Satellite">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      Sat
-    </button>
-    <button class="func-btn interactive" id="funcLock" title="Lock Map">
-      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Lock
-    </button>
+  <div class="grp">
+    <div class="lbl"><span>Color Mode</span></div>
+    <div class="row" id="colBtns">
+      <button data-i="0" class="btn-glass on">Mono</button>
+      <button data-i="1" class="btn-glass">Gray</button>
+      <button data-i="2" class="btn-glass">Invert</button>
+      <button data-i="3" class="btn-glass">True RGB</button>
+      <button data-i="4" class="btn-glass">Invert RGB</button>
+    </div>
   </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Font Size</span><b id="sizeVal">12px</b></div>
+    <input type="range" id="size" min="6" max="28" step="1" value="12">
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Contrast</span><b id="conVal">1.30</b></div>
+    <input type="range" id="con" min="0.5" max="3.0" step="0.05" value="1.30">
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Brightness</span><b id="briVal">0.70</b></div>
+    <input type="range" id="bri" min="0.4" max="1.4" step="0.05" value="0.70">
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Glitch</span><b id="gliVal">0%</b></div>
+    <input type="range" id="gli" min="0" max="100" step="1" value="0">
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Effects</span></div>
+    <div class="row" id="fxBtns">
+      <button data-i="mirror" class="btn-glass on">Mirror</button>
+      <button data-i="scan" class="btn-glass">Scanline</button>
+      <button data-i="invert" class="btn-glass">Invert</button>
+      <button data-i="auto" class="btn-glass">Auto-Lvl</button>
+      <button data-i="watermark" class="btn-glass">Watermark</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>FPS Cap</span></div>
+    <div class="row" id="fpsBtns">
+      <button data-i="15" class="btn-glass">15</button>
+      <button data-i="24" class="btn-glass">24</button>
+      <button data-i="30" class="btn-glass on">30</button>
+      <button data-i="60" class="btn-glass">60</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Camera</span></div>
+    <div class="row">
+      <button id="switchCam" class="btn-glass interactive">Switch Cam</button>
+    </div>
+  </div>
+
+  <button class="snap interactive" id="snap">Snapshot / Save PNG</button>
+  <button class="rec interactive" id="rec">Record / Stop (WebM)</button>
+
+  <div id="stats"><span id="fps">FPS --</span><span id="grid">GRID --</span></div>
+  <div id="hint">H: HUD · SPACE: snap · R: record · C: cam · M: mirror · 1-6: charset · Q/W/E/R/T: color</div>
 </div>
 
-<div class="topbar">
-  <div class="menu-btn glass interactive" onclick="toggleSidebar(true)">
-    <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    <div class="unread-dot" id="unreadDot"></div>
-  </div>
-  
-  <div class="name-input-wrapper glass">
-    <input class="name-input" id="nameInput" placeholder="Your Name" maxlength="20" />
-    <div id="colorPicker" class="interactive" style="width:28px;height:28px;border-radius:50%;background:#3b5bdb;border:2px solid #fff;margin-left:4px;flex-shrink:0;"></div>
-  </div>
-  
-  <button class="sos-btn interactive" id="sosBtn">SOS</button>
-  <button class="btn-big interactive" id="shareBtn">Share</button>
+<div id="overlay">
+  <div class="ring"></div>
+  <h2>Awaiting Camera</h2>
+  <p>Please allow camera access or upload an image</p>
+  <div class="err" id="err"></div>
+  <button id="retry" class="interactive">Start Camera</button>
 </div>
 
-<div class="mode-indicator" id="modeIndicator"></div>
+<script>
+(() => {
+  'use strict';
 
-<div class="map-controls">
-  <button class="ctrl-btn glass interactive" id="manualLocBtn" title="Tap map to set my position">
-    <svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-  </button>
+  const screen  = document.getElementById('screen');
+  const ctx     = screen.getContext('2d', { alpha: false });
+  const video   = document.getElementById('video');
+  const sampler = document.getElementById('sampler');
+  const sctx    = sampler.getContext('2d', { willReadFrequently: true });
+  const overlay = document.getElementById('overlay');
+  const errEl   = document.getElementById('err');
+  const hud     = document.getElementById('hud');
+  const flashEl = document.getElementById('flash');
+  const toastEl = document.getElementById('toast');
+  const uploader = document.getElementById('uploader');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const shutterBtn = document.getElementById('shutterBtn');
+  const previewOverlay = document.getElementById('previewOverlay');
+  const previewImg = document.getElementById('previewImg');
+  const saveBtn = document.getElementById('saveBtn');
+  const closePreviewBtn = document.getElementById('closePreviewBtn');
 
-  <button class="ctrl-btn glass interactive" id="meetupBtn" title="Set Meetup Point">
-    <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6.2-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-  </button>
-  
-  <button class="ctrl-btn glass interactive" id="measureBtn" title="Measure Distance">
-    <svg viewBox="0 0 24 24" style="stroke-linecap: round; stroke-linejoin: round;">
-      <path d="M3 15l12-12 6 6-12 12-6-6z"/>
-      <path d="M9 9l1.5 1.5M12 6l1.5 1.5M15 9l1.5 1.5"/>
-    </svg>
-  </button>
-  
-  <button class="ctrl-btn glass interactive" id="layerBtn" title="Change Map Layer">
-    <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-  </button>
-  
-  <button class="ctrl-btn glass interactive" id="centerBtn" title="Center My Location">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
-  </button>
-</div>
+  const CHARSETS = [
+    '@#$%=+*:-. ',
+    '10 ',
+    '█▓▒░#+*:. ',
+    '●◉◎○·. ',
+    'ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾅﾆﾇﾈﾉ ',
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*+=?!'
+  ];
+  const FONT_FAMILY = '"Inter", -apple-system, BlinkMacSystemFont, "Courier New", monospace';
+  const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+                     (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && window.innerWidth < 900);
 
-<div class="modal-backdrop" id="infoModal">
-  <div class="modal-content glass">
-    <div class="modal-avatar" id="mAvatar">A</div>
-    <div class="modal-name" id="mName">User</div>
-    <div class="modal-sub" id="mSub">Status</div>
-    
-    <
+  const LUM_GAIN = 1.18;
+
+  const state = {
+    set: 0, color: 0, size: 12, contrast: 1.30, brightness: 0.70, glitch: 0,
+    fpsCap: 30,
+    mirror: true, scan: false, invert: false, autoLevel: false, watermark: false,
+    cols: 0, rows: 0, charW: 8, lineH: 12, W: 0, H: 0, dpr: 1
+  };
+
+  const rgbCache = new Array(4096);
+  let stream = null;
+  let started = false;
+  let facingMode = IS_MOBILE ? 'environment' : 'user';
+  let recorder = null;
+  let recChunks = [];
+  let recording = false;
+
+  let uploadedImage = null;
+  let useUploadedImage = false;
+  let lastSnapshotDataUrl = '';
+
+  const PERSIST_KEY = 'ascii-cam-v2.5';
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(PERSIST_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      Object.keys(saved).forEach(k => {
+        if (k in state && typeof state[k] !== 'undefined') state[k] = saved[k];
+      });
+    } catch (e) { /* ignore */ }
+  }
+  function saveState() {
+    try {
+      const toSave = {};
+      ['set','color','size','contrast','brightness','glitch','fpsCap',
+       'mirror','scan','invert','autoLevel','watermark'].forEach(k => toSave[k] = state[k]);
+      localStorage.setItem(PERSIST_KEY, JSON.stringify(toSave));
+    } catch (e) { /* ignore */ }
+  }
+
+  let toastTimer = null;
+  function toast(msg, ms = 1600) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
+  }
+
+  function setupGrid() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const W = window.innerWidth, H = window.innerHeight;
+    state.dpr = dpr; state.W = W; state.H = H;
+
+    screen.width = Math.floor(W * dpr);
+    screen.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const s = state.size;
+    ctx.font = s + 'px ' + FONT_FAMILY;
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    state.charW = Math.max(1, ctx.measureText('M').width);
+    state.lineH = s;
+    state.cols = Math.ceil(W / state.charW);
+    state.rows = Math.ceil(H / state.lineH);
+
+    sampler.width = state.cols;
+    sampler.height = state.rows;
+    sctx.imageSmoothingEnabled = true;
+    sctx.imageSmoothingQuality = 'high';
+
+    document.getElementById('grid').textContent = 'GRID ' + state.cols + '×' + state.rows;
+  }
+
+  function rgbString(r, g, b) {
+    const k = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+    let s = rgbCache[k];
+    if (!s) {
+      const boost = 1.22;
+      const rr = Math.min(255, Math.round((((r >> 4) << 4) + 8) * boost));
+      const gg = Math.min(255, Math.round((((g >> 4) << 4) + 8) * boost));
+      const bb = Math.min(255, Math.round((((b >> 4) << 4) + 8) * boost));
+      s = 'rgb(' + rr + ',' + gg + ',' + bb + ')';
+      rgbCache[k] = s;
+    }
+    return s;
+  }
+
+  let autoLumMin = 0, autoLumMax = 1;
+  function updateAutoLevel(data) {
+    let min = 255, max = 0;
+    const step = 16;
+    for (let p = 0; p < data.length; p += 4 * step) {
+      const l = 0.2126 * data[p] + 0.7152 * data[p+1] + 0.0722 * data[p+2];
+      if (l < min) min = l;
+      if (l > max) max = l;
+    }
+    autoLumMin = min / 255;
+    autoLumMax = Math.max(0.35, max / 255);
+  }
+
+  function sampleVideo() {
+    if (useUploadedImage && uploadedImage) {
+      const vw = uploadedImage.naturalWidth;
+      const vh = uploadedImage.naturalHeight;
+      if (!vw || !vh) return null;
+
+      const dstAspect = (state.cols * state.charW) / (state.rows * state.lineH);
+      const srcAspect = vw / vh;
+      let sx, sy, sw, sh;
+      if (srcAspect > dstAspect) {
+        sh = vh; sw = vh * dstAspect; sx = (vw - sw) / 2; sy = 0;
+      } else {
+        sw = vw; sh = vw / dstAspect; sx = 0; sy = (vh - sh) / 2;
+      }
+
+      sctx.save();
+      if (state.mirror) {
+        sctx.translate(state.cols, 0);
+        sctx.scale(-1, 1);
+      }
+      sctx.drawImage(uploadedImage, sx, sy, sw, sh, 0, 0, state.cols, state.rows);
+      sctx.restore();
+
+      return sctx.getImageData(0, 0, state.cols, state.rows).data;
+    }
+
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return null;
+
+    const dstAspect = (state.cols * state.charW) / (state.rows * state.lineH);
+    const srcAspect = vw / vh;
+    let sx, sy, sw, sh;
+    if (srcAspect > dstAspect) {
+      sh = vh; sw = vh * dstAspect; sx = (vw - sw) / 2; sy = 0;
+    } else {
+      sw = vw; sh = vw / dstAspect; sx = 0; sy = (vh - sh) / 2;
+    }
+
+    sctx.save();
+    if (state.mirror) {
+      sctx.translate(state.cols, 0);
+      sctx.scale(-1, 1);
+    }
+    sctx.drawImage(video, sx, sy, sw, sh, 0, 0, state.cols, state.rows);
+    sctx.restore();
+
+    return sctx.getImageData(0, 0, state.cols, state.rows).data;
+  }
+
+  function render() {
+    const data = sampleVideo();
+    if (!data) return;
+
+    if (state.autoLevel) updateAutoLevel(data);
+
+    const { cols, rows, charW, lineH, W, H, color, contrast, brightness, glitch } = state;
+    const chars = CHARSETS[state.set];
+    const n = chars.length;
+
+    ctx.fillStyle = state.invert ? '#ffffff' : '#000';
+    ctx.fillRect(0, 0, W, H);
+
+    const gamma = brightness;
+    const glitchActive = glitch > 0;
+    const glitchProb = glitch / 100 * 0.35;
+
+    if (color === 0) {
+      ctx.fillStyle = state.invert ? '#000' : '#ffffff';
+    } else if (color === 1) {
+      ctx.fillStyle = '#cccccc';
+    } else if (color === 2) {
+      ctx.fillStyle = state.invert ? '#ffffff' : '#000000';
+    } else {
+      ctx.fillStyle = '#ffffff';
+    }
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+
+    let lastStyle = ctx.fillStyle;
+    let p = 0;
+
+    const aMin = autoLumMin, aMax = autoLumMax;
+    const aRange = Math.max(0.0001, aMax - aMin);
+
+    for (let y = 0; y < rows; y++) {
+      const py = y * lineH;
+      for (let x = 0; x < cols; x++, p += 4) {
+        const r = data[p], g = data[p + 1], b = data[p + 2];
+
+        let l = ((0.2126 * r + 0.7152 * g + 0.0722 * b) / 255) * LUM_GAIN;
+        if (l > 1) l = 1;
+
+        if (state.autoLevel) {
+          l = (l - aMin) / aRange;
+          l = l < 0 ? 0 : l > 1 ? 1 : l;
+        }
+
+        l = Math.pow(l, gamma);
+        l = (l - 0.5) * contrast + 0.5;
+        l = l < 0 ? 0 : l > 1 ? 1 : l;
+
+        if (state.invert && (color === 0 || color === 2)) {
+          l = 1 - l;
+        }
+
+        let idx = Math.round(Math.pow(1 - l, 1.05) * (n - 1));
+        let ch = chars[idx];
+        if (ch === ' ') continue;
+
+        if (glitchActive && Math.random() < glitchProb) {
+          ch = chars[(Math.random() * n) | 0];
+        }
+
+        if (color === 3) {
+          const st = rgbString(r, g, b);
+          if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
+        } else if (color === 4) {
+          const st = rgbString(255 - r, 255 - g, 255 - b);
+          if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
+        } else if (color === 1) {
+          const v = Math.round(60 + l * 195);
+          const st = 'rgb(' + v + ',' + v + ',' + v + ')';
+          if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
+        } else if (color === 2) {
+          const st = state.invert ? '#000' : '#fff';
+          if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
+        } else {
+          const st = state.invert ? '#000' : '#fff';
+          if (st !== lastStyle) { ctx.fillStyle = st; lastStyle = st; }
+        }
+
+        let gx = x * charW, gy = py;
+        if (glitchActive && Math.random() < glitchProb * 0.5) {
+          gx += (Math.random() - 0.5) * state.size * 2;
+          gy += (Math.random() - 0.5) * state.size;
+        }
+
+        ctx.fillText(ch, gx, gy);
+      }
+    }
+
+    if (state.watermark) {
+      const d = new Date();
+      const pad = v => String(v).padStart(2, '0');
+      const ts = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + ' ' +
+                 pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+      ctx.font = Math.max(10, state.size * 0.8) + 'px ' + FONT_FAMILY;
+      ctx.textBaseline = 'bottom';
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.fillText('ASCII CAM · ' + ts, 12, state.H - 12);
+      ctx.textBaseline = 'top';
+    }
+  }
+
+  let lastT = 0, frames = 0, fpsT = performance.now();
+  function loop(now) {
+    requestAnimationFrame(loop);
+    if (!started && !useUploadedImage) return;
+    const frameMs = 1000 / state.fpsCap;
+    if (now - lastT < frameMs - 1) return;
+    lastT = now;
+
+    render();
+
+    frames++;
+    if (now - fpsT >= 500) {
+      document.getElementById('fps').textContent = 'FPS ' + Math.round(frames * 1000 / (now - fpsT));
+      frames = 0; fpsT = now;
+    }
+  }
+
+  async function startCamera() {
+    errEl.textContent = '';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      errEl.textContent = 'ERROR: Camera API unavailable. Use HTTPS or localhost in a modern browser.';
+      return;
+    }
+    try {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+
+      const attempts = IS_MOBILE
+        ? [{ facingMode: { ideal: facingMode } }, { facingMode: facingMode === 'environment' ? 'user' : 'environment' }, {}]
+        : [{ facingMode: { ideal: facingMode } }, {}];
+
+      let lastErr = null;
+      for (const videoConstraints of attempts) {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: Object.assign({
+              width: { ideal: IS_MOBILE ? 1920 : 1280 },
+              height: { ideal: IS_MOBILE ? 1080 : 720 }
+            }, videoConstraints),
+            audio: false
+          });
+          break;
+        } catch (e) {
+          lastErr = e;
+          stream = null;
+        }
+      }
+      if (!stream) throw lastErr || new Error('No camera');
+
+      video.srcObject = stream;
+      await video.play();
+      started = true;
+      useUploadedImage = false;
+      uploadedImage = null;
+      overlay.classList.add('gone');
+      toast('Camera live');
+    } catch (e) {
+      started = false;
+      overlay.classList.remove('gone');
+      let msg = 'LINK FAILED: ' + (e && e.name ? e.name : 'Unknown error');
+      if (e && e.name === 'NotAllowedError') msg = 'Access denied. Please allow camera permission, then retry.';
+      else if (e && e.name === 'NotFoundError') msg = 'No camera detected. Connect a camera, then retry.';
+      else if (e && e.name === 'NotReadableError') msg = 'Camera busy. Another application is using the camera.';
+      else if (e && e.name === 'OverconstrainedError') msg = 'Camera constraint failed. Try a different device.';
+      errEl.textContent = msg;
+    }
+  }
+
+  async function switchCamera() {
+    facingMode = facingMode === 'user' ? 'environment' : 'user';
+    await startCamera();
+    toast('Cam: ' + facingMode.toUpperCase());
+  }
+
+  uploadBtn.addEventListener('click', () => {
+    uploader.click();
+  });
+
+  uploader.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        uploadedImage = img;
+        useUploadedImage = true;
+        started = true;
+        overlay.classList.add('gone');
+        toast('Image loaded');
+        setupGrid();
+        render();
+      };
+      img.onerror = () => toast('Image load failed');
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+    uploader.value = '';
+  });
+
+  function snapshot() {
+    if (!started && !useUploadedImage) return;
+    flashEl.classList.remove('go');
+    void flashEl.offsetWidth;
+    flashEl.classList.add('go');
+
+    render();
+
+    try {
+      lastSnapshotDataUrl = screen.toDataURL('image/png');
+      previewImg.src = lastSnapshotDataUrl;
+      previewOverlay.classList.add('show');
+      toast('Snapshot ready');
+    } catch (e) {
+      console.error(e);
+      toast('Snapshot failed');
+    }
+  }
+
+  saveBtn.addEventListener('click', () => {
+    if (!lastSnapshotDataUrl) return;
+    const a = document.createElement('a');
+    const d = new Date();
+    const pad = v => String(v).padStart(2, '0');
+    a.href = lastSnapshotDataUrl;
+    a.download = 'ascii-cam-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
+                 '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + '.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    toast('Snapshot saved');
+  });
+
+  closePreviewBtn.addEventListener('click', () => {
+    previewOverlay.classList.remove('show');
+    previewImg.src = '';
+    lastSnapshotDataUrl = '';
+    toast('Ready');
+  });
+
+  shutterBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    snapshot();
+    shutterBtn.blur();
+  });
+
+  function toggleRecording() {
+    if (!started && !useUploadedImage) return;
+    if (!window.MediaRecorder) {
+      toast('Rec not supported');
+      return;
+    }
+    if (recording) {
+      stopRecording();
+      return;
+    }
+    try {
+      const streamToRec = screen.captureStream(state.fpsCap);
+      const mimeCandidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+      let mime = '';
+      for (const m of mimeCandidates) {
+        if (MediaRecorder.isTypeSupported(m)) { mime = m; break; }
+      }
+      if (!mime) { toast('Rec not supported'); return; }
+
+      recChunks = [];
+      recorder = new MediaRecorder(streamToRec, { mimeType: mime, videoBitsPerSecond: 4_000_000 });
+      recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(recChunks, { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const d = new Date();
+        const pad = v => String(v).padStart(2, '0');
+        a.href = url;
+        a.download = 'ascii-cam-rec-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
+                     '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + '.webm';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+        toast('Rec saved');
+      };
+      recorder.start(1000);
+      recording = true;
+      const btn = document.getElementById('rec');
+      btn.classList.add('recording');
+      btn.textContent = 'Stop Recording';
+      toast('Recording…');
+    } catch (e) {
+      toast('Rec error');
+      console.error(e);
+    }
+  }
+
+  function stopRecording() {
+    if (recorder && recording) {
+      recorder.stop();
+      recorder = null;
+      recording = false;
+      const btn = document.getElementById('rec');
+      btn.classList.remove('recording');
+      btn.textContent = 'Record / Stop (WebM)';
+    }
+  }
+
+  function bindGroup(id, key, cast = Number) {
+    const wrap = document.getElementById(id);
+    wrap.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      state[key] = cast(b.dataset.i);
+      wrap.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+      b.blur();
+      saveState();
+    });
+  }
+  bindGroup('setBtns', 'set');
+  bindGroup('colBtns', 'color');
+  bindGroup('fpsBtns', 'fpsCap');
+
+  const fxWrap = document.getElementById('fxBtns');
+  fxWrap.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const key = b.dataset.i;
+    state[key] = !state[key];
+    b.classList.toggle('on', state[key]);
+    b.blur();
+    saveState();
+  });
+
+  const sizeEl = document.getElementById('size');
+  const conEl = document.getElementById('con');
+  const briEl = document.getElementById('bri');
+  const gliEl = document.getElementById('gli');
+
+  sizeEl.addEventListener('input', () => {
+    state.size = +sizeEl.value;
+    document.getElementById('sizeVal').textContent = state.size + 'px';
+    setupGrid();
+    saveState();
+  });
+  conEl.addEventListener('input', () => {
+    state.contrast = +conEl.value;
+    document.getElementById('conVal').textContent = state.contrast.toFixed(2);
+    saveState();
+  });
+  briEl.addEventListener('input', () => {
+    state.brightness = +briEl.value;
+    document.getElementById('briVal').textContent = state.brightness.toFixed(2);
+    saveState();
+  });
+  gliEl.addEventListener('input', () => {
+    state.glitch = +gliEl.value;
+    document.getElementById('gliVal').textContent = state.glitch + '%';
+    saveState();
+  });
+
+  document.getElementById('snap').addEventListener('click', e => { snapshot(); e.target.blur(); });
+  document.getElementById('rec').addEventListener('click', e => { toggleRecording(); e.target.blur(); });
+  document.getElementById('retry').addEventListener('click', startCamera);
+  document.getElementById('switchCam').addEventListener('click', e => { switchCamera(); e.target.blur(); });
+  document.getElementById('toggle').addEventListener('click', e => { hud.classList.toggle('hidden'); e.target.blur(); });
+
+  // Ripple 特效
+  document.querySelectorAll('.interactive').forEach(el => {
+    el.addEventListener('pointerdown', function(e) {
+      if (navigator.vibrate) navigator.vibrate(10);
+      const rect = this.getBoundingClientRect();
+      const x = e.clientX - rect.left, y = e.clientY - rect.top;
+      const size = Math.max(rect.width, rect.height);
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = x - size/2 + 'px'; ripple.style.top = y - size/2 + 'px';
+      this.appendChild(ripple); setTimeout(() => ripple.remove(), 600);
+    });
+  });
+
+  window.addEventListener('keydown', e => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (previewOverlay.classList.contains('show')) {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        closePreviewBtn.click();
+      }
+      return;
+    }
+    const k = e.key.toLowerCase();
+    if (k === 'h') hud.classList.toggle('hidden');
+    else if (e.code === 'Space') { e.preventDefault(); snapshot(); }
+    else if (k === 'r') toggleRecording();
+    else if (k === 'c') switchCamera();
+    else if (k === 'm') {
+      state.mirror = !state.mirror;
+      document.querySelector('#fxBtns [data-i="mirror"]').classList.toggle('on', state.mirror);
+      saveState();
+      toast('Mirror ' + (state.mirror ? 'ON' : 'OFF'));
+    }
+    else if ('123456'.includes(k)) {
+      const i = +k - 1;
+      if (i < CHARSETS.length) {
+        state.set = i;
+        document.querySelectorAll('#setBtns button').forEach((b, idx) => b.classList.toggle('on', idx === i));
+        saveState();
+      }
+    }
+    else if ('qwert'.includes(k)) {
+      const map = { q:0, w:1, e:2, r:3, t:4 };
+      const i = map[k];
+      if (i !== undefined) {
+        state.color = i;
+        document.querySelectorAll('#colBtns button').forEach((b, idx) => b.classList.toggle('on', idx === i));
+        saveState();
+      }
+    }
+  });
+
+  let touchStartDist = 0;
+  let touchStartSize = state.size;
+  let lastTap = 0;
+  window.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      touchStartDist = Math.hypot(dx, dy);
+      touchStartSize = state.size;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', e => {
+    if (e.touches.length === 2 && touchStartDist > 0) {
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const scale = dist / touchStartDist;
+      let newSize = Math.round(touchStartSize * scale);
+      newSize = Math.max(6, Math.min(28, newSize));
+      if (newSize !== state.size) {
+        state.size = newSize;
+        sizeEl.value = newSize;
+        document.getElementById('sizeVal').textContent = newSize + 'px';
+        setupGrid();
+        saveState();
+      }
+    }
+  }, { passive: false });
+
+  window.addEventListener('touchend', () => { touchStartDist = 0; });
+
+  window.addEventListener('touchend', e => {
+    if (e.touches.length === 0) {
+      const now = Date.now();
+      if (now - lastTap < 300 && e.target === screen) {
+        hud.classList.toggle('hidden');
+      }
+      lastTap = now;
+    }
+  }, { passive: true });
+
+  let rt;
+  const onResize = () => { clearTimeout(rt); rt = setTimeout(setupGrid, 120); };
+  window.addEventListener('resize', onResize);
+  window.addEventListener('orientationchange', () => {
+    clearTimeout(rt);
+    rt = setTimeout(setupGrid, 250);
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (video.srcObject && !video.paused) video.pause();
+    } else if (video.srcObject && video.paused && !useUploadedImage) {
+      video.play().catch(() => {});
+    }
+  });
+
+  loadState();
+  setupGrid();
+
+  function syncUI() {
+    sizeEl.value = state.size;
+    document.getElementById('sizeVal').textContent = state.size + 'px';
+    conEl.value = state.contrast;
+    document.getElementById('conVal').textContent = state.contrast.toFixed(2);
+    briEl.value = state.brightness;
+    document.getElementById('briVal').textContent = state.brightness.toFixed(2);
+    gliEl.value = state.glitch;
+    document.getElementById('gliVal').textContent = state.glitch + '%';
+
+    document.querySelectorAll('#setBtns button').forEach((b, idx) => b.classList.toggle('on', idx === state.set));
+    document.querySelectorAll('#colBtns button').forEach((b, idx) => b.classList.toggle('on', idx === state.color));
+    document.querySelectorAll('#fpsBtns button').forEach(b => b.classList.toggle('on', +b.dataset.i === state.fpsCap));
+    document.querySelectorAll('#fxBtns button').forEach(b => b.classList.toggle('on', !!state[b.dataset.i]));
+  }
+  syncUI();
+
+  requestAnimationFrame(loop);
+  startCamera();
+})();
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>ASCII CAM · Liquid Glass</title>
+<title>ASCII CAM · Liquid Glass Pro</title>
 <style>
 :root {
   --accent: #3b5bdb; --accent-2: #7048e8;
@@ -36,7 +36,6 @@ body {
   touch-action: manipulation;
 }
 
-/* 背景動畫 */
 .bg-stage { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: var(--bg-root); }
 .bg-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .6; animation: float 20s infinite alternate; }
 .bg-blob.b1 { left: -20vmax; top: -20vmax; background: radial-gradient(circle, #ff7aa8 0%, transparent 60%); }
@@ -44,7 +43,6 @@ body {
 .bg-blob.b3 { left: 30vw; top: 30vh; background: radial-gradient(circle, #ffce5c 0%, transparent 60%); animation-duration: 25s; }
 @keyframes float { 100% { transform: translate(5vw, 5vh) scale(1.1); } }
 
-/* 毛玻璃基礎 */
 .glass {
   background: linear-gradient(135deg, var(--glass-2-a), var(--glass-2-b));
   backdrop-filter: blur(var(--glass-blur)) saturate(180%); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -52,7 +50,6 @@ body {
   border-radius: var(--radius); position: relative; overflow: hidden;
 }
 
-/* 互動動畫核心 */
 .interactive {
   cursor: pointer; position: relative; overflow: hidden; user-select: none;
   transition: transform 0.2s var(--ease), box-shadow 0.3s var(--ease), background 0.3s;
@@ -65,17 +62,22 @@ body {
 html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
 @keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
 
-/* Canvas 全螢幕 */
 #screen { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; background: #000; z-index: 1; }
 #video { position: fixed; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 #sampler { display: none; }
 #uploader { display: none; }
 
-/* 暗角 */
 #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 5;
   background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(0,0,0,.5) 100%); }
 
-/* HUD 面板 */
+/* 網格疊加 */
+#gridOverlay { position: fixed; inset: 0; pointer-events: none; z-index: 6; display: none; }
+#gridOverlay.show { display: block; }
+#gridOverlay .line { position: absolute; background: rgba(255,255,255,0.25); }
+#gridOverlay .line.h { left: 0; right: 0; height: 1px; }
+#gridOverlay .line.v { top: 0; bottom: 0; width: 1px; }
+
+/* HUD */
 #hud {
   position: fixed; top: max(16px, env(safe-area-inset-top)); left: 16px;
   z-index: 10; width: 340px; max-width: calc(100vw - 32px);
@@ -88,13 +90,12 @@ html[data-theme="dark"] .ripple { background: rgba(255, 255, 255, 0.2); }
   margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid rgba(128,128,128,0.2); }
 #hud h1 span { font-size: 12px; color: var(--text-muted); font-weight: 700; }
 
-.grp { margin-bottom: 16px; }
+.grp { margin-bottom: 14px; }
 .lbl { font-size: 11px; letter-spacing: 0.5px; color: var(--text-muted);
   margin-bottom: 8px; display: flex; justify-content: space-between; font-weight: 800; text-transform: uppercase; }
 .lbl b { color: var(--accent); font-weight: 800; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; }
 
-/* 按鈕：Liquid Glass 風格 */
 button { font: inherit; cursor: pointer; touch-action: manipulation; user-select: none; }
 .btn-glass {
   font-size: 12px; font-weight: 700; color: var(--text);
@@ -121,14 +122,11 @@ button.rec {
 button.rec.recording { background: var(--err); color: #fff; animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
-/* Range 滑桿 */
 input[type=range] {
   -webkit-appearance: none; appearance: none; width: 100%; height: 32px;
   background: transparent; outline: none; touch-action: pan-y;
 }
-input[type=range]::-webkit-slider-runnable-track {
-  height: 6px; background: rgba(128,128,128,0.25); border-radius: var(--pill);
-}
+input[type=range]::-webkit-slider-runnable-track { height: 6px; background: rgba(128,128,128,0.25); border-radius: var(--pill); }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px;
   background: #fff; border: 2px solid var(--accent); border-radius: 50%;
@@ -136,9 +134,23 @@ input[type=range]::-webkit-slider-thumb {
 }
 html[data-theme="dark"] input[type=range]::-webkit-slider-thumb { background: var(--accent); border-color: #fff; }
 input[type=range]::-moz-range-track { height: 6px; background: rgba(128,128,128,0.25); border-radius: var(--pill); }
-input[type=range]::-moz-range-thumb {
-  width: 20px; height: 20px; background: #fff; border: 2px solid var(--accent);
-  border-radius: 50%; cursor: pointer;
+input[type=range]::-moz-range-thumb { width: 20px; height: 20px; background: #fff; border: 2px solid var(--accent); border-radius: 50%; cursor: pointer; }
+
+input[type=text], input[type=number] {
+  font: inherit; font-size: 12px; font-weight: 700; color: var(--text);
+  background: var(--glass-1-a); border: 1px solid var(--glass-border);
+  padding: 10px 14px; border-radius: var(--pill); outline: none; width: 100%;
+  transition: border-color 0.2s;
+}
+input[type=text]:focus, input[type=number]:focus { border-color: var(--accent); }
+
+select {
+  font: inherit; font-size: 12px; font-weight: 700; color: var(--text);
+  background: var(--glass-1-a); border: 1px solid var(--glass-border);
+  padding: 10px 14px; border-radius: var(--pill); outline: none; width: 100%;
+  cursor: pointer; -webkit-appearance: none; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235f617a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
 }
 
 #stats {
@@ -148,7 +160,6 @@ input[type=range]::-moz-range-thumb {
 }
 #hint { font-size: 10px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; font-weight: 600; }
 
-/* Toggle HUD */
 #toggle {
   position: fixed; top: max(16px, env(safe-area-inset-top)); right: 16px; z-index: 11;
   width: 52px; height: 52px; border-radius: 50%; padding: 0;
@@ -159,30 +170,62 @@ input[type=range]::-moz-range-thumb {
 }
 #toggle svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; }
 
-/* 手機版快門按鈕 */
+/* 底部工具列 */
+#bottomBar {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 40;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: var(--pill);
+  background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
+  border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow), var(--glass-inset);
+  backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+  max-width: calc(100vw - 32px);
+}
+#bottomBar .tool-btn {
+  width: 44px; height: 44px; border-radius: 50%; padding: 0;
+  background: var(--glass-1-a); border: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: center; color: var(--text);
+  transition: all 0.2s var(--ease); flex-shrink: 0;
+}
+#bottomBar .tool-btn:hover { background: var(--glass-2-a); }
+#bottomBar .tool-btn.on { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; }
+#bottomBar .tool-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+
 #shutterBtn {
-  position: fixed; bottom: 24px; right: 20px; z-index: 50;
-  width: 76px; height: 76px; border-radius: 50%;
+  width: 68px; height: 68px; border-radius: 50%; padding: 0;
   background: linear-gradient(135deg, var(--glass-3-a), var(--glass-3-b));
   border: 2px solid var(--glass-border);
   box-shadow: var(--glass-shadow), var(--glass-inset), 0 0 0 4px rgba(255,255,255,0.15);
   backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
   display: flex; align-items: center; justify-content: center;
-  transition: 0.2s var(--ease); cursor: pointer; padding: 0;
+  transition: 0.2s var(--ease); cursor: pointer; flex-shrink: 0;
 }
 #shutterBtn:active { transform: scale(0.9); }
 #shutterBtn .inner-ring {
-  display: block; width: 50px; height: 50px; border-radius: 50%;
+  display: block; width: 46px; height: 46px; border-radius: 50%;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 0 20px -4px var(--accent), inset 0 2px 0 rgba(255,255,255,0.4);
   position: relative;
 }
 #shutterBtn .inner-ring::after {
-  content: ''; position: absolute; inset: 8px; border-radius: 50%;
+  content: ''; position: absolute; inset: 7px; border-radius: 50%;
   background: #fff; opacity: 0.9;
 }
+#shutterBtn.counting .inner-ring {
+  background: linear-gradient(135deg, var(--err), #ff7aa8);
+}
 
-/* 拍照預覽浮層 */
+/* 倒數計時顯示 */
+#countdownDisplay {
+  position: fixed; inset: 0; z-index: 45; display: none;
+  align-items: center; justify-content: center; pointer-events: none;
+  font-size: 120px; font-weight: 900; color: #fff;
+  text-shadow: 0 0 40px rgba(0,0,0,0.8), 0 8px 24px rgba(0,0,0,0.5);
+}
+#countdownDisplay.show { display: flex; }
+#countdownDisplay .num { animation: countPop 0.6s var(--ease); }
+@keyframes countPop { 0% { transform: scale(1.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+/* 預覽浮層 */
 #previewOverlay {
   position: fixed; inset: 0; z-index: 100;
   background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -193,24 +236,19 @@ input[type=range]::-moz-range-thumb {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 #previewOverlay .preview-card {
   width: 100%; max-width: 460px; padding: 20px; display: flex; flex-direction: column; gap: 16px;
-  animation: popIn 0.5s var(--ease);
+  animation: popIn 0.5s var(--ease); max-height: 90vh; overflow-y: auto;
 }
 @keyframes popIn { from { opacity: 0; transform: scale(0.9) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 #previewOverlay img {
-  max-width: 100%; max-height: 60vh; border-radius: 16px; object-fit: contain;
+  max-width: 100%; max-height: 55vh; border-radius: 16px; object-fit: contain;
   border: 1px solid var(--glass-border); background: #000;
 }
-#previewOverlay .preview-actions { display: flex; gap: 12px; width: 100%; }
-#previewOverlay .preview-actions button { flex: 1; min-height: 48px; font-size: 14px; }
-#saveBtn {
-  background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff;
-  border: none; font-weight: 800; border-radius: var(--pill);
-  box-shadow: 0 8px 24px -6px var(--accent);
-}
-#closePreviewBtn {
-  background: var(--glass-1-a); color: var(--text); border: 1px solid var(--glass-border);
-  border-radius: var(--pill); font-weight: 700;
-}
+#previewOverlay .preview-actions { display: flex; gap: 12px; width: 100%; flex-wrap: wrap; }
+#previewOverlay .preview-actions button { flex: 1 1 calc(50% - 6px); min-height: 48px; font-size: 13px; }
+#saveBtn { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; border: none; font-weight: 800; border-radius: var(--pill); box-shadow: 0 8px 24px -6px var(--accent); }
+#shareBtn { background: rgba(16,185,129,0.15); color: var(--ok); border: 1px solid rgba(16,185,129,0.3); border-radius: var(--pill); font-weight: 800; }
+#closePreviewBtn { background: var(--glass-1-a); color: var(--text); border: 1px solid var(--glass-border); border-radius: var(--pill); font-weight: 700; }
+#downloadAsBtn { background: var(--glass-1-a); color: var(--text); border: 1px solid var(--glass-border); border-radius: var(--pill); font-weight: 700; flex: 1 1 100%; }
 
 /* 啟動覆蓋層 */
 #overlay {
@@ -241,12 +279,10 @@ input[type=range]::-moz-range-thumb {
   box-shadow: 0 8px 24px -6px var(--accent);
 }
 
-/* Flash 拍照閃光 */
 #flash { position: fixed; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 30; }
 #flash.go { animation: fl .35s ease-out; }
 @keyframes fl { 0% { opacity: .85; } 100% { opacity: 0; } }
 
-/* Toast */
 #toast {
   position: fixed; left: 50%; bottom: max(120px, env(safe-area-inset-bottom));
   transform: translate(-50%, 20px);
@@ -258,14 +294,38 @@ input[type=range]::-moz-range-thumb {
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-/* 上傳按鈕 */
-#uploadBtn {
-  width: 100%; margin-top: 4px; padding: 14px; border-radius: var(--pill);
-  background: var(--glass-1-a); color: var(--text); border: 1px solid var(--glass-border);
-  font-weight: 800; font-size: 13px; letter-spacing: 0.5px;
-  transition: all 0.2s var(--ease); backdrop-filter: blur(10px);
+/* 快捷鍵面板 */
+#shortcutsPanel {
+  position: fixed; inset: 0; z-index: 95;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  display: none; align-items: center; justify-content: center; padding: 20px;
 }
-#uploadBtn:hover { background: var(--glass-2-a); border-color: var(--accent); }
+#shortcutsPanel.show { display: flex; animation: fadeIn 0.3s; }
+#shortcutsPanel .card {
+  width: 100%; max-width: 420px; padding: 24px; max-height: 80vh; overflow-y: auto;
+  animation: popIn 0.5s var(--ease);
+}
+#shortcutsPanel h3 { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+#shortcutsPanel .sc-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; border-bottom: 1px solid rgba(128,128,128,0.15); }
+#shortcutsPanel .sc-row:last-child { border-bottom: none; }
+#shortcutsPanel .sc-key {
+  font-family: monospace; font-weight: 800; background: var(--glass-1-a);
+  padding: 2px 10px; border-radius: 8px; border: 1px solid var(--glass-border); font-size: 12px;
+}
+#shortcutsPanel .close-x {
+  position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--glass-1-a); border: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: center; color: var(--text);
+}
+
+/* 連拍張數設定 */
+.burst-indicator {
+  position: fixed; top: 50%; right: 16px; transform: translateY(-50%);
+  z-index: 45; padding: 8px 14px; border-radius: var(--pill);
+  background: var(--err); color: #fff; font-size: 13px; font-weight: 800;
+  display: none;
+}
+.burst-indicator.show { display: block; animation: popIn 0.3s; }
 
 @media (max-width: 600px) {
   #hud { top: max(12px, env(safe-area-inset-top)); left: 12px; width: calc(100vw - 24px); max-width: calc(100vw - 24px); padding: 16px; max-height: calc(100vh - 24px); }
@@ -275,17 +335,22 @@ input[type=range]::-moz-range-thumb {
   .btn-glass { font-size: 11px; padding: 9px 10px; min-height: 40px; }
   button.snap, button.rec { padding: 12px; font-size: 12px; }
   #toggle { top: max(12px, env(safe-area-inset-top)); right: 12px; width: 48px; height: 48px; }
-  #shutterBtn { bottom: 18px; right: 16px; width: 68px; height: 68px; }
-  #shutterBtn .inner-ring { width: 44px; height: 44px; }
+  #bottomBar { bottom: 16px; gap: 8px; padding: 8px 12px; }
+  #bottomBar .tool-btn { width: 40px; height: 40px; }
+  #bottomBar .tool-btn svg { width: 18px; height: 18px; }
+  #shutterBtn { width: 60px; height: 60px; }
+  #shutterBtn .inner-ring { width: 42px; height: 42px; }
   #toast { bottom: 100px; }
   #overlay .ring { width: 90px; height: 90px; margin-bottom: 24px; }
+  #countdownDisplay { font-size: 90px; }
 }
 @media (max-height: 520px) {
   #hud { top: 8px; left: 8px; padding: 12px; max-height: calc(100vh - 16px); }
   #hud h1 { font-size: 14px; margin-bottom: 10px; padding-bottom: 8px; }
   .grp { margin-bottom: 10px; }
   .btn-glass { min-height: 36px; padding: 7px 10px; font-size: 10px; }
-  #shutterBtn { bottom: 12px; right: 12px; width: 60px; height: 60px; }
+  #bottomBar { bottom: 10px; }
+  #shutterBtn { width: 54px; height: 54px; }
   #shutterBtn .inner-ring { width: 38px; height: 38px; }
 }
 </style>
@@ -303,33 +368,102 @@ input[type=range]::-moz-range-thumb {
 <canvas id="sampler"></canvas>
 <input type="file" id="uploader" accept="image/*">
 <div id="vignette"></div>
+<div id="gridOverlay">
+  <div class="line h" style="top: 33.33%"></div>
+  <div class="line h" style="top: 66.66%"></div>
+  <div class="line v" style="left: 33.33%"></div>
+  <div class="line v" style="left: 66.66%"></div>
+</div>
 <div id="flash"></div>
 <div id="toast"></div>
+<div id="countdownDisplay"><span class="num" id="countdownNum"></span></div>
+<div class="burst-indicator" id="burstIndicator"></div>
 
 <button id="toggle" class="interactive" title="Toggle HUD">
   <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
 </button>
 
-<button id="shutterBtn" class="interactive" title="Take snapshot">
-  <span class="inner-ring"></span>
-</button>
+<!-- 底部工具列 -->
+<div id="bottomBar">
+  <button class="tool-btn interactive" id="btnGrid" title="Grid Overlay">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+  </button>
+  <button class="tool-btn interactive" id="btnFlipH" title="Flip Horizontal">
+    <svg viewBox="0 0 24 24"><path d="M12 2v20M8 6l-4 6 4 6M16 6l4 6-4 6"/></svg>
+  </button>
+  <button class="tool-btn interactive" id="btnFlipV" title="Flip Vertical">
+    <svg viewBox="0 0 24 24"><path d="M2 12h20M6 8l6-4 6 4M6 16l6 4 6-4"/></svg>
+  </button>
+  <button id="shutterBtn" class="interactive" title="Take snapshot">
+    <span class="inner-ring"></span>
+  </button>
+  <button class="tool-btn interactive" id="btnTimer" title="Self-timer">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>
+  </button>
+  <button class="tool-btn interactive" id="btnBurst" title="Burst mode">
+    <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+  <button class="tool-btn interactive" id="btnShortcuts" title="Keyboard shortcuts">
+    <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h12"/></svg>
+  </button>
+</div>
 
+<!-- 預覽浮層 -->
 <div id="previewOverlay">
   <div class="preview-card glass">
     <img id="previewImg" alt="ASCII Snapshot">
     <div class="preview-actions">
       <button id="saveBtn" class="interactive">Save PNG</button>
+      <button id="shareBtn" class="interactive">Share</button>
+      <button id="downloadAsBtn" class="interactive">Download As…</button>
       <button id="closePreviewBtn" class="interactive">Close</button>
     </div>
   </div>
 </div>
 
+<!-- 快捷鍵面板 -->
+<div id="shortcutsPanel">
+  <div class="card glass">
+    <button class="close-x interactive" id="closeShortcuts">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <h3>Keyboard Shortcuts</h3>
+    <div class="sc-row"><span>Toggle HUD</span><span class="sc-key">H</span></div>
+    <div class="sc-row"><span>Snapshot</span><span class="sc-key">Space</span></div>
+    <div class="sc-row"><span>Record</span><span class="sc-key">R</span></div>
+    <div class="sc-row"><span>Switch Camera</span><span class="sc-key">C</span></div>
+    <div class="sc-row"><span>Mirror</span><span class="sc-key">M</span></div>
+    <div class="sc-row"><span>Toggle Grid</span><span class="sc-key">G</span></div>
+    <div class="sc-row"><span>Flip Horizontal</span><span class="sc-key">F</span></div>
+    <div class="sc-row"><span>Flip Vertical</span><span class="sc-key">V</span></div>
+    <div class="sc-row"><span>Charset</span><span class="sc-key">1-6</span></div>
+    <div class="sc-row"><span>Color Mode</span><span class="sc-key">Q/W/E/R/T</span></div>
+    <div class="sc-row"><span>Self-timer</span><span class="sc-key">T</span></div>
+    <div class="sc-row"><span>Fullscreen</span><span class="sc-key">S</span></div>
+  </div>
+</div>
+
+<!-- HUD -->
 <div id="hud" class="glass">
-  <h1>ASCII CAM <span>v2.5</span></h1>
+  <h1>ASCII CAM <span>v3.0</span></h1>
 
   <div class="grp">
-    <div class="lbl"><span>Upload Photo</span></div>
-    <button id="uploadBtn" class="interactive">Upload Image</button>
+    <div class="lbl"><span>Source</span></div>
+    <div class="row">
+      <button id="uploadBtn" class="btn-glass interactive" style="flex:1 1 100%">Upload Image</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Presets</span></div>
+    <div class="row" id="presetBtns">
+      <button data-p="default" class="btn-glass on">Default</button>
+      <button data-p="highcontrast" class="btn-glass">High Contrast</button>
+      <button data-p="soft" class="btn-glass">Soft</button>
+      <button data-p="cinematic" class="btn-glass">Cinematic</button>
+      <button data-p="retro" class="btn-glass">Retro</button>
+      <button data-p="night" class="btn-glass">Night</button>
+    </div>
   </div>
 
   <div class="grp">
@@ -376,6 +510,16 @@ input[type=range]::-moz-range-thumb {
   </div>
 
   <div class="grp">
+    <div class="lbl"><span>Saturation</span><b id="satVal">100%</b></div>
+    <input type="range" id="sat" min="0" max="200" step="5" value="100">
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Hue Shift</span><b id="hueVal">0°</b></div>
+    <input type="range" id="hue" min="-180" max="180" step="5" value="0">
+  </div>
+
+  <div class="grp">
     <div class="lbl"><span>Effects</span></div>
     <div class="row" id="fxBtns">
       <button data-i="mirror" class="btn-glass on">Mirror</button>
@@ -383,7 +527,14 @@ input[type=range]::-moz-range-thumb {
       <button data-i="invert" class="btn-glass">Invert</button>
       <button data-i="auto" class="btn-glass">Auto-Lvl</button>
       <button data-i="watermark" class="btn-glass">Watermark</button>
+      <button data-i="edge" class="btn-glass">Edge Detect</button>
+      <button data-i="blurBg" class="btn-glass">Blur BG</button>
     </div>
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Watermark Text</span></div>
+    <input type="text" id="wmText" placeholder="ASCII CAM" maxlength="40" value="ASCII CAM">
   </div>
 
   <div class="grp">
@@ -393,6 +544,16 @@ input[type=range]::-moz-range-thumb {
       <button data-i="24" class="btn-glass">24</button>
       <button data-i="30" class="btn-glass on">30</button>
       <button data-i="60" class="btn-glass">60</button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="lbl"><span>Resolution</span></div>
+    <div class="row" id="resBtns">
+      <button data-r="low" class="btn-glass">Low</button>
+      <button data-r="med" class="btn-glass on">Med</button>
+      <button data-r="high" class="btn-glass">High</button>
+      <button data-r="ultra" class="btn-glass">Ultra</button>
     </div>
   </div>
 
@@ -407,7 +568,7 @@ input[type=range]::-moz-range-thumb {
   <button class="rec interactive" id="rec">Record / Stop (WebM)</button>
 
   <div id="stats"><span id="fps">FPS --</span><span id="grid">GRID --</span></div>
-  <div id="hint">H: HUD · SPACE: snap · R: record · C: cam · M: mirror · 1-6: charset · Q/W/E/R/T: color</div>
+  <div id="hint">H: HUD · Space: snap · R: record · C: cam · M: mirror · G: grid · F: flip · 1-6: charset · Q/W/E/R/T: color</div>
 </div>
 
 <div id="overlay">
@@ -438,7 +599,14 @@ input[type=range]::-moz-range-thumb {
   const previewOverlay = document.getElementById('previewOverlay');
   const previewImg = document.getElementById('previewImg');
   const saveBtn = document.getElementById('saveBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  const downloadAsBtn = document.getElementById('downloadAsBtn');
   const closePreviewBtn = document.getElementById('closePreviewBtn');
+  const gridOverlay = document.getElementById('gridOverlay');
+  const countdownDisplay = document.getElementById('countdownDisplay');
+  const countdownNum = document.getElementById('countdownNum');
+  const burstIndicator = document.getElementById('burstIndicator');
+  const shortcutsPanel = document.getElementById('shortcutsPanel');
 
   const CHARSETS = [
     '@#$%=+*:-. ',
@@ -454,11 +622,32 @@ input[type=range]::-moz-range-thumb {
 
   const LUM_GAIN = 1.18;
 
+  const RESOLUTIONS = {
+    low: 8,
+    med: 12,
+    high: 18,
+    ultra: 24
+  };
+
+  const PRESETS = {
+    default: { contrast: 1.30, brightness: 0.70, glitch: 0, sat: 100, hue: 0, autoLevel: false },
+    highcontrast: { contrast: 2.2, brightness: 0.9, glitch: 0, sat: 120, hue: 0, autoLevel: false },
+    soft: { contrast: 0.9, brightness: 0.85, glitch: 0, sat: 90, hue: 0, autoLevel: false },
+    cinematic: { contrast: 1.6, brightness: 0.6, glitch: 0, sat: 80, hue: -15, autoLevel: true },
+    retro: { contrast: 1.4, brightness: 0.8, glitch: 8, sat: 110, hue: 10, autoLevel: false },
+    night: { contrast: 1.8, brightness: 0.5, glitch: 0, sat: 70, hue: -20, autoLevel: true }
+  };
+
   const state = {
     set: 0, color: 0, size: 12, contrast: 1.30, brightness: 0.70, glitch: 0,
+    saturation: 100, hueShift: 0,
     fpsCap: 30,
     mirror: true, scan: false, invert: false, autoLevel: false, watermark: false,
-    cols: 0, rows: 0, charW: 8, lineH: 12, W: 0, H: 0, dpr: 1
+    edge: false, blurBg: false,
+    flipH: false, flipV: false,
+    cols: 0, rows: 0, charW: 8, lineH: 12, W: 0, H: 0, dpr: 1,
+    watermarkText: 'ASCII CAM',
+    resolution: 'med'
   };
 
   const rgbCache = new Array(4096);
@@ -473,7 +662,16 @@ input[type=range]::-moz-range-thumb {
   let useUploadedImage = false;
   let lastSnapshotDataUrl = '';
 
-  const PERSIST_KEY = 'ascii-cam-v2.5';
+  // Self-timer
+  let selfTimer = 0; // 0 = off, else seconds
+  let countdownActive = false;
+
+  // Burst
+  let burstMode = false;
+  let burstCount = 3;
+  let burstRemaining = 0;
+
+  const PERSIST_KEY = 'ascii-cam-v3.0';
   function loadState() {
     try {
       const raw = localStorage.getItem(PERSIST_KEY);
@@ -488,7 +686,8 @@ input[type=range]::-moz-range-thumb {
     try {
       const toSave = {};
       ['set','color','size','contrast','brightness','glitch','fpsCap',
-       'mirror','scan','invert','autoLevel','watermark'].forEach(k => toSave[k] = state[k]);
+       'mirror','scan','invert','autoLevel','watermark','edge','blurBg',
+       'flipH','flipV','saturation','hueShift','resolution','watermarkText'].forEach(k => toSave[k] = state[k]);
       localStorage.setItem(PERSIST_KEY, JSON.stringify(toSave));
     } catch (e) { /* ignore */ }
   }
@@ -541,6 +740,46 @@ input[type=range]::-moz-range-thumb {
     return s;
   }
 
+  // HSL adjustments
+  function adjustColor(r, g, b) {
+    if (state.saturation === 100 && state.hueShift === 0) return [r, g, b];
+    // RGB to HSL
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) { h = s = 0; }
+    else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+    h = (h + state.hueShift / 360) % 1;
+    if (h < 0) h += 1;
+    s = Math.min(1, s * state.saturation / 100);
+    // HSL to RGB
+    function hue2rgb(p, q, t) {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    }
+    let r2, g2, b2;
+    if (s === 0) { r2 = g2 = b2 = l; }
+    else {
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r2 = hue2rgb(p, q, h + 1/3);
+      g2 = hue2rgb(p, q, h);
+      b2 = hue2rgb(p, q, h - 1/3);
+    }
+    return [Math.round(r2 * 255), Math.round(g2 * 255), Math.round(b2 * 255)];
+  }
+
   let autoLumMin = 0, autoLumMax = 1;
   function updateAutoLevel(data) {
     let min = 255, max = 0;
@@ -554,50 +793,59 @@ input[type=range]::-moz-range-thumb {
     autoLumMax = Math.max(0.35, max / 255);
   }
 
-  function sampleVideo() {
-    if (useUploadedImage && uploadedImage) {
-      const vw = uploadedImage.naturalWidth;
-      const vh = uploadedImage.naturalHeight;
-      if (!vw || !vh) return null;
-
-      const dstAspect = (state.cols * state.charW) / (state.rows * state.lineH);
-      const srcAspect = vw / vh;
-      let sx, sy, sw, sh;
-      if (srcAspect > dstAspect) {
-        sh = vh; sw = vh * dstAspect; sx = (vw - sw) / 2; sy = 0;
-      } else {
-        sw = vw; sh = vw / dstAspect; sx = 0; sy = (vh - sh) / 2;
-      }
-
-      sctx.save();
-      if (state.mirror) {
-        sctx.translate(state.cols, 0);
-        sctx.scale(-1, 1);
-      }
-      sctx.drawImage(uploadedImage, sx, sy, sw, sh, 0, 0, state.cols, state.rows);
-      sctx.restore();
-
-      return sctx.getImageData(0, 0, state.cols, state.rows).data;
+  // Edge detection (Sobel) on luminance
+  function computeEdgeMap(data, cols, rows) {
+    const lum = new Float32Array(cols * rows);
+    for (let i = 0, p = 0; i < lum.length; i++, p += 4) {
+      lum[i] = 0.2126 * data[p] + 0.7152 * data[p+1] + 0.0722 * data[p+2];
     }
+    const edges = new Float32Array(cols * rows);
+    for (let y = 1; y < rows - 1; y++) {
+      for (let x = 1; x < cols - 1; x++) {
+        const i = y * cols + x;
+        const gx = -lum[i - cols - 1] - 2 * lum[i - 1] - lum[i + cols - 1] +
+                    lum[i - cols + 1] + 2 * lum[i + 1] + lum[i + cols + 1];
+        const gy = -lum[i - cols - 1] - 2 * lum[i - cols] - lum[i - cols + 1] +
+                    lum[i + cols - 1] + 2 * lum[i + cols] + lum[i + cols + 1];
+        edges[i] = Math.min(255, Math.sqrt(gx * gx + gy * gy));
+      }
+    }
+    return edges;
+  }
 
-    const vw = video.videoWidth, vh = video.videoHeight;
-    if (!vw || !vh) return null;
+  function sampleVideo() {
+    let srcW, srcH, src;
+    if (useUploadedImage && uploadedImage) {
+      srcW = uploadedImage.naturalWidth;
+      srcH = uploadedImage.naturalHeight;
+      src = uploadedImage;
+    } else {
+      srcW = video.videoWidth;
+      srcH = video.videoHeight;
+      src = video;
+    }
+    if (!srcW || !srcH) return null;
 
     const dstAspect = (state.cols * state.charW) / (state.rows * state.lineH);
-    const srcAspect = vw / vh;
+    const srcAspect = srcW / srcH;
     let sx, sy, sw, sh;
     if (srcAspect > dstAspect) {
-      sh = vh; sw = vh * dstAspect; sx = (vw - sw) / 2; sy = 0;
+      sh = srcH; sw = srcH * dstAspect; sx = (srcW - sw) / 2; sy = 0;
     } else {
-      sw = vw; sh = vw / dstAspect; sx = 0; sy = (vh - sh) / 2;
+      sw = srcW; sh = srcW / dstAspect; sx = 0; sy = (srcH - sh) / 2;
     }
 
     sctx.save();
-    if (state.mirror) {
-      sctx.translate(state.cols, 0);
-      sctx.scale(-1, 1);
+    // Mirror + flip
+    let scaleX = 1, scaleY = 1;
+    if (state.mirror) scaleX *= -1;
+    if (state.flipH) scaleX *= -1;
+    if (state.flipV) scaleY *= -1;
+    if (scaleX !== 1 || scaleY !== 1) {
+      sctx.translate(scaleX < 0 ? state.cols : 0, scaleY < 0 ? state.rows : 0);
+      sctx.scale(scaleX, scaleY);
     }
-    sctx.drawImage(video, sx, sy, sw, sh, 0, 0, state.cols, state.rows);
+    sctx.drawImage(src, sx, sy, sw, sh, 0, 0, state.cols, state.rows);
     sctx.restore();
 
     return sctx.getImageData(0, 0, state.cols, state.rows).data;
@@ -638,10 +886,47 @@ input[type=range]::-moz-range-thumb {
     const aMin = autoLumMin, aMax = autoLumMax;
     const aRange = Math.max(0.0001, aMax - aMin);
 
+    // Edge map (if enabled)
+    let edgeMap = null;
+    if (state.edge) {
+      edgeMap = computeEdgeMap(data, cols, rows);
+    }
+
+    // Blur BG (if enabled) — pre-compute simple box blur of luminance
+    let blurMap = null;
+    if (state.blurBg) {
+      const lum = new Float32Array(cols * rows);
+      for (let i = 0, pp = 0; i < lum.length; i++, pp += 4) {
+        lum[i] = 0.2126 * data[pp] + 0.7152 * data[pp+1] + 0.0722 * data[pp+2];
+      }
+      blurMap = new Float32Array(cols * rows);
+      const R = 3;
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          let sum = 0, cnt = 0;
+          for (let dy = -R; dy <= R; dy++) {
+            for (let dx = -R; dx <= R; dx++) {
+              const nx = x + dx, ny = y + dy;
+              if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+                sum += lum[ny * cols + nx]; cnt++;
+              }
+            }
+          }
+          blurMap[y * cols + x] = sum / cnt;
+        }
+      }
+    }
+
     for (let y = 0; y < rows; y++) {
       const py = y * lineH;
       for (let x = 0; x < cols; x++, p += 4) {
-        const r = data[p], g = data[p + 1], b = data[p + 2];
+        let r = data[p], g = data[p + 1], b = data[p + 2];
+
+        // Hue / saturation adjustment
+        if (state.saturation !== 100 || state.hueShift !== 0) {
+          const adj = adjustColor(r, g, b);
+          r = adj[0]; g = adj[1]; b = adj[2];
+        }
 
         let l = ((0.2126 * r + 0.7152 * g + 0.0722 * b) / 255) * LUM_GAIN;
         if (l > 1) l = 1;
@@ -649,6 +934,18 @@ input[type=range]::-moz-range-thumb {
         if (state.autoLevel) {
           l = (l - aMin) / aRange;
           l = l < 0 ? 0 : l > 1 ? 1 : l;
+        }
+
+        // Edge detection: boost contrast at edges
+        if (edgeMap) {
+          const e = edgeMap[y * cols + x] / 255;
+          l = Math.min(1, l + e * 0.8);
+        }
+
+        // Blur BG: darken blurred (background) areas
+        if (blurMap) {
+          const bl = blurMap[y * cols + x] / 255;
+          l = l * (0.3 + 0.7 * bl);
         }
 
         l = Math.pow(l, gamma);
@@ -703,7 +1000,8 @@ input[type=range]::-moz-range-thumb {
       ctx.font = Math.max(10, state.size * 0.8) + 'px ' + FONT_FAMILY;
       ctx.textBaseline = 'bottom';
       ctx.fillStyle = 'rgba(255,255,255,0.75)';
-      ctx.fillText('ASCII CAM · ' + ts, 12, state.H - 12);
+      const wmText = (state.watermarkText || 'ASCII CAM') + ' · ' + ts;
+      ctx.fillText(wmText, 12, state.H - 12);
       ctx.textBaseline = 'top';
     }
   }
@@ -808,7 +1106,8 @@ input[type=range]::-moz-range-thumb {
     uploader.value = '';
   });
 
-  function snapshot() {
+  // ---- Snapshot logic ----
+  function doSnapshot() {
     if (!started && !useUploadedImage) return;
     flashEl.classList.remove('go');
     void flashEl.offsetWidth;
@@ -827,6 +1126,65 @@ input[type=range]::-moz-range-thumb {
     }
   }
 
+  function startCountdownThenSnapshot() {
+    if (countdownActive) return;
+    const secs = selfTimer;
+    if (secs <= 0) {
+      doSnapshot();
+      return;
+    }
+    countdownActive = true;
+    shutterBtn.classList.add('counting');
+    let remaining = secs;
+    countdownNum.textContent = remaining;
+    countdownDisplay.classList.add('show');
+    if (navigator.vibrate) navigator.vibrate(50);
+    const iv = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(iv);
+        countdownDisplay.classList.remove('show');
+        countdownActive = false;
+        shutterBtn.classList.remove('counting');
+        doSnapshot();
+        if (burstMode) startBurst();
+      } else {
+        countdownNum.textContent = remaining;
+        countdownNum.style.animation = 'none';
+        void countdownNum.offsetWidth;
+        countdownNum.style.animation = 'countPop 0.6s var(--ease)';
+        if (navigator.vibrate) navigator.vibrate(30);
+      }
+    }, 1000);
+  }
+
+  function startBurst() {
+    if (burstRemaining > 0) return;
+    burstRemaining = burstCount;
+    burstIndicator.textContent = 'BURST ' + burstRemaining;
+    burstIndicator.classList.add('show');
+    setTimeout(() => {
+      burstRemaining--;
+      if (burstRemaining <= 0) {
+        burstIndicator.classList.remove('show');
+        // final snapshot stored
+        return;
+      }
+      burstIndicator.textContent = 'BURST ' + burstRemaining;
+      doSnapshot();
+      startBurst();
+    }, 600);
+  }
+
+  function snapshot() {
+    if (!started && !useUploadedImage) return;
+    if (burstMode) {
+      startBurst();
+    } else {
+      startCountdownThenSnapshot();
+    }
+  }
+
   saveBtn.addEventListener('click', () => {
     if (!lastSnapshotDataUrl) return;
     const a = document.createElement('a');
@@ -839,6 +1197,47 @@ input[type=range]::-moz-range-thumb {
     a.click();
     a.remove();
     toast('Snapshot saved');
+  });
+
+  shareBtn.addEventListener('click', async () => {
+    if (!lastSnapshotDataUrl) return;
+    try {
+      const blob = await (await fetch(lastSnapshotDataUrl)).blob();
+      const file = new File([blob], 'ascii-cam.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'ASCII CAM' });
+        toast('Shared');
+      } else {
+        toast('Share not supported');
+      }
+    } catch (e) {
+      if (e.name !== 'AbortError') toast('Share failed');
+    }
+  });
+
+  downloadAsBtn.addEventListener('click', () => {
+    if (!lastSnapshotDataUrl) return;
+    const choice = prompt('Download format: png / jpeg / webp', 'png');
+    if (!choice) return;
+    const fmt = choice.toLowerCase();
+    if (!['png', 'jpeg', 'webp'].includes(fmt)) { toast('Unsupported format'); return; }
+    const img = new Image();
+    img.onload = () => {
+      const tmp = document.createElement('canvas');
+      tmp.width = img.width; tmp.height = img.height;
+      const tctx = tmp.getContext('2d');
+      if (fmt === 'jpeg') { tctx.fillStyle = '#000'; tctx.fillRect(0, 0, tmp.width, tmp.height); }
+      tctx.drawImage(img, 0, 0);
+      const url = tmp.toDataURL('image/' + fmt, 0.92);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ascii-cam.' + (fmt === 'jpeg' ? 'jpg' : fmt);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      toast('Downloaded as ' + fmt.toUpperCase());
+    };
+    img.src = lastSnapshotDataUrl;
   });
 
   closePreviewBtn.addEventListener('click', () => {
@@ -855,16 +1254,11 @@ input[type=range]::-moz-range-thumb {
     shutterBtn.blur();
   });
 
+  // ---- Recording ----
   function toggleRecording() {
     if (!started && !useUploadedImage) return;
-    if (!window.MediaRecorder) {
-      toast('Rec not supported');
-      return;
-    }
-    if (recording) {
-      stopRecording();
-      return;
-    }
+    if (!window.MediaRecorder) { toast('Rec not supported'); return; }
+    if (recording) { stopRecording(); return; }
     try {
       const streamToRec = screen.captureStream(state.fpsCap);
       const mimeCandidates = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
@@ -915,6 +1309,7 @@ input[type=range]::-moz-range-thumb {
     }
   }
 
+  // ---- UI wiring ----
   function bindGroup(id, key, cast = Number) {
     const wrap = document.getElementById(id);
     wrap.addEventListener('click', e => {
@@ -930,6 +1325,43 @@ input[type=range]::-moz-range-thumb {
   bindGroup('colBtns', 'color');
   bindGroup('fpsBtns', 'fpsCap');
 
+  // Resolution presets
+  document.getElementById('resBtns').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    state.resolution = b.dataset.r;
+    state.size = RESOLUTIONS[state.resolution];
+    document.getElementById('size').value = state.size;
+    document.getElementById('sizeVal').textContent = state.size + 'px';
+    document.querySelectorAll('#resBtns button').forEach(x => x.classList.toggle('on', x === b));
+    setupGrid();
+    saveState();
+    b.blur();
+  });
+
+  // Presets
+  document.getElementById('presetBtns').addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const p = PRESETS[b.dataset.p];
+    if (!p) return;
+    Object.assign(state, p);
+    document.getElementById('con').value = state.contrast;
+    document.getElementById('conVal').textContent = state.contrast.toFixed(2);
+    document.getElementById('bri').value = state.brightness;
+    document.getElementById('briVal').textContent = state.brightness.toFixed(2);
+    document.getElementById('gli').value = state.glitch;
+    document.getElementById('gliVal').textContent = state.glitch + '%';
+    document.getElementById('sat').value = state.saturation;
+    document.getElementById('satVal').textContent = state.saturation + '%';
+    document.getElementById('hue').value = state.hueShift;
+    document.getElementById('hueVal').textContent = state.hueShift + '°';
+    document.querySelectorAll('#presetBtns button').forEach(x => x.classList.toggle('on', x === b));
+    saveState();
+    b.blur();
+    toast('Preset: ' + b.textContent);
+  });
+
   const fxWrap = document.getElementById('fxBtns');
   fxWrap.addEventListener('click', e => {
     const b = e.target.closest('button');
@@ -939,12 +1371,15 @@ input[type=range]::-moz-range-thumb {
     b.classList.toggle('on', state[key]);
     b.blur();
     saveState();
+    if (key === 'blurBg') toast('Blur BG: ' + (state.blurBg ? 'ON' : 'OFF'));
   });
 
   const sizeEl = document.getElementById('size');
   const conEl = document.getElementById('con');
   const briEl = document.getElementById('bri');
   const gliEl = document.getElementById('gli');
+  const satEl = document.getElementById('sat');
+  const hueEl = document.getElementById('hue');
 
   sizeEl.addEventListener('input', () => {
     state.size = +sizeEl.value;
@@ -967,6 +1402,21 @@ input[type=range]::-moz-range-thumb {
     document.getElementById('gliVal').textContent = state.glitch + '%';
     saveState();
   });
+  satEl.addEventListener('input', () => {
+    state.saturation = +satEl.value;
+    document.getElementById('satVal').textContent = state.saturation + '%';
+    saveState();
+  });
+  hueEl.addEventListener('input', () => {
+    state.hueShift = +hueEl.value;
+    document.getElementById('hueVal').textContent = state.hueShift + '°';
+    saveState();
+  });
+
+  document.getElementById('wmText').addEventListener('input', e => {
+    state.watermarkText = e.target.value || 'ASCII CAM';
+    saveState();
+  });
 
   document.getElementById('snap').addEventListener('click', e => { snapshot(); e.target.blur(); });
   document.getElementById('rec').addEventListener('click', e => { toggleRecording(); e.target.blur(); });
@@ -974,7 +1424,53 @@ input[type=range]::-moz-range-thumb {
   document.getElementById('switchCam').addEventListener('click', e => { switchCamera(); e.target.blur(); });
   document.getElementById('toggle').addEventListener('click', e => { hud.classList.toggle('hidden'); e.target.blur(); });
 
-  // Ripple 特效
+  // Bottom bar tools
+  document.getElementById('btnGrid').addEventListener('click', e => {
+    gridOverlay.classList.toggle('show');
+    e.currentTarget.classList.toggle('on', gridOverlay.classList.contains('show'));
+    e.currentTarget.blur();
+    toast('Grid: ' + (gridOverlay.classList.contains('show') ? 'ON' : 'OFF'));
+  });
+  document.getElementById('btnFlipH').addEventListener('click', e => {
+    state.flipH = !state.flipH;
+    e.currentTarget.classList.toggle('on', state.flipH);
+    saveState();
+    e.currentTarget.blur();
+    toast('Flip H: ' + (state.flipH ? 'ON' : 'OFF'));
+  });
+  document.getElementById('btnFlipV').addEventListener('click', e => {
+    state.flipV = !state.flipV;
+    e.currentTarget.classList.toggle('on', state.flipV);
+    saveState();
+    e.currentTarget.blur();
+    toast('Flip V: ' + (state.flipV ? 'ON' : 'OFF'));
+  });
+  document.getElementById('btnTimer').addEventListener('click', e => {
+    const opts = [0, 3, 5, 10];
+    const idx = opts.indexOf(selfTimer);
+    selfTimer = opts[(idx + 1) % opts.length];
+    e.currentTarget.classList.toggle('on', selfTimer > 0);
+    e.currentTarget.blur();
+    toast(selfTimer ? 'Timer: ' + selfTimer + 's' : 'Timer: OFF');
+  });
+  document.getElementById('btnBurst').addEventListener('click', e => {
+    burstMode = !burstMode;
+    e.currentTarget.classList.toggle('on', burstMode);
+    e.currentTarget.blur();
+    toast('Burst: ' + (burstMode ? 'ON (' + burstCount + ' shots)' : 'OFF'));
+  });
+  document.getElementById('btnShortcuts').addEventListener('click', e => {
+    shortcutsPanel.classList.add('show');
+    e.currentTarget.blur();
+  });
+  document.getElementById('closeShortcuts').addEventListener('click', () => {
+    shortcutsPanel.classList.remove('show');
+  });
+  shortcutsPanel.addEventListener('click', e => {
+    if (e.target === shortcutsPanel) shortcutsPanel.classList.remove('show');
+  });
+
+  // Ripple
   document.querySelectorAll('.interactive').forEach(el => {
     el.addEventListener('pointerdown', function(e) {
       if (navigator.vibrate) navigator.vibrate(10);
@@ -989,12 +1485,15 @@ input[type=range]::-moz-range-thumb {
     });
   });
 
+  // ---- Keyboard ----
   window.addEventListener('keydown', e => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (previewOverlay.classList.contains('show')) {
-      if (e.key === 'Escape' || e.key === 'Esc') {
-        closePreviewBtn.click();
-      }
+      if (e.key === 'Escape' || e.key === 'Esc') closePreviewBtn.click();
+      return;
+    }
+    if (shortcutsPanel.classList.contains('show')) {
+      if (e.key === 'Escape' || e.key === 'Esc') shortcutsPanel.classList.remove('show');
       return;
     }
     const k = e.key.toLowerCase();
@@ -1007,6 +1506,36 @@ input[type=range]::-moz-range-thumb {
       document.querySelector('#fxBtns [data-i="mirror"]').classList.toggle('on', state.mirror);
       saveState();
       toast('Mirror ' + (state.mirror ? 'ON' : 'OFF'));
+    }
+    else if (k === 'g') {
+      gridOverlay.classList.toggle('show');
+      document.getElementById('btnGrid').classList.toggle('on', gridOverlay.classList.contains('show'));
+    }
+    else if (k === 'f') {
+      state.flipH = !state.flipH;
+      document.getElementById('btnFlipH').classList.toggle('on', state.flipH);
+      saveState();
+      toast('Flip H: ' + (state.flipH ? 'ON' : 'OFF'));
+    }
+    else if (k === 'v') {
+      state.flipV = !state.flipV;
+      document.getElementById('btnFlipV').classList.toggle('on', state.flipV);
+      saveState();
+      toast('Flip V: ' + (state.flipV ? 'ON' : 'OFF'));
+    }
+    else if (k === 't') {
+      const opts = [0, 3, 5, 10];
+      const idx = opts.indexOf(selfTimer);
+      selfTimer = opts[(idx + 1) % opts.length];
+      document.getElementById('btnTimer').classList.toggle('on', selfTimer > 0);
+      toast(selfTimer ? 'Timer: ' + selfTimer + 's' : 'Timer: OFF');
+    }
+    else if (k === 's') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen && document.exitFullscreen();
+      }
     }
     else if ('123456'.includes(k)) {
       const i = +k - 1;
@@ -1027,6 +1556,7 @@ input[type=range]::-moz-range-thumb {
     }
   });
 
+  // ---- Touch gestures ----
   let touchStartDist = 0;
   let touchStartSize = state.size;
   let lastTap = 0;
@@ -1070,6 +1600,7 @@ input[type=range]::-moz-range-thumb {
     }
   }, { passive: true });
 
+  // ---- Resize ----
   let rt;
   const onResize = () => { clearTimeout(rt); rt = setTimeout(setupGrid, 120); };
   window.addEventListener('resize', onResize);
@@ -1086,6 +1617,7 @@ input[type=range]::-moz-range-thumb {
     }
   });
 
+  // ---- Boot ----
   loadState();
   setupGrid();
 
@@ -1098,11 +1630,19 @@ input[type=range]::-moz-range-thumb {
     document.getElementById('briVal').textContent = state.brightness.toFixed(2);
     gliEl.value = state.glitch;
     document.getElementById('gliVal').textContent = state.glitch + '%';
+    satEl.value = state.saturation;
+    document.getElementById('satVal').textContent = state.saturation + '%';
+    hueEl.value = state.hueShift;
+    document.getElementById('hueVal').textContent = state.hueShift + '°';
+    document.getElementById('wmText').value = state.watermarkText;
 
     document.querySelectorAll('#setBtns button').forEach((b, idx) => b.classList.toggle('on', idx === state.set));
     document.querySelectorAll('#colBtns button').forEach((b, idx) => b.classList.toggle('on', idx === state.color));
     document.querySelectorAll('#fpsBtns button').forEach(b => b.classList.toggle('on', +b.dataset.i === state.fpsCap));
+    document.querySelectorAll('#resBtns button').forEach(b => b.classList.toggle('on', b.dataset.r === state.resolution));
     document.querySelectorAll('#fxBtns button').forEach(b => b.classList.toggle('on', !!state[b.dataset.i]));
+    document.getElementById('btnFlipH').classList.toggle('on', state.flipH);
+    document.getElementById('btnFlipV').classList.toggle('on', state.flipV);
   }
   syncUI();
 
